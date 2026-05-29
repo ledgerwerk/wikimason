@@ -4,7 +4,7 @@ import posixpath
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 from .config import WikiMasonConfig, load_runtime_config
 from .errors import UsageError
@@ -56,17 +56,18 @@ class _OutlineBlock:
 
 
 class PageProfile(Protocol):
-    name: str
+    @property
+    def name(self) -> str: ...
 
     def logical_to_relpath(self, ref: PageRef) -> str: ...
 
     def relpath_to_ref(self, relpath: str) -> PageRef | None: ...
 
-    def split_text(self, text: str) -> tuple[dict[str, object], str]: ...
+    def split_text(self, text: str) -> tuple[dict[str, Any], str]: ...
 
-    def render_text(self, metadata: dict[str, object], body: str) -> str: ...
+    def render_text(self, metadata: dict[str, Any], body: str) -> str: ...
 
-    def update_text(self, text: str, updates: dict[str, object]) -> str: ...
+    def update_text(self, text: str, updates: dict[str, Any]) -> str: ...
 
 
 @dataclass(frozen=True)
@@ -84,16 +85,16 @@ class YamlPageProfile:
             return None
         return PageRef(normalized.removesuffix(".md"))
 
-    def split_text(self, text: str) -> tuple[dict[str, object], str]:
+    def split_text(self, text: str) -> tuple[dict[str, Any], str]:
         return split_frontmatter(text)
 
-    def render_text(self, metadata: dict[str, object], body: str) -> str:
+    def render_text(self, metadata: dict[str, Any], body: str) -> str:
         clean_body = body.lstrip("\n")
         if clean_body:
             return f"{render_frontmatter(metadata)}\n\n{clean_body.rstrip()}\n"
         return f"{render_frontmatter(metadata)}\n"
 
-    def update_text(self, text: str, updates: dict[str, object]) -> str:
+    def update_text(self, text: str, updates: dict[str, Any]) -> str:
         data, body = self.split_text(text)
         merged = dict(data)
         merged.update(updates)
@@ -127,9 +128,9 @@ class LogseqPageProfile:
             return None
         return PageRef("/".join(parts))
 
-    def split_text(self, text: str) -> tuple[dict[str, object], str]:
+    def split_text(self, text: str) -> tuple[dict[str, Any], str]:
         lines = text.splitlines()
-        metadata: dict[str, object] = {}
+        metadata: dict[str, Any] = {}
         index = 0
         while index < len(lines):
             line = lines[index]
@@ -146,7 +147,7 @@ class LogseqPageProfile:
         body = _logseq_blocks_to_markdown(lines[index:])
         return metadata, body
 
-    def render_text(self, metadata: dict[str, object], body: str) -> str:
+    def render_text(self, metadata: dict[str, Any], body: str) -> str:
         property_lines = _render_logseq_properties(metadata)
         body_lines = _markdown_to_logseq_blocks(body)
         parts: list[str] = []
@@ -157,7 +158,7 @@ class LogseqPageProfile:
         parts.extend(body_lines)
         return ("\n".join(parts).rstrip() + "\n") if parts else ""
 
-    def update_text(self, text: str, updates: dict[str, object]) -> str:
+    def update_text(self, text: str, updates: dict[str, Any]) -> str:
         data, body = self.split_text(text)
         merged = dict(data)
         merged.update(updates)
@@ -184,13 +185,13 @@ def profile_for_vault(
 
 def split_page_text(
     text: str, *, config: WikiMasonConfig | None = None, vault: Path | None = None
-) -> tuple[dict[str, object], str]:
+) -> tuple[dict[str, Any], str]:
     active_config = _require_config(config=config, vault=vault)
     return profile_for_config(active_config).split_text(text)
 
 
 def render_page_text(
-    metadata: dict[str, object],
+    metadata: dict[str, Any],
     body: str,
     *,
     config: WikiMasonConfig | None = None,
@@ -202,7 +203,7 @@ def render_page_text(
 
 def update_page_text(
     text: str,
-    updates: dict[str, object],
+    updates: dict[str, Any],
     *,
     config: WikiMasonConfig | None = None,
     vault: Path | None = None,
@@ -260,7 +261,7 @@ def _parse_logseq_property(name: str, value: str) -> object:
     return value
 
 
-def _render_logseq_properties(metadata: dict[str, object]) -> list[str]:
+def _render_logseq_properties(metadata: dict[str, Any]) -> list[str]:
     preferred = [
         "title",
         "summary",

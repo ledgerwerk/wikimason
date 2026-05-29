@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
 from .config import load_runtime_config
 from .lint_credentials import check_credentials
@@ -81,13 +82,13 @@ def lint_file(
 def _validate_page_contract(
     vault: Path,
     rel: str,
-    data: dict[str, object],
+    data: dict[str, Any],
     body: str,
     link_targets: set[str],
-    findings: list,
+    findings: list[Any],
     *,
     strict: bool,
-    schema,
+    schema: Any,
 ) -> None:
     """Shared schema-driven page contract checks for all profiles."""
     from .lint import LintFinding
@@ -230,13 +231,13 @@ def check_logseq_profile(rel: str, text: str, findings: list) -> None:
                     path=rel,
                     line=i,
                     code="logseq_block_format",
-                    message="line does not start with Logseq block marker (-), heading (#), or code fence (```)",
+                    message="line does not start with Logseq block marker (-), heading (#), or code fence (```)",  # noqa: E501
                 )
             )
 
 
 def check_obsidian_profile(
-    rel: str, text: str, data: dict[str, object], findings: list
+    rel: str, text: str, data: dict[str, Any], findings: list
 ) -> None:
     """Obsidian-specific lint checks."""
     from .lint import LintFinding

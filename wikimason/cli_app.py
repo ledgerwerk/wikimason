@@ -6,6 +6,8 @@ All command logic lives in ``cli_groups/`` and ``cli_helpers.py``.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import typer
 
 from .cli_state import CliState
@@ -46,7 +48,11 @@ def main_callback(
 ) -> None:
     """Global callback: initialises CliState on the context."""
     ctx.ensure_object(dict)
-    ctx.obj = CliState(env=env, config_path=config, vault=vault)
+    ctx.obj = CliState(
+        env=env,
+        config_path=Path(config) if config else None,
+        vault=Path(vault) if vault else None,
+    )
 
 
 # ---------------------------------------------------------------------------

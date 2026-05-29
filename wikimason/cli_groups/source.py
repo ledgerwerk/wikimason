@@ -81,7 +81,7 @@ def register_source(app: typer.Typer) -> None:
             raise typer.Exit(1)
         assert payload is not None
         text = _delta_text(payload["delta"])
-        exit_code = 2 if int(payload["actionable_count"]) > 0 else 0
+        exit_code = 2 if int(str(payload["actionable_count"])) > 0 else 0
         raise typer.Exit(emit(payload, text, fmt, exit_code=exit_code))
 
     @_source_app.command("migrate-frontmatter")
@@ -149,7 +149,7 @@ def register_source(app: typer.Typer) -> None:
             raise typer.Exit(1)
         assert payload is not None
         text = _delta_text(payload["delta"])
-        exit_code = 2 if int(payload["actionable_count"]) > 0 else 0
+        exit_code = 2 if int(str(payload["actionable_count"])) > 0 else 0
         raise typer.Exit(emit(payload, text, fmt, exit_code=exit_code))
 
     @_source_app.command("coverage")

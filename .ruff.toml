@@ -18,6 +18,8 @@ exclude = ["setup/*", "notebooks/*"]
 [lint.per-file-ignores]
 "__init__.py" = ["F401", "I001"]  # ignore unused and unsorted imports in __init__.py
 "__manifest__.py" = ["B018"]  # useless expression
+"wikimason/cli_groups/*.py" = ["B008"]  # typer.Argument/Option in defaults
+"wikimason/cli_app.py" = ["E402"]  # late imports after app setup
 
 [lint.isort]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]

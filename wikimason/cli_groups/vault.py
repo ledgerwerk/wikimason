@@ -129,7 +129,7 @@ def register_vault(app: typer.Typer) -> None:
             print("\n".join(delta_errors))
             raise typer.Exit(1)
         assert delta_payload is not None
-        if int(delta_payload["actionable_count"]) > 0:
+        if int(str(delta_payload["actionable_count"])) > 0:
             raise typer.Exit(
                 emit(
                     {

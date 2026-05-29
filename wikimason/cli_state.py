@@ -4,7 +4,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from .context import resolve_context
+from .context import WikiContext, resolve_context
 
 
 @dataclass
@@ -18,7 +18,9 @@ def resolve_vault(state: CliState) -> Path:
     return resolve_context_from_state(state, emit_diagnostics=True).root
 
 
-def resolve_context_from_state(state: CliState, *, emit_diagnostics: bool):
+def resolve_context_from_state(
+    state: CliState, *, emit_diagnostics: bool
+) -> WikiContext:  # noqa: E501
     context = resolve_context(
         vault=str(state.vault) if state.vault else None,
         env=state.env,

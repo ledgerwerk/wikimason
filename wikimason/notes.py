@@ -4,6 +4,7 @@ import json
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
+from typing import Any
 
 from .config import load_runtime_config
 from .errors import UsageError
@@ -162,7 +163,7 @@ def _load_note_template(vault: Path, name: str, kind: str) -> str:
 
 
 def _finalize_rendered_note(
-    rendered: str, default_data: dict[str, object], *, config
+    rendered: str, default_data: dict[str, Any], *, config: Any
 ) -> str:
     text = rendered.rstrip() + "\n"
     if text.startswith("---\n"):
@@ -187,7 +188,7 @@ def _finalize_rendered_note(
     return render_page_text(normalized, body_text, config=config)
 
 
-def normalize_note(vault: Path, note_path: str, fix: bool = False) -> dict[str, object]:
+def normalize_note(vault: Path, note_path: str, fix: bool = False) -> dict[str, Any]:
     path = resolve_path_in_vault(vault, note_path)
     if not path.exists():
         raise UsageError(f"note not found: {note_path}")
@@ -195,7 +196,7 @@ def normalize_note(vault: Path, note_path: str, fix: bool = False) -> dict[str, 
     text = path.read_text(encoding="utf-8")
     data, body = split_page_text(text, config=config)
     sources = _normalize_sources_field(vault, data.get("sources", []))
-    updates: dict[str, object] = {}
+    updates: dict[str, Any] = {}
     if sources != data.get("sources", []):
         updates["sources"] = sources
     if int(data.get("source_count", 0)) != len(sources):
@@ -318,7 +319,9 @@ def source_body_lines(
     )
 
 
-def format_note_link(link_config, path: str, *, source_path: str | None = None) -> str:
+def format_note_link(
+    link_config: Any, path: str, *, source_path: str | None = None
+) -> str:  # noqa: E501
     normalized = (normalize_internal_link_target(path) or path).replace("\\", "/")
     return format_link(link_config, normalized, source_path=source_path)
 

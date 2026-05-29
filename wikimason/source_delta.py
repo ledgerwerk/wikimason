@@ -3,20 +3,21 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from .source_manifest import load_source_manifest
 from .source_scan import source_scan_payload
 
 
-def source_delta(vault: Path) -> tuple[dict[str, object] | None, list[str]]:
+def source_delta(vault: Path) -> tuple[dict[str, Any] | None, list[str]]:
     payload, errors = source_scan_payload(vault, update=False, accept_covered=False)
     if payload is None:
         return None, errors
     old_manifest, manifest_errors = load_source_manifest(vault)
     errors.extend(manifest_errors)
 
-    old_by_path: dict[str, dict[str, object]] = {}
-    old_by_sid: dict[str, dict[str, object]] = {}
+    old_by_path: dict[str, dict[str, Any]] = {}
+    old_by_sid: dict[str, dict[str, Any]] = {}
     for key, row in old_manifest.items():
         sid = str(row.get("source_id", ""))
         p = str(row.get("path", ""))
@@ -26,7 +27,7 @@ def source_delta(vault: Path) -> tuple[dict[str, object] | None, list[str]]:
             old_by_path[p] = row
         old_by_path[key] = row
 
-    delta: dict[str, list[dict[str, object]]] = {
+    delta: dict[str, list[dict[str, Any]]] = {
         "new": [],
         "content_changed": [],
         "metadata_changed": [],
@@ -93,9 +94,7 @@ def source_delta(vault: Path) -> tuple[dict[str, object] | None, list[str]]:
     return result, errors
 
 
-def source_coverage_report(
-    vault: Path, path_arg: str | None = None
-) -> dict[str, object]:
+def source_coverage_report(vault: Path, path_arg: str | None = None) -> dict[str, Any]:
     payload, _ = source_scan_payload(vault, update=False, accept_covered=False)
     records = [] if payload is None else list(payload["records"])
     if path_arg:
@@ -117,4 +116,4 @@ def source_coverage_report(
 
 def source_coverage(vault: Path) -> tuple[int, int]:
     report = source_coverage_report(vault)
-    return int(report["covered"]), int(report["total"])
+    return int(str(report["covered"])), int(str(report["total"]))

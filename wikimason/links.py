@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any
 
 from .catalog import extract_title
 from .config import load_runtime_config
 from .frontmatter import split_frontmatter
 from .link_format import (
+    ParsedLink,
     extract_internal_link_targets,
     extract_internal_links,
     format_link,
@@ -44,7 +47,7 @@ class LinkCheckFinding:
 class LinkNormalization:
     path: str
     changed: bool
-    replacements: tuple[dict[str, object], ...]
+    replacements: tuple[dict[str, Any], ...]
     applied: bool
 
 
@@ -184,7 +187,7 @@ def normalize_links(
     rel = rel_to_vault(vault, path)
     text = path.read_text(encoding="utf-8")
     data, body = split_page_text(text, config=config)
-    replacements: list[dict[str, object]] = []
+    replacements: list[dict[str, Any]] = []
     spans = extract_internal_links(body, vault=vault, source_path=rel)
     updated_parts: list[str] = []
     cursor = 0
@@ -212,21 +215,21 @@ def normalize_links(
     )
 
 
-def render_link_matches_json(matches: list[LinkMatch]) -> list[dict[str, object]]:
+def render_link_matches_json(matches: list[LinkMatch]) -> list[dict[str, Any]]:
     return [asdict(match) for match in matches]
 
 
 def render_link_findings_json(
     findings: list[LinkCheckFinding],
-) -> list[dict[str, object]]:
+) -> list[dict[str, Any]]:
     return [asdict(finding) for finding in findings]
 
 
-def render_link_normalization_json(result: LinkNormalization) -> dict[str, object]:
+def render_link_normalization_json(result: LinkNormalization) -> dict[str, Any]:
     return asdict(result)
 
 
-def _iter_link_entries(vault: Path):
+def _iter_link_entries(vault: Path) -> Iterator[dict[str, Any]]:
     config = load_runtime_config(vault)
     pages_prefix = f"{config.profile_config.pages_dir}/"
     for path in sorted(vault.rglob("*.md")):
@@ -256,8 +259,8 @@ def _iter_link_entries(vault: Path):
         if not line.strip():
             continue
         row = json.loads(line)
-        path = str(row.get("path", ""))
-        if not path:
+        catalog_path = str(row.get("path", ""))
+        if not catalog_path:
             continue
         aliases = (
             [str(value) for value in row.get("aliases", [])]
@@ -265,15 +268,15 @@ def _iter_link_entries(vault: Path):
             else []
         )
         yield {
-            "path": path,
-            "stem": Path(path).stem,
-            "title": str(row.get("title", "") or Path(path).stem),
-            "kind": str(row.get("kind", _infer_kind(path))),
+            "path": catalog_path,
+            "stem": Path(catalog_path).stem,
+            "title": str(row.get("title", "") or Path(catalog_path).stem),
+            "kind": str(row.get("kind", _infer_kind(catalog_path))),
             "aliases": aliases,
         }
 
 
-def _score_link_entry(entry: dict[str, object], raw: str, lower: str) -> int:
+def _score_link_entry(entry: dict[str, Any], raw: str, lower: str) -> int:
     from rapidfuzz import fuzz as rf_fuzz
 
     rel = str(entry["path"])
@@ -312,7 +315,7 @@ def _score_link_entry(entry: dict[str, object], raw: str, lower: str) -> int:
     return 0
 
 
-def _link_resolves(link: str, targets: set[str]) -> bool:
+def _link_resolves(link: str | ParsedLink, targets: set[str]) -> bool:
     return bool(link_candidate_keys(link) & targets)
 
 

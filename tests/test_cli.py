@@ -105,7 +105,7 @@ profile = "obsidian"
     assert payload["profile"] == "markdown"
     assert payload["resolution"] == "local_config"
     assert payload["diagnostics"] == [
-        "Using local wikimason.toml; --env named ignored because local config has precedence."
+        "Using local wikimason.toml; --env named ignored because local config has precedence."  # noqa: E501
     ]
 
 

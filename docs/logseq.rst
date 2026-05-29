@@ -1,55 +1,65 @@
-# Logseq Profile
+Logseq Profile
+==============
+
 
 The Logseq profile makes WikiMason work with Logseq graph directories.
 
-## Path mapping
+Path mapping
+------------
+
 
 Logseq stores pages flat in `pages/`. Namespaces are encoded into filenames:
 
-```text
+
 PageRef("Wiki/Tech/Strapi")  ->  pages/Wiki___Tech___Strapi.md
 pages/Wiki___Tech___Strapi.md  ->  PageRef("Wiki/Tech/Strapi")
-```
+
 
 The namespace separator defaults to `___` (triple underscore) and can be
 configured in `[profile.logseq]`.
 
-## Metadata format
+Metadata format
+---------------
+
 
 Logseq uses `property:: value` lines at the top of each page:
 
-```markdown
-- type:: knowledge
-- domain:: tech
-- confidence:: high
-- created:: 2026-05-29
-- updated:: 2026-05-29
 
-- ## Deployment Pipeline
-  - CI/CD workflow for production.
-```
+* type:: knowledge
+* domain:: tech
+* confidence:: high
+* created:: 2026-05-29
+* updated:: 2026-05-29
+
+* ## Deployment Pipeline
+  * CI/CD workflow for production.
+
 
 Properties are parsed from the top of the file until a non-property block is
 encountered. Lists (`tags`, `sources`, `topics`, `aliases`) use comma-separated
 values.
 
-## Body rendering
+Body rendering
+--------------
+
 
 The Logseq profile converts internal standard Markdown to outliner blocks:
 
-- Headings: `- ## Heading` (nested)
-- Lists: nested with block depth
-- Code fences: preserved as child blocks
-- Tables: nested under a parent block
+* Headings: `- ## Heading` (nested)
+* Lists: nested with block depth
+* Code fences: preserved as child blocks
+* Tables: nested under a parent block
 
 **Limitations**: Tables and code blocks inside Logseq pages may not display
 correctly in the Logseq editor. Use with caution.
 
-## Init layout
+Init layout
+-----------
+
 
 `wikimason init logseq` creates:
 
-```text
+
 pages/
   Wiki___index.md
   Wiki___Dashboard.md
@@ -62,13 +72,16 @@ Schema/
 _templates/
 AGENTS.md
 wikimason.toml
-```
 
-## Migration
+
+Migration
+---------
+
 
 Migrate from Logseq to another profile:
 
-```bash
+.. code-block:: bash
+
 wikimason migrate logseq-to-obsidian --from ./logseq-graph --to ./obsidian-vault
 wikimason migrate logseq-to-markdown --from ./logseq-graph --to ./md-vault
-```
+

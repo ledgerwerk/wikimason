@@ -36,7 +36,7 @@ def register_agents(app: typer.Typer) -> None:
             raise typer.Exit(emit(payload, text, fmt, exit_code=0 if ok else 1))
         out = write_agents_md(vault, force=True)
         payload = {"ok": True, "path": rel_to_vault(vault, out), "check": False}
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        raise typer.Exit(emit(payload, str(payload["path"]), fmt))
 
     @_agents_app.command("check")
     def agents_check_cmd(

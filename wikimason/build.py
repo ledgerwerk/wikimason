@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from .agents import write_agents_md
 from .catalog import iter_catalog_entries, link_for_catalog, write_catalog
@@ -35,7 +36,8 @@ def sync_source_count(vault: Path) -> int:
         if not isinstance(sources, list):
             continue
         expected = len(sources)
-        if int(data.get("source_count", 0)) == expected:
+        source_count: Any = data.get("source_count", 0)
+        if int(source_count) == expected:
             continue
         path.write_text(
             update_page_text(text, {"source_count": expected}, config=config),
@@ -73,7 +75,11 @@ def build_vault(vault: Path) -> BuildResult:
 
 
 def rebuild_indexes(
-    vault: Path, entries: list[dict[str, object]], *, schema=None, config=None
+    vault: Path,
+    entries: list[dict[str, Any]],
+    *,
+    schema: Any = None,
+    config: Any = None,  # noqa: E501
 ) -> None:
     for relpath, content in render_index_pages(
         vault, entries, schema=schema, config=config
@@ -84,7 +90,11 @@ def rebuild_indexes(
 
 
 def render_index_pages(
-    vault: Path, entries: list[dict[str, object]], *, schema=None, config=None
+    vault: Path,
+    entries: list[dict[str, Any]],
+    *,
+    schema: Any = None,
+    config: Any = None,  # noqa: E501
 ) -> dict[str, str]:
     active_schema = schema or load_vault_schema(vault)
     active_config = config or load_runtime_config(vault)
@@ -97,7 +107,7 @@ def render_index_pages(
             f"{kind_config.folder}/index", config=active_config
         )
         top_lines.append(
-            f"- {format_link(active_config.links, section_index_rel, label=section_name, source_path=top_index_rel)}"
+            f"- {format_link(active_config.links, section_index_rel, label=section_name, source_path=top_index_rel)}"  # noqa: E501
         )
     top_lines.append("")
     for name, kind_config in active_schema.note_kinds.items():
@@ -113,7 +123,7 @@ def render_index_pages(
             summary = str(entry.get("summary", "")).strip()
             suffix = f" - {summary}" if summary else ""
             section_lines.append(
-                f"- {link_for_catalog(entry, config=active_config, source_path=section_index_rel)}{suffix}"
+                f"- {link_for_catalog(entry, config=active_config, source_path=section_index_rel)}{suffix}"  # noqa: E501
             )
         if len(section_lines) == 2:
             section_lines.append("- (none)")
@@ -125,9 +135,9 @@ def render_index_pages(
     return rendered
 
 
-def index_status(vault: Path) -> dict[str, object]:
+def index_status(vault: Path) -> dict[str, Any]:
     expected = render_index_pages(vault, list(iter_catalog_entries(vault)))
-    pages: list[dict[str, object]] = []
+    pages: list[dict[str, Any]] = []
     ok = True
     for relpath, expected_text in expected.items():
         target = vault / relpath

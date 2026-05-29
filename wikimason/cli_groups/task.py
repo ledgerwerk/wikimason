@@ -48,7 +48,10 @@ def register_task(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         target = resolve_existing_path(vault, path)
         text = target.read_text(encoding="utf-8")
-        current = next((status for l, status, _ in list_tasks(text) if l == line), " ")
+        current = next(
+            (status for line_num, status, _ in list_tasks(text) if line_num == line),
+            " ",
+        )  # noqa: E501
         next_status = "x" if current == " " else " "
         write_task_status(target, line, next_status)
         raise typer.Exit(emit({"ok": True}, "ok", fmt))

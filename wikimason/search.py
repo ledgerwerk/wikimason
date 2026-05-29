@@ -96,7 +96,7 @@ def rank_candidates(
     )
 
     results: list[SearchResult] = []
-    for value, score, key in matches:
+    for _value, score, key in matches:
         candidate = by_key[key]
         results.append(
             SearchResult(
@@ -134,7 +134,7 @@ def approximate_snippets(
 
 def search_catalog(
     vault: Path, query: str, limit: int = 10, tag: str | None = None
-) -> list[dict[str, object]]:
+) -> list[dict[str, Any]]:
     from .search_backends import CatalogBackend
 
     backend = CatalogBackend(vault)
@@ -148,10 +148,10 @@ def search_catalog(
         ]
     results = rank_candidates(query, candidates, limit=limit, cutoff=0.0)
     # Map back to catalog row dict shape.
-    rows: list[dict[str, object]] = []
+    rows: list[dict[str, Any]] = []
     for result in results:
         c = result.candidate
-        row: dict[str, object] = dict(c.metadata)
+        row: dict[str, Any] = dict(c.metadata)
         row["path"] = c.path or c.key
         row["title"] = c.label
         rows.append(row)

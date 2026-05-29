@@ -213,9 +213,9 @@ def _render_profile_reference(config: WikiMasonConfig) -> str:
         "Each profile adapts the shared wiki model to a specific tool layout:",
     ]
     profile_descriptions = {
-        "markdown": "Generic Markdown wiki with YAML frontmatter and nested directories.",
+        "markdown": "Generic Markdown wiki with YAML frontmatter and nested directories.",  # noqa: E501
         "obsidian": "Obsidian-compatible vault with YAML frontmatter and wikilinks.",
-        "logseq": "Logseq graph with flat pages/ directory, property:: metadata, and outliner blocks.",
+        "logseq": "Logseq graph with flat pages/ directory, property:: metadata, and outliner blocks.",  # noqa: E501
     }
     for p in profiles:
         desc = profile_descriptions.get(p, "")

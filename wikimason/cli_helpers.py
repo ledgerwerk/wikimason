@@ -6,6 +6,7 @@ import json
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 import typer
 
@@ -24,7 +25,7 @@ def _vault_from_ctx(ctx: typer.Context) -> Path:
     return resolve_vault(state)
 
 
-def _config_payload(context) -> dict[str, object]:
+def _config_payload(context: Any) -> dict[str, Any]:
     return {
         "root": str(context.root),
         "config_path": (
@@ -40,7 +41,7 @@ def _config_payload(context) -> dict[str, object]:
     }
 
 
-def _config_text(payload: dict[str, object]) -> str:
+def _config_text(payload: dict[str, Any]) -> str:
     lines = [
         f"root: {payload['root']}",
         f"profile: {payload['profile']}",
@@ -61,7 +62,7 @@ def _config_text(payload: dict[str, object]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _delta_text(delta: dict[str, list[dict[str, object]]]) -> str:
+def _delta_text(delta: dict[str, list[dict[str, Any]]]) -> str:
     return "\n".join(
         [
             f"new: {len(delta['new'])}",
@@ -74,7 +75,7 @@ def _delta_text(delta: dict[str, list[dict[str, object]]]) -> str:
     )
 
 
-def _doctor_payload(vault: Path) -> dict[str, object]:
+def _doctor_payload(vault: Path) -> dict[str, Any]:
     from .ingest import doctor_status
 
     payload = doctor_status(vault)
@@ -87,7 +88,7 @@ def _doctor_payload(vault: Path) -> dict[str, object]:
     return {"ok": payload["ok"], "checks": checks}
 
 
-def _doctor_text(payload: dict[str, object]) -> str:
+def _doctor_text(payload: dict[str, Any]) -> str:
     lines: list[str] = []
     for check in payload["checks"]:
         label = str(check["label"])
@@ -101,7 +102,7 @@ def _doctor_text(payload: dict[str, object]) -> str:
     return "\n".join(lines)
 
 
-def _migrate_text(result: dict[str, object]) -> str:
+def _migrate_text(result: dict[str, Any]) -> str:
     lines = [
         f"Migrated {result.get('migrated_pages', 0)} pages",
         f"Source: {result.get('source_vault', '')}",
@@ -136,7 +137,9 @@ def _collect_tags(vault: Path) -> dict[str, int]:
     return rows
 
 
-def _write_migrated_config(path: Path, config, schema, *, root_value: str) -> None:
+def _write_migrated_config(
+    path: Path, config: Any, schema: Any, *, root_value: str
+) -> None:  # noqa: E501
     from .config import write_config_file
     from .schema import schema_toml_lines
 
@@ -196,7 +199,7 @@ def _run_lint(ctx: typer.Context, strict: bool, fmt: str) -> None:
     )
 
 
-def _note_create_payload(vault: Path, scaffold) -> dict[str, object]:
+def _note_create_payload(vault: Path, scaffold: Any) -> dict[str, Any]:
     """Build the JSON payload returned by page-create / note-new."""
     return {
         "path": rel_to_vault(vault, scaffold.path),
@@ -247,7 +250,7 @@ def _run_migration(from_path: Path, to_path: Path, profile: str, fmt: str) -> No
     _exit_emit(result, _migrate_text(result), fmt)
 
 
-def _run_row_command(ctx: typer.Context, get_rows, fmt: str) -> None:
+def _run_row_command(ctx: typer.Context, get_rows: Any, fmt: str) -> None:
     """Shared body for ``links unresolved``, ``links orphans``, ``links deadends``."""
     vault = _vault_from_ctx(ctx)
     rows = get_rows(vault)

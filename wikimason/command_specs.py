@@ -29,7 +29,8 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     # -- init --
     CommandSpec(
         path=("init",),
-        usage="wikimason init [markdown|obsidian|logseq] [PATH] [--profile PROFILE] [--demo] [--env NAME]",
+        usage="wikimason init [markdown|obsidian|logseq] [PATH]"
+        " [--profile PROFILE] [--demo] [--env NAME]",
         summary="Initialize a new wiki vault.",
     ),
     # -- config --
@@ -52,7 +53,8 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
     CommandSpec(
         path=("config", "migrate"),
-        usage="wikimason config migrate [PATH] [--profile PROFILE] [--env NAME] [--force] [--format text|json]",
+        usage="wikimason config migrate [PATH] [--profile PROFILE]"
+        " [--env NAME] [--force] [--format text|json]",
         summary="Write TOML config for an existing wiki root.",
         json_output=True,
     ),
@@ -76,18 +78,22 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         path=("source", "verify"),
         usage="wikimason source verify [--vault PATH] [--format text|json]",
-        summary="Verify raw-source state against the current manifest and coverage delta.",
+        summary="Verify raw-source state against the current"
+        " manifest and coverage delta.",
         json_output=True,
     ),
     CommandSpec(
         path=("source", "migrate-frontmatter"),
-        usage="wikimason source migrate-frontmatter [--vault PATH] [--format text|json]",
-        summary="Migrate legacy raw-source frontmatter into the current source metadata shape.",
+        usage="wikimason source migrate-frontmatter"
+        " [--vault PATH] [--format text|json]",
+        summary="Migrate legacy raw-source frontmatter into"
+        " the current source metadata shape.",
         json_output=True,
     ),
     CommandSpec(
         path=("source", "rehash"),
-        usage="wikimason source rehash [--vault PATH] [--accept-covered] [--format text|json]",
+        usage="wikimason source rehash [--vault PATH]"
+        " [--accept-covered] [--format text|json]",
         summary="Rewrite manifest hashes from the current raw-source files.",
         json_output=True,
     ),
@@ -99,7 +105,8 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
     CommandSpec(
         path=("source", "scan"),
-        usage="wikimason source scan [--update] [--accept-covered] [--format text|json]",
+        usage="wikimason source scan [--update]"
+        " [--accept-covered] [--format text|json]",
         summary="Scan raw sources and update manifest.",
         json_output=True,
         legacy_aliases=(("source-scan",),),
@@ -137,12 +144,15 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
     CommandSpec(
         path=("file", "write"),
-        usage="wikimason file write PATH --content TEXT [--overwrite] [--template NAME] [--title TITLE] [--format text|json]",
+        usage="wikimason file write PATH --content TEXT"
+        " [--overwrite] [--template NAME] [--title TITLE]"
+        " [--format text|json]",
         summary="Write a file.",
     ),
     CommandSpec(
         path=("file", "append"),
-        usage="wikimason file append PATH --content TEXT [--inline] [--format text|json]",
+        usage="wikimason file append PATH --content TEXT"
+        " [--inline] [--format text|json]",
         summary="Append to a file.",
     ),
     CommandSpec(
@@ -172,7 +182,9 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
     CommandSpec(
         path=("file", "search"),
-        usage="wikimason file search --query QUERY [--path PATH] [--limit N] [--context] [--case] [--fuzzy] [--total] [--format text|json]",
+        usage="wikimason file search --query QUERY"
+        " [--path PATH] [--limit N] [--context]"
+        " [--case] [--fuzzy] [--total] [--format text|json]",
         summary="Search files for text.",
     ),
     # -- folder --
@@ -220,7 +232,8 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
     CommandSpec(
         path=("property", "set"),
-        usage="wikimason property set PATH KEY VALUE [--type TYPE] [--format text|json]",
+        usage="wikimason property set PATH KEY VALUE"
+        " [--type TYPE] [--format text|json]",
         summary="Set a property value.",
     ),
     CommandSpec(
@@ -230,13 +243,15 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
     CommandSpec(
         path=("property", "aliases"),
-        usage="wikimason property aliases PATH [--add ALIAS ...] [--remove ALIAS ...] [--format text|json]",
+        usage="wikimason property aliases PATH"
+        " [--add ALIAS ...] [--remove ALIAS ...]"
+        " [--format text|json]",
         summary="Update aliases.",
     ),
     # -- tag --
     CommandSpec(
         path=("tag", "list"),
-        usage="wikimason tag list [--counts] [--sort-count] [--total] [--format text|json]",
+        usage="wikimason tag list [--counts] [--sort-count] [--total] [--format text|json]",  # noqa: E501
         summary="List tags.",
     ),
     CommandSpec(
@@ -247,7 +262,8 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     # -- task --
     CommandSpec(
         path=("task", "list"),
-        usage="wikimason task list [--daily|--path PATH] [--todo|--done] [--verbose] [--format text|json]",
+        usage="wikimason task list [--daily|--path PATH]"
+        " [--todo|--done] [--verbose] [--format text|json]",
         summary="List tasks.",
     ),
     CommandSpec(
@@ -279,7 +295,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     # -- text --
     CommandSpec(
         path=("text", "wordcount"),
-        usage="wikimason text wordcount PATH [--words|--characters] [--format text|json]",
+        usage="wikimason text wordcount PATH [--words|--characters] [--format text|json]",  # noqa: E501
         summary="Word count.",
     ),
     CommandSpec(
@@ -334,7 +350,11 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     # -- page --
     CommandSpec(
         path=("page", "create"),
-        usage="wikimason page create --kind KIND --title TITLE [--source PATH ...] [--related PATH ...] [--status STATUS] [--summary TEXT] [--body-file PATH] [--allow-incomplete] [--vault PATH] [--format text|json]",
+        usage="wikimason page create --kind KIND --title TITLE"
+        " [--source PATH ...] [--related PATH ...]"
+        " [--status STATUS] [--summary TEXT]"
+        " [--body-file PATH] [--allow-incomplete]"
+        " [--vault PATH] [--format text|json]",
         summary="Create a compiled wiki page using the neutral page command surface.",
         json_output=True,
     ),
@@ -347,7 +367,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         path=("page", "update"),
         usage="wikimason page update PATH --content TEXT [--format text|json]",
-        summary="Overwrite a compiled wiki page body or full content deterministically.",
+        summary="Overwrite a compiled wiki page body or full content deterministically.",  # noqa: E501
         json_output=True,
     ),
     CommandSpec(
@@ -379,7 +399,11 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     # -- note --
     CommandSpec(
         path=("note", "new"),
-        usage="wikimason note new --kind KIND --title TITLE [--source PATH ...] [--related PATH ...] [--status STATUS] [--summary TEXT] [--body-file PATH] [--allow-incomplete] [--format text|json]",
+        usage="wikimason note new --kind KIND --title TITLE"
+        " [--source PATH ...] [--related PATH ...]"
+        " [--status STATUS] [--summary TEXT]"
+        " [--body-file PATH] [--allow-incomplete]"
+        " [--format text|json]",
         summary="Create a new note.",
     ),
     CommandSpec(
@@ -536,22 +560,26 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     # -- migrate --
     CommandSpec(
         path=("migrate", "logseq-to-obsidian"),
-        usage="wikimason migrate logseq-to-obsidian --from PATH --to PATH [--format text|json]",
+        usage="wikimason migrate logseq-to-obsidian"
+        " --from PATH --to PATH [--format text|json]",
         summary="Migrate Logseq to Obsidian.",
     ),
     CommandSpec(
         path=("migrate", "obsidian-to-logseq"),
-        usage="wikimason migrate obsidian-to-logseq --from PATH --to PATH [--format text|json]",
+        usage="wikimason migrate obsidian-to-logseq"
+        " --from PATH --to PATH [--format text|json]",
         summary="Migrate Obsidian to Logseq.",
     ),
     CommandSpec(
         path=("migrate", "markdown-to-logseq"),
-        usage="wikimason migrate markdown-to-logseq --from PATH --to PATH [--format text|json]",
+        usage="wikimason migrate markdown-to-logseq"
+        " --from PATH --to PATH [--format text|json]",
         summary="Migrate Markdown to Logseq.",
     ),
     CommandSpec(
         path=("migrate", "logseq-to-markdown"),
-        usage="wikimason migrate logseq-to-markdown --from PATH --to PATH [--format text|json]",
+        usage="wikimason migrate logseq-to-markdown"
+        " --from PATH --to PATH [--format text|json]",
         summary="Migrate Logseq to Markdown.",
     ),
 )

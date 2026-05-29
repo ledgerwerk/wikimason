@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 try:
     import tomllib
@@ -194,8 +194,11 @@ def default_config(
             **_string_table(defaults["links"], table_name="links defaults")
         ),
         profile_config=ProfileConfig(
-            **_profile_table(
-                defaults["profile_settings"], table_name="profile defaults"
+            **cast(
+                dict[str, Any],
+                _profile_table(
+                    defaults["profile_settings"], table_name="profile defaults"
+                ),
             )
         ),
     )
@@ -213,7 +216,7 @@ def load_runtime_config(root: Path) -> WikiMasonConfig:
     return default_config(DEFAULT_PROFILE, root)
 
 
-def load_config_data(path: Path) -> dict[str, object]:
+def load_config_data(path: Path) -> dict[str, Any]:
     config_path = path.expanduser().resolve()
     if not config_path.exists():
         raise UsageError(f"config path not found: {config_path}")
@@ -246,8 +249,10 @@ def load_config_file(path: Path) -> WikiMasonConfig:
     link_values = base.links.as_dict()
     link_values.update(_string_table(raw.get("links", {}), table_name="links"))
 
-    profile_values = base.profile_config.as_dict()
-    profile_values.update(_load_profile_overrides(raw, base.profile))
+    profile_values: dict[str, Any] = base.profile_config.as_dict()
+    profile_values.update(
+        cast(dict[str, Any], _load_profile_overrides(raw, base.profile))
+    )  # noqa: E501
 
     return WikiMasonConfig(
         config_version=config_version,
@@ -258,7 +263,10 @@ def load_config_file(path: Path) -> WikiMasonConfig:
         paths=PathConfig(**path_values),
         links=LinkConfig(**link_values),
         profile_config=ProfileConfig(
-            **_profile_table(profile_values, table_name="profile settings")
+            **cast(
+                dict[str, Any],
+                _profile_table(profile_values, table_name="profile settings"),
+            )  # noqa: E501
         ),
     )
 
@@ -297,10 +305,10 @@ def write_config_file(
             f"[profile.{config.profile}]",
         ]
     )
-    for key, value in config.profile_config.as_dict().items():
-        if value is None:
+    for key, p_value in config.profile_config.as_dict().items():
+        if p_value is None:
             continue
-        lines.append(f"{key} = {_toml_value(value)}")
+        lines.append(f"{key} = {_toml_value(p_value)}")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -316,7 +324,7 @@ def _resolve_config_root(config_path: Path, value: object) -> Path:
     return root
 
 
-def _optional_string(raw: dict[str, object], key: str) -> str | None:
+def _optional_string(raw: dict[str, Any], key: str) -> str | None:
     value = raw.get(key)
     if value is None:
         return None
@@ -325,7 +333,7 @@ def _optional_string(raw: dict[str, object], key: str) -> str | None:
     return value
 
 
-def _optional_table(raw: object, *, table_name: str) -> dict[str, object] | None:
+def _optional_table(raw: object, *, table_name: str) -> dict[str, Any] | None:
     if raw is None:
         return None
     if not isinstance(raw, dict):
@@ -333,9 +341,7 @@ def _optional_table(raw: object, *, table_name: str) -> dict[str, object] | None
     return raw
 
 
-def _config_name(
-    raw: dict[str, object], wiki_table: dict[str, object] | None
-) -> str | None:
+def _config_name(raw: dict[str, Any], wiki_table: dict[str, Any] | None) -> str | None:
     if wiki_table is not None and "name" in wiki_table:
         return _string_value(wiki_table, "name", table_name="wiki")
     if "name" in raw:
@@ -344,14 +350,14 @@ def _config_name(
 
 
 def _config_root_value(
-    raw: dict[str, object], wiki_table: dict[str, object] | None
+    raw: dict[str, Any], wiki_table: dict[str, Any] | None
 ) -> object:
     if wiki_table is not None and "root" in wiki_table:
         return wiki_table["root"]
     return raw.get("root", ".")
 
 
-def _profile_name(raw: dict[str, object], wiki_table: dict[str, object] | None) -> str:
+def _profile_name(raw: dict[str, Any], wiki_table: dict[str, Any] | None) -> str:
     if wiki_table is not None and "profile" in wiki_table:
         return _canonical_profile(
             _string_value(wiki_table, "profile", table_name="wiki")
@@ -371,7 +377,7 @@ def _canonical_profile(value: str) -> str:
     return canonical_profile_name(value)
 
 
-def _string_value(raw: dict[str, object], key: str, *, table_name: str) -> str:
+def _string_value(raw: dict[str, Any], key: str, *, table_name: str) -> str:
     value = raw.get(key)
     if not isinstance(value, str):
         raise UsageError(f"invalid config: {table_name}.{key} must be a string")
@@ -437,7 +443,7 @@ def _profile_table(
 
 
 def _load_profile_overrides(
-    raw: dict[str, object], profile: str
+    raw: dict[str, Any], profile: str
 ) -> dict[str, bool | str | tuple[str, ...] | None]:
     profile_settings = raw.get("profile")
     if isinstance(profile_settings, dict) and profile in profile_settings:

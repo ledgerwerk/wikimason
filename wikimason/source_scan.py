@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import json
+import shutil
+from datetime import date
 from pathlib import Path
+from typing import Any
 
 from .constants import SOURCE_SCHEMA_VERSION
 from .frontmatter import split_frontmatter, update_frontmatter
@@ -22,6 +26,7 @@ from .source_metadata import (
     read_sidecar,
     sha256_text,
     sidecar_path,
+    write_sidecar,
 )
 
 
@@ -29,10 +34,10 @@ def raw_record(
     vault: Path,
     path: Path,
     coverage_map: dict[str, list[str]],
-    old_record: dict[str, object] | None = None,
+    old_record: dict[str, Any] | None = None,
     timestamp: str | None = None,
     accept_covered: bool = False,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Build a manifest record for a source file."""
     from .frontmatter import canonical_json
 
@@ -47,8 +52,8 @@ def raw_record(
     body_sha256: str
     metadata_sha256: str
     full_sha: str
-    wm_block: dict[str, object] | None = None
-    metadata: dict[str, object] = {}
+    wm_block: dict[str, Any] | None = None
+    metadata: dict[str, Any] = {}
     body = ""
 
     if is_binary_source(path):
@@ -100,7 +105,7 @@ def raw_record(
 
     from .source_metadata import _LEGACY_EXTRA_FIELDS
 
-    record: dict[str, object] = {
+    record: dict[str, Any] = {
         "schema_version": SOURCE_SCHEMA_VERSION,
         "source_id": source_id,
         "path": rel,
@@ -185,13 +190,13 @@ def build_source_coverage_map(
 
 def source_scan_payload(
     vault: Path, update: bool = False, accept_covered: bool = False
-) -> tuple[dict[str, object] | None, list[str]]:
+) -> tuple[dict[str, Any] | None, list[str]]:
     old_records, errors = load_source_manifest(vault)
     coverage_map, weak_sources = build_source_coverage_map(vault)
     timestamp = now_iso()
-    new_records: dict[str, dict[str, object]] = {}
+    new_records: dict[str, dict[str, Any]] = {}
 
-    old_by_path: dict[str, dict[str, object]] = {}
+    old_by_path: dict[str, dict[str, Any]] = {}
     for key, row in old_records.items():
         p = str(row.get("path", ""))
         if p:
@@ -298,18 +303,13 @@ def source_scan_payload(
 
 def source_scan(
     vault: Path, update: bool = False, accept_covered: bool = False
-) -> list[dict[str, object]]:
+) -> list[dict[str, Any]]:
     payload, _ = source_scan_payload(
         vault, update=update, accept_covered=accept_covered
     )
     if payload is None:
         return []
     return list(payload["records"])
-
-
-import json
-import shutil
-from datetime import date
 
 
 def source_add(vault: Path, source_path: Path, move: bool = False) -> Path:
@@ -381,7 +381,7 @@ tags:
     return target
 
 
-def source_resolve_report(vault: Path, query: str, limit: int = 5) -> dict[str, object]:
+def source_resolve_report(vault: Path, query: str, limit: int = 5) -> dict[str, Any]:
     """Resolve a query to source path candidates using fuzzy matching."""
     from .paths import path_match_key
     from .search import rank_candidates
@@ -394,7 +394,7 @@ def source_resolve_report(vault: Path, query: str, limit: int = 5) -> dict[str, 
     backend = SourceBackend(vault)
     candidates = backend.candidates(query)
 
-    matches: list[dict[str, object]] = []
+    matches: list[dict[str, Any]] = []
     remaining: list[object] = []
     for candidate in candidates:
         ck = path_match_key(candidate.key)
@@ -420,7 +420,7 @@ def source_resolve_report(vault: Path, query: str, limit: int = 5) -> dict[str, 
             remaining.append(candidate)
 
     if remaining:
-        results = rank_candidates(query, remaining, limit=limit * 2, cutoff=55.0)
+        results = rank_candidates(query, remaining, limit=limit * 2, cutoff=55.0)  # type: ignore[arg-type]
         for result in results:
             matches.append(
                 {

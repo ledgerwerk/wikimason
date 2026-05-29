@@ -37,7 +37,7 @@ def test_format_link_uses_profile_defaults(tmp_path: Path) -> None:
 def test_extract_internal_link_targets_accepts_mixed_syntax(tmp_path: Path) -> None:
     vault = tmp_path / "vault"
     targets = extract_internal_link_targets(
-        "See [[Wiki/Topics/wikimason|WikiMason]] and [Compiled Knowledge](../Concepts/compiled-knowledge.md).",
+        "See [[Wiki/Topics/wikimason|WikiMason]] and [Compiled Knowledge](../Concepts/compiled-knowledge.md).",  # noqa: E501
         vault=vault,
         source_path="Wiki/Topics/example.md",
     )

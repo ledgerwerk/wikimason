@@ -155,7 +155,7 @@ profile = "obsidian"
     assert context.config.profile == "markdown"
     assert context.env == "named"
     assert context.diagnostics == (
-        "Using local wikimason.toml; --env named ignored because local config has precedence.",
+        "Using local wikimason.toml; --env named ignored because local config has precedence.",  # noqa: E501
     )
 
 

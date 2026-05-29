@@ -115,3 +115,11 @@ warn_unreachable = true
 strict_equality = true
 exclude = [
 ]
+
+[[tool.mypy.overrides]]
+module = ["tomllib", "tomli"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["rapidfuzz", "fuzzysearch"]
+ignore_missing_imports = true

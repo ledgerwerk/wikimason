@@ -1,4 +1,4 @@
-"""Top-level root commands (version, help, init, query, lint, status, doctor, log, audit)."""
+"""Top-level root commands (version, help, init, query, lint, status, doctor, log, audit)."""  # noqa: E501
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from ..scaffold import init_vault
 from ..search import search_catalog
 
 
-def register_root(app: typer.Typer) -> None:
+def register_root(app: typer.Typer) -> None:  # noqa: C901
     """Register top-level commands directly on the root *app*."""
 
     @app.command(hidden=True)

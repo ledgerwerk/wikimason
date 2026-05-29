@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 from .build import build_vault
 from .catalog import iter_catalog_entries
@@ -29,18 +30,20 @@ class IngestFinishResult:
     source_scan_ok: bool
     source_lint_ok: bool
     doctor_ok: bool
-    coverage: dict[str, object]
+    coverage: dict[str, Any]
     actionable_count: int
     next_action: str
 
 
-def ingest_status(vault: Path) -> dict[str, object]:
+def ingest_status(vault: Path) -> dict[str, Any]:
     doctor = doctor_status(vault)
     lint_errors = lint_vault(vault)
     source_lint_errors = source_lint(vault)
     delta_payload, delta_errors = source_delta(vault)
     coverage = source_coverage_report(vault)
-    actionable_count = int(delta_payload["actionable_count"]) if delta_payload else 0
+    actionable_count = (
+        int(str(delta_payload["actionable_count"])) if delta_payload else 0
+    )  # noqa: E501
     next_action = _next_action(lint_errors, source_lint_errors, actionable_count)
     return {
         "doctor_ok": doctor["ok"],
@@ -59,7 +62,7 @@ def ingest_status(vault: Path) -> dict[str, object]:
     }
 
 
-def ingest_plan(vault: Path, source_args: list[str] | None = None) -> dict[str, object]:
+def ingest_plan(vault: Path, source_args: list[str] | None = None) -> dict[str, Any]:
     requested = source_args or actionable_sources(vault)
     plans = [source_plan(vault, source) for source in requested]
     if len(plans) == 1:
@@ -81,7 +84,9 @@ def ingest_finish(vault: Path, accept_covered: bool = False) -> IngestFinishResu
     source_scan_ok = scan_payload is not None and not scan_errors
     source_lint_ok = not source_lint_errors
     doctor_ok = doctor["ok"]
-    actionable_count = int(delta_payload["actionable_count"]) if delta_payload else 0
+    actionable_count = (
+        int(str(delta_payload["actionable_count"])) if delta_payload else 0
+    )  # noqa: E501
     exit_code = 0
     if (
         not (lint_ok and source_scan_ok and source_lint_ok and doctor_ok)
@@ -121,7 +126,7 @@ def actionable_sources(vault: Path) -> list[str]:
     return ordered
 
 
-def source_plan(vault: Path, source_arg: str) -> dict[str, object]:
+def source_plan(vault: Path, source_arg: str) -> dict[str, Any]:
     path = normalize_source_argument(vault, source_arg)
     source_path = vault / path
     metadata, _ = split_frontmatter(source_path.read_text(encoding="utf-8"))
@@ -161,7 +166,7 @@ def source_plan(vault: Path, source_arg: str) -> dict[str, object]:
     }
 
 
-def doctor_status(vault: Path) -> dict[str, object]:
+def doctor_status(vault: Path) -> dict[str, Any]:
     config = load_runtime_config(vault)
     pages_dir = config.profile_config.pages_dir
     source_lint_errors = source_lint(vault)
@@ -208,7 +213,7 @@ def doctor_status(vault: Path) -> dict[str, object]:
     }
 
 
-def render_ingest_finish_json(result: IngestFinishResult) -> dict[str, object]:
+def render_ingest_finish_json(result: IngestFinishResult) -> dict[str, Any]:
     return asdict(result)
 
 

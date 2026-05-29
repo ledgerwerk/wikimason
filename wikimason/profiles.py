@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from .errors import UsageError
 
@@ -19,7 +20,7 @@ DEFAULT_PATHS: dict[str, str] = {
 class WikiProfileDefaults:
     name: str
     links: dict[str, str]
-    profile_settings: dict[str, object]
+    profile_settings: dict[str, Any]
 
 
 _PROFILE_ALIASES = {
@@ -120,7 +121,7 @@ def canonical_profile_name(profile: str) -> str:
     return value
 
 
-def profile_defaults(profile: str) -> dict[str, object]:
+def profile_defaults(profile: str) -> dict[str, Any]:
     name = canonical_profile_name(profile)
     defaults = _PROFILES[name]
     return {
@@ -135,7 +136,7 @@ def canonical_tool_name(tool: str) -> str:
     return canonical_profile_name(tool)
 
 
-def tool_profile_defaults(tool: str) -> dict[str, object]:
+def tool_profile_defaults(tool: str) -> dict[str, Any]:
     defaults = profile_defaults(tool)
     return {
         "tool": defaults["profile"],

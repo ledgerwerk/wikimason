@@ -87,7 +87,7 @@ def register_review(app: typer.Typer) -> None:
         kind: str = typer.Option(
             ...,
             "--kind",
-            help="Review kind: create_page, merge_conflict, research_gap, source_conflict, unsafe_secret.",
+            help="Review kind: create_page, merge_conflict, research_gap, source_conflict, unsafe_secret.",  # noqa: E501
         ),
         title: str = typer.Option(..., "--title", help="Short human-readable title."),
         detail: str = typer.Option("", "--detail", help="Why this needs judgment."),

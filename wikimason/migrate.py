@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
+from typing import Any
 
 from .build import build_vault
 from .config import default_config, write_config_file
@@ -23,7 +24,7 @@ def migrate_vault(
     source_vault: Path,
     target_vault: Path,
     target_profile: str,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Migrate pages from *source_vault* to *target_vault* under *target_profile*.
 
     Returns a summary dict with:
@@ -139,10 +140,10 @@ def _migrate_one_page(
     target_vault: Path,
     rel: str,
     content: str,
-    source_profile,
-    target_profile,
-    source_config,
-    target_config,
+    source_profile: Any,
+    target_profile: Any,
+    source_config: Any,
+    target_config: Any,
 ) -> None:
     """Read, convert, and write a single page from source to target."""
     # Parse source
@@ -172,7 +173,7 @@ def _copy_tree(src: Path, dst: Path) -> None:
     shutil.copytree(src, dst, symlinks=False, dirs_exist_ok=False)
 
 
-def _ensure_dirs(vault: Path, config) -> None:
+def _ensure_dirs(vault: Path, config: Any) -> None:
     """Create the directory structure needed for a wiki vault."""
     from .scaffold import CORE_EMPTY_FILES, _core_keep_files
 

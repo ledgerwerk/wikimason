@@ -1,4 +1,6 @@
-# Configuration
+Configuration
+=============
+
 
 WikiMason configuration uses TOML files. Configuration is resolved in this
 precedence order:
@@ -13,9 +15,12 @@ If both a local config and `--env` are present, the local config wins (it is
 more specific to the project). A diagnostic is emitted when a local config
 causes `--env` to be ignored.
 
-## Example
+Example
+-------
 
-```toml
+
+.. code-block:: bash
+
 config_version = 1
 
 [wiki]
@@ -48,20 +53,31 @@ nested_dirs = true
 [profile.markdown]
 hub_filename = "index.md"
 nested_dirs = true
-```
 
-## Commands
 
-```bash
-# Show the active config
+Commands
+--------
+
+
+.. code-block:: bash
+
+Show the active config
+======================
+
 wikimason config show
 
-# Open config in $EDITOR
+Open config in $EDITOR
+======================
+
 wikimason config edit
 
-# Validate config
+Validate config
+===============
+
 wikimason config validate
 
-# Write config for an existing wiki root
+Write config for an existing wiki root
+======================================
+
 wikimason config migrate [PATH] --profile markdown|obsidian|logseq
-```
+

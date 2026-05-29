@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 
 def emit(payload: object, text: str, fmt: str, *, exit_code: int = 0) -> int:
@@ -12,7 +13,7 @@ def emit(payload: object, text: str, fmt: str, *, exit_code: int = 0) -> int:
 
 
 def print_findings_payload(
-    payload: dict[str, object], *, success_text: str, fmt: str
+    payload: dict[str, Any], *, success_text: str, fmt: str
 ) -> int:
     exit_code = 0 if payload["ok"] else 1
     if fmt == "json":

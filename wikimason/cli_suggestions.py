@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from typing import Any
+
 from rapidfuzz import fuzz, process, utils
 from typer.core import TyperGroup
 
 
 class FuzzyCommandGroup(TyperGroup):
-    def get_command(self, ctx, cmd_name: str):
+    def get_command(self, ctx: Any, cmd_name: str) -> Any:
         command = super().get_command(ctx, cmd_name)
         if command is not None:
             return command

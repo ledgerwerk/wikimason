@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from .constants import SOURCE_MANIFEST, SOURCE_SCHEMA_VERSION
 from .frontmatter import split_frontmatter
@@ -20,17 +21,17 @@ from .source_metadata import (
 from .source_scan import build_source_coverage_map, raw_record, source_scan_payload
 
 
-def source_verify(vault: Path) -> dict[str, object]:
+def source_verify(vault: Path) -> dict[str, Any]:
     """Verify raw-source state against manifest."""
     manifest, load_errors = load_source_manifest(vault)
     coverage_map, weak_sources = build_source_coverage_map(vault)
     existing = {p.relative_to(vault).as_posix(): p for p in source_md_files(vault)}
-    findings: list[dict[str, object]] = []
+    findings: list[dict[str, Any]] = []
     status = "valid"
     exit_code = 0
 
     seen_content: dict[str, str] = {}
-    for key, row in manifest.items():
+    for _key, row in manifest.items():
         path = str(row.get("path", ""))
         sid = str(row.get("source_id", ""))
         present = bool(row.get("present", True))
@@ -137,7 +138,7 @@ def source_verify(vault: Path) -> dict[str, object]:
     }
 
 
-def source_rehash(vault: Path, accept_covered: bool = False) -> dict[str, object]:
+def source_rehash(vault: Path, accept_covered: bool = False) -> dict[str, Any]:
     """Recompute manifest hashes from current raw-source files."""
     payload, errors = source_scan_payload(
         vault, update=True, accept_covered=accept_covered
@@ -149,7 +150,7 @@ def source_rehash(vault: Path, accept_covered: bool = False) -> dict[str, object
     }
 
 
-def source_migrate_frontmatter(vault: Path) -> dict[str, object]:
+def source_migrate_frontmatter(vault: Path) -> dict[str, Any]:
     """Migrate legacy raw-source frontmatter to the wikimason-namespaced format."""
     migrated: list[str] = []
     errors: list[str] = []
@@ -188,7 +189,7 @@ def source_lint(vault: Path) -> list[str]:
             f"weak source in {weak['wiki_path']}: {weak['source']} ({weak['reason']})"
         )
 
-    for key, row in records.items():
+    for _key, row in records.items():
         sid = str(row.get("source_id", ""))
         path = str(row.get("path", ""))
         missing = manifest_required_fields() - set(row.keys())
@@ -233,7 +234,7 @@ def source_lint(vault: Path) -> list[str]:
         if row.get("coverage_status") != expected_status:
             errors.append(f"{SOURCE_MANIFEST}: {sid or path}: coverage_status mismatch")
 
-    for rel_path, path_obj in sorted(existing_raw.items()):
+    for rel_path, _path_obj in sorted(existing_raw.items()):
         found = False
         for row in records.values():
             if str(row.get("path", "")) == rel_path:

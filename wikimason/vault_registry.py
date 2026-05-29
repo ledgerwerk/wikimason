@@ -4,6 +4,7 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 
 @dataclass
@@ -17,12 +18,13 @@ class VaultRegistry:
             return cls(Path(env_path))
         return cls(Path.home() / ".config" / "wikimason" / "vaults.json")
 
-    def load(self) -> dict[str, object]:
+    def load(self) -> dict[str, Any]:
         if not self.path.exists():
             return {"last_used": None, "vaults": {}}
-        return json.loads(self.path.read_text(encoding="utf-8"))
+        result: dict[str, Any] = json.loads(self.path.read_text(encoding="utf-8"))
+        return result
 
-    def save(self, data: dict[str, object]) -> None:
+    def save(self, data: dict[str, Any]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(
             json.dumps(data, indent=2, sort_keys=True), encoding="utf-8"

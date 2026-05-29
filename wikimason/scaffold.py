@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 from .agents import write_agents_md
 from .commands import (
@@ -199,7 +200,7 @@ def init_vault(
         source_scan(vault, update=True, accept_covered=True)
 
 
-def _write_config_if_missing(path: Path, config, schema) -> None:
+def _write_config_if_missing(path: Path, config: Any, schema: Any) -> None:
     if path.exists():
         return
     root_value = "." if path.parent == config.root else str(config.root)
@@ -213,7 +214,7 @@ def _write_config_if_missing(path: Path, config, schema) -> None:
     )
 
 
-def _create_demo(vault: Path, config) -> None:
+def _create_demo(vault: Path, config: Any) -> None:
     today = date.today().isoformat()
     (vault / "Raw/Sources/wikimason-demo-source.md").write_text(
         SOURCE_TEMPLATE.format(title="LLM Wiki Demo Source", date=today),
@@ -235,13 +236,13 @@ def _create_demo(vault: Path, config) -> None:
         },
         body=(
             "# Compiled Knowledge\n\n"
-            "A reusable note distills source material into short, linked, source-backed knowledge.\n\n"
+            "A reusable note distills source material into short, linked, source-backed knowledge.\n\n"  # noqa: E501
             "## Details\n\n"
             "Example compiled note.\n\n"
             "## Related\n\n"
-            f"- {format_link(config.links, _page_rel(config, 'Wiki/Topics/wikimason'), label='WikiMason', source_path=_page_rel(config, 'Wiki/Concepts/compiled-knowledge'))}\n\n"
+            f"- {format_link(config.links, _page_rel(config, 'Wiki/Topics/wikimason'), label='WikiMason', source_path=_page_rel(config, 'Wiki/Concepts/compiled-knowledge'))}\n\n"  # noqa: E501
             "## Sources\n\n"
-            f"- {format_link(config.links, 'Raw/Sources/wikimason-demo-source.md', label='wikimason demo source', source_path=_page_rel(config, 'Wiki/Concepts/compiled-knowledge'))}\n"
+            f"- {format_link(config.links, 'Raw/Sources/wikimason-demo-source.md', label='wikimason demo source', source_path=_page_rel(config, 'Wiki/Concepts/compiled-knowledge'))}\n"  # noqa: E501
         ),
     )
     _write_demo_page(
@@ -264,9 +265,9 @@ def _create_demo(vault: Path, config) -> None:
             "## Scope\n\n"
             "Wiki workflows and maintenance.\n\n"
             "## Related\n\n"
-            f"- {format_link(config.links, _page_rel(config, 'Wiki/Concepts/compiled-knowledge'), label='Compiled Knowledge', source_path=_page_rel(config, 'Wiki/Topics/wikimason'))}\n\n"
+            f"- {format_link(config.links, _page_rel(config, 'Wiki/Concepts/compiled-knowledge'), label='Compiled Knowledge', source_path=_page_rel(config, 'Wiki/Topics/wikimason'))}\n\n"  # noqa: E501
             "## Sources\n\n"
-            f"- {format_link(config.links, 'Raw/Sources/wikimason-demo-source.md', label='wikimason demo source', source_path=_page_rel(config, 'Wiki/Topics/wikimason'))}\n"
+            f"- {format_link(config.links, 'Raw/Sources/wikimason-demo-source.md', label='wikimason demo source', source_path=_page_rel(config, 'Wiki/Topics/wikimason'))}\n"  # noqa: E501
         ),
     )
     _write_demo_page(
@@ -289,9 +290,9 @@ def _create_demo(vault: Path, config) -> None:
             "## Status\n\n"
             "Active.\n\n"
             "## Related\n\n"
-            f"- {format_link(config.links, _page_rel(config, 'Wiki/Topics/wikimason'), label='WikiMason', source_path=_page_rel(config, 'Wiki/Projects/wikimason-demo'))}\n\n"
+            f"- {format_link(config.links, _page_rel(config, 'Wiki/Topics/wikimason'), label='WikiMason', source_path=_page_rel(config, 'Wiki/Projects/wikimason-demo'))}\n\n"  # noqa: E501
             "## Sources\n\n"
-            f"- {format_link(config.links, 'Raw/Sources/wikimason-demo-source.md', label='wikimason demo source', source_path=_page_rel(config, 'Wiki/Projects/wikimason-demo'))}\n"
+            f"- {format_link(config.links, 'Raw/Sources/wikimason-demo-source.md', label='wikimason demo source', source_path=_page_rel(config, 'Wiki/Projects/wikimason-demo'))}\n"  # noqa: E501
         ),
     )
     _write_demo_page(
@@ -314,9 +315,9 @@ def _create_demo(vault: Path, config) -> None:
             "## Details\n\n"
             "- Imported demo source.\n\n"
             "## Related\n\n"
-            f"- {format_link(config.links, _page_rel(config, 'Wiki/Projects/wikimason-demo'), label='WikiMason Demo', source_path=_page_rel(config, 'Wiki/Logs/initial-ingest'))}\n\n"
+            f"- {format_link(config.links, _page_rel(config, 'Wiki/Projects/wikimason-demo'), label='WikiMason Demo', source_path=_page_rel(config, 'Wiki/Logs/initial-ingest'))}\n\n"  # noqa: E501
             "## Sources\n\n"
-            f"- {format_link(config.links, 'Raw/Sources/wikimason-demo-source.md', label='wikimason demo source', source_path=_page_rel(config, 'Wiki/Logs/initial-ingest'))}\n"
+            f"- {format_link(config.links, 'Raw/Sources/wikimason-demo-source.md', label='wikimason demo source', source_path=_page_rel(config, 'Wiki/Logs/initial-ingest'))}\n"  # noqa: E501
         ),
     )
 
@@ -340,7 +341,7 @@ def _append_gitignore(vault: Path, *, include_obsidian: bool) -> None:
     path.write_text(block, encoding="utf-8")
 
 
-def _seed_missing_core_files(vault: Path, config) -> None:
+def _seed_missing_core_files(vault: Path, config: Any) -> None:
     for rel in _core_keep_files(config):
         _write_if_missing(vault / rel, "")
     for rel, content in CORE_EMPTY_FILES.items():
@@ -352,17 +353,17 @@ def _seed_missing_core_files(vault: Path, config) -> None:
         _write_if_missing(vault / _page_rel(config, logical_ref), content)
 
 
-def _wiki_index_placeholder(config) -> str:
+def _wiki_index_placeholder(config: Any) -> str:
     top_index_rel = _page_rel(config, "Wiki/index")
     return "\n".join(
         [
             "# LLM Wiki",
             "",
-            f"- {format_link(config.links, _page_rel(config, 'Wiki/Topics/index'), label='Topics', source_path=top_index_rel)}",
-            f"- {format_link(config.links, _page_rel(config, 'Wiki/Concepts/index'), label='Concepts', source_path=top_index_rel)}",
-            f"- {format_link(config.links, _page_rel(config, 'Wiki/Entities/index'), label='Entities', source_path=top_index_rel)}",
-            f"- {format_link(config.links, _page_rel(config, 'Wiki/Projects/index'), label='Projects', source_path=top_index_rel)}",
-            f"- {format_link(config.links, _page_rel(config, 'Wiki/Logs/index'), label='Logs', source_path=top_index_rel)}",
+            f"- {format_link(config.links, _page_rel(config, 'Wiki/Topics/index'), label='Topics', source_path=top_index_rel)}",  # noqa: E501
+            f"- {format_link(config.links, _page_rel(config, 'Wiki/Concepts/index'), label='Concepts', source_path=top_index_rel)}",  # noqa: E501
+            f"- {format_link(config.links, _page_rel(config, 'Wiki/Entities/index'), label='Entities', source_path=top_index_rel)}",  # noqa: E501
+            f"- {format_link(config.links, _page_rel(config, 'Wiki/Projects/index'), label='Projects', source_path=top_index_rel)}",  # noqa: E501
+            f"- {format_link(config.links, _page_rel(config, 'Wiki/Logs/index'), label='Logs', source_path=top_index_rel)}",  # noqa: E501
             "",
         ]
     )
@@ -373,7 +374,7 @@ def _write_if_missing(path: Path, content: str) -> None:
         path.write_text(content, encoding="utf-8")
 
 
-def _core_keep_files(config) -> list[str]:
+def _core_keep_files(config: Any) -> list[str]:
     keep = [
         "Raw/Sources/.gitkeep",
         "Raw/Files/.gitkeep",
@@ -400,26 +401,26 @@ def _section_index_placeholders() -> dict[str, str]:
             "# Topic Index\n\nTopic notes will appear here after `wikimason build`.\n"
         ),
         "Wiki/Concepts/index": (
-            "# Concept Index\n\nConcept notes will appear here after `wikimason build`.\n"
+            "# Concept Index\n\nConcept notes will appear here after `wikimason build`.\n"  # noqa: E501
         ),
         "Wiki/Entities/index": (
             "# Entity Index\n\nEntity notes will appear here after `wikimason build`.\n"
         ),
         "Wiki/Projects/index": (
-            "# Project Index\n\nProject notes will appear here after `wikimason build`.\n"
+            "# Project Index\n\nProject notes will appear here after `wikimason build`.\n"  # noqa: E501
         ),
         "Wiki/Logs/index": (
-            "# Log Index\n\nOperational log notes will appear here after `wikimason build`.\n"
+            "# Log Index\n\nOperational log notes will appear here after `wikimason build`.\n"  # noqa: E501
         ),
     }
 
 
-def _page_rel(config, logical_ref: str) -> str:
+def _page_rel(config: Any, logical_ref: str) -> str:
     return logical_ref_to_relpath(logical_ref, config=config)
 
 
 def _write_demo_page(
-    vault: Path, config, *, logical_ref: str, metadata: dict[str, object], body: str
+    vault: Path, config: Any, *, logical_ref: str, metadata: dict[str, Any], body: str
 ) -> None:
     target = vault / _page_rel(config, logical_ref)
     target.parent.mkdir(parents=True, exist_ok=True)

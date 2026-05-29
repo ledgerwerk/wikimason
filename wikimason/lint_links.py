@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from .link_format import (
     extract_internal_links,
@@ -86,11 +87,11 @@ def validate_body_links(
     rel: str,
     body: str,
     link_targets: set[str],
-    findings: list,
+    findings: list[Any],
     status: str,
     *,
     strict: bool,
-    schema,
+    schema: Any,
     kind: str | None,
 ) -> None:
     from .lint import LintFinding
@@ -123,7 +124,7 @@ def validate_body_links(
             )
     for line_number, line in enumerate(body.splitlines(), start=1):
         for link in extract_internal_links(line, vault=vault, source_path=rel):
-            if link_resolves(link, link_targets):
+            if link_resolves(link.query, link_targets):
                 continue
             findings.append(
                 LintFinding(
@@ -161,7 +162,7 @@ def _body_line(body: str, needle: str) -> int | None:
     return None
 
 
-def kind_for_lint(schema, rel: str, data: dict[str, object]) -> str | None:
+def kind_for_lint(schema: Any, rel: str, data: dict[str, Any]) -> str | None:
     by_path = note_kind_for_path(schema, rel)
     if by_path is not None:
         return by_path
@@ -170,5 +171,5 @@ def kind_for_lint(schema, rel: str, data: dict[str, object]) -> str | None:
         for tag in tags:
             for name, config in schema.note_kinds.items():
                 if str(tag) == config.tag:
-                    return name
+                    return str(name)
     return None

@@ -6,6 +6,7 @@ import os
 import shlex
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import typer
 
@@ -110,15 +111,26 @@ def register_config(app: typer.Typer) -> None:
                     "root": str(target),
                 }
             )
-        existing = [w["path"] for w in writes if w["path"].exists()]
+        existing = [
+            w["path"]
+            for w in writes
+            if isinstance(w["path"], Path) and w["path"].exists()
+        ]  # noqa: E501
         if existing and not force:
             raise UsageError(f"config already exists: {existing[0]}")
         written: list[str] = []
         for item in writes:
-            config = default_config(actual_profile, target, name=item["name"])
-            _write_migrated_config(
-                item["path"], config, schema, root_value=item["root"]
-            )
-            written.append(str(item["path"].expanduser().resolve()))
+            path_val: Any = item["path"]
+            name_val: Any = item["name"]
+            root_val: Any = item["root"]
+            if (
+                not isinstance(path_val, Path)
+                or not isinstance(name_val, str)
+                or not isinstance(root_val, str)
+            ):  # noqa: E501
+                continue
+            config = default_config(actual_profile, target, name=name_val)
+            _write_migrated_config(path_val, config, schema, root_value=root_val)
+            written.append(str(path_val.expanduser().resolve()))
         payload = {"root": str(target), "profile": actual_profile, "written": written}
         raise typer.Exit(emit(payload, "\n".join(written), fmt))

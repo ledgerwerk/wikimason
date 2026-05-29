@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 from .config import WikiMasonConfig, load_runtime_config
 from .link_format import format_link
@@ -11,7 +12,7 @@ from .paths import compiled_md_files
 from .schema import load_vault_schema, note_kind_for_path
 
 
-def iter_catalog_entries(vault: Path) -> Iterator[dict[str, object]]:
+def iter_catalog_entries(vault: Path) -> Iterator[dict[str, Any]]:
     schema = load_vault_schema(vault)
     config = load_runtime_config(vault)
     for path in compiled_md_files(vault):
@@ -32,7 +33,7 @@ def iter_catalog_entries(vault: Path) -> Iterator[dict[str, object]]:
         yield entry
 
 
-def extract_title(data: dict[str, object], body: str, path: Path) -> str:
+def extract_title(data: dict[str, Any], body: str, path: Path) -> str:
     title = str(data.get("title") or "").strip()
     if title:
         return title
@@ -42,7 +43,7 @@ def extract_title(data: dict[str, object], body: str, path: Path) -> str:
     return path.stem.replace("-", " ").title()
 
 
-def extract_summary(data: dict[str, object], body: str) -> str:
+def extract_summary(data: dict[str, Any], body: str) -> str:
     summary = str(data.get("summary", "")).strip()
     if summary:
         return summary
@@ -54,17 +55,17 @@ def extract_summary(data: dict[str, object], body: str) -> str:
     return ""
 
 
-def write_catalog(vault: Path, entries: list[dict[str, object]]) -> None:
+def write_catalog(vault: Path, entries: list[dict[str, Any]]) -> None:
     target = vault / "Wiki/catalog.jsonl"
     target.write_text(render_catalog_text(entries), encoding="utf-8")
 
 
-def render_catalog_text(entries: list[dict[str, object]]) -> str:
+def render_catalog_text(entries: list[dict[str, Any]]) -> str:
     rows = [json.dumps(entry, sort_keys=True, ensure_ascii=False) for entry in entries]
     return "\n".join(rows) + ("\n" if rows else "")
 
 
-def catalog_status(vault: Path) -> dict[str, object]:
+def catalog_status(vault: Path) -> dict[str, Any]:
     entries = list(iter_catalog_entries(vault))
     expected = render_catalog_text(entries)
     target = vault / "Wiki/catalog.jsonl"
@@ -77,7 +78,7 @@ def catalog_status(vault: Path) -> dict[str, object]:
 
 
 def link_for_catalog(
-    entry: dict[str, object],
+    entry: dict[str, Any],
     *,
     config: WikiMasonConfig | None = None,
     source_path: str | None = None,
@@ -89,5 +90,5 @@ def link_for_catalog(
     return format_link(config.links, path, label=title, source_path=source_path)
 
 
-def _infer_kind(schema, path: str) -> str:
+def _infer_kind(schema: Any, path: str) -> str:
     return note_kind_for_path(schema, path) or "note"

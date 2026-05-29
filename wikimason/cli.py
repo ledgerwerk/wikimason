@@ -94,7 +94,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     except Exception as exc:
         # Catch Click/Typer usage errors (different class hierarchies in typer)
-        if hasattr(exc, "exit_code") and hasattr(exc, "format_message"):
+        if (
+            hasattr(exc, "exit_code")
+            and hasattr(exc, "show")
+            and hasattr(exc, "format_message")
+        ):  # noqa: E501
             exc.show()
             return int(exc.exit_code)
         if hasattr(exc, "exit_code"):
