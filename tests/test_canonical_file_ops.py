@@ -66,3 +66,46 @@ def test_template_text_and_links_commands(tmp_path: Path, capsys) -> None:
     assert "Welcome" in capsys.readouterr().out
     assert run_cli(vault, "links", "backlinks", "Welcome.md") == 0
     assert "Link Note.md" in capsys.readouterr().out
+
+
+def test_page_update_body_file_preserves_sources(tmp_path: Path, capsys) -> None:
+    from conftest import write_source_rel
+
+    from wikimason.frontmatter import split_frontmatter
+
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    source_rel = write_source_rel(vault, "Agent Skills \u2013 O'Reilly.md")
+    main([
+        "note",
+        "new",
+        "--vault",
+        str(vault),
+        "--kind",
+        "topic",
+        "--title",
+        "Agent Skills",
+        "--source",
+        source_rel,
+        "--allow-incomplete",
+    ])
+    body = tmp_path / "body.md"
+    body.write_text("# Agent Skills\n\nNew body\n", encoding="utf-8")
+
+    assert main([
+        "page",
+        "update",
+        "Wiki/Topics/agent-skills.md",
+        "--vault",
+        str(vault),
+        "--body-file",
+        str(body),
+        "--format",
+        "json",
+    ]) == 0
+
+    data, body_text = split_frontmatter(
+        (vault / "Wiki/Topics/agent-skills.md").read_text(encoding="utf-8")
+    )
+    assert data["sources"] == [source_rel]
+    assert "New body" in body_text

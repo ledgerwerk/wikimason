@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import typer
 
 from ..cli_helpers import _run_note_create, _vault_from_ctx
 from ..cli_output import emit
+from ..errors import UsageError
 from ..files import delete_file, move_file, read_file, write_file
 from ..paths import rel_to_vault
 
@@ -55,12 +58,71 @@ def register_page(app: typer.Typer) -> None:
     def page_update_cmd(
         ctx: typer.Context,
         path: str = typer.Argument(..., help="Page path."),
-        content: str = typer.Option(..., "--content", help="New content."),
+        content: str | None = typer.Option(
+            None, "--content", help="New full content."
+        ),
+        body_file: str | None = typer.Option(
+            None, "--body-file",
+            help="Replace body with file, preserving frontmatter.",
+        ),
+        body: str | None = typer.Option(
+            None, "--body",
+            help="Replace body with text, preserving frontmatter.",
+        ),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
+        from ..config import load_runtime_config
+        from ..notes import normalize_note
+        from ..page_profiles import render_page_text, split_page_text
+        from ..paths import resolve_path_in_vault
+
         vault = _vault_from_ctx(ctx)
-        target = write_file(vault, path, content=content, overwrite=True)
-        payload = {"path": rel_to_vault(vault, target)}
+        if body_file is not None:
+            # Body-only update: preserve frontmatter, replace body
+            new_body = (
+                Path(body_file).read_text(encoding="utf-8").rstrip() + "\n"
+            )
+            config = load_runtime_config(vault)
+            target_path = resolve_path_in_vault(vault, path)
+            text = target_path.read_text(encoding="utf-8")
+            data, _ = split_page_text(text, config=config)
+            updated = render_page_text(data, new_body, config=config)
+            target_path.write_text(updated, encoding="utf-8")
+            # Run normalization
+            normalize_note(vault, path, fix=True)
+            payload = {
+                "path": path,
+                "frontmatter_preserved": True,
+                "body_changed": True,
+            }
+        elif body is not None:
+            config = load_runtime_config(vault)
+            target_path = resolve_path_in_vault(vault, path)
+            text = target_path.read_text(encoding="utf-8")
+            data, _ = split_page_text(text, config=config)
+            updated = render_page_text(
+                data, body.rstrip() + "\n", config=config
+            )
+            target_path.write_text(updated, encoding="utf-8")
+            normalize_note(vault, path, fix=True)
+            payload = {
+                "path": path,
+                "frontmatter_preserved": True,
+                "body_changed": True,
+            }
+        elif content is not None:
+            target = write_file(
+                vault, path, content=content, overwrite=True
+            )
+            payload = {
+                "path": rel_to_vault(vault, target),
+                "frontmatter_preserved": False,
+                "body_changed": True,
+            }
+        else:
+            raise UsageError(
+                "page update requires --content, --body-file, or --body"
+            )
         raise typer.Exit(emit(payload, payload["path"], fmt))
 
     @_page_app.command("move")

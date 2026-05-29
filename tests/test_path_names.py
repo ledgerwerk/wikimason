@@ -265,3 +265,35 @@ aliases: []
         "error: source path not found: Raw/Sources/missing.md"
         in capsys.readouterr().out
     )
+
+
+def test_note_new_resolves_literal_unicode_escape_source_path(
+    tmp_path: Path, capsys
+) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    source_rel = write_source_rel(vault, "Agent Harness Engineering \u2013 O'Reilly.md")
+
+    assert (
+        main(
+            [
+                "note",
+                "new",
+                "--vault",
+                str(vault),
+                "--kind",
+                "topic",
+                "--title",
+                "Escaped Source",
+                "--source",
+                r"Raw/Sources/Agent Harness Engineering \u2013 O'Reilly.md",
+                "--allow-incomplete",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+
+    payload = read_json(capsys)
+    assert payload["sources"] == [source_rel]

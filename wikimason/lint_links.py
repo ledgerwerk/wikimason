@@ -122,7 +122,9 @@ def validate_body_links(
                     message="## Related must include at least one internal link",
                 )
             )
-    for line_number, line in enumerate(body.splitlines(), start=1):
+    from .link_format import iter_link_scan_lines
+
+    for line_number, line in iter_link_scan_lines(body):
         for link in extract_internal_links(line, vault=vault, source_path=rel):
             if link_resolves(link.query, link_targets):
                 continue

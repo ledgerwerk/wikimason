@@ -21,14 +21,17 @@ def register_catalog(app: typer.Typer) -> None:
     @_catalog_app.command("search")
     def catalog_search_cmd(
         ctx: typer.Context,
-        query: str = typer.Argument(None, help="Search query."),
+        query_arg: str | None = typer.Argument(None, help="Search query."),
+        query_opt: str | None = typer.Option(
+            None, "--query", "-q", help="Search query."
+        ),
         tag: str | None = typer.Option(None, "--tag", help="Filter by tag."),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
-        actual_query = query or ""
+        actual_query = query_opt or query_arg or ""
         if not actual_query:
-            raise UsageError("catalog search requires --query or QUERY")
+            raise UsageError("catalog search requires QUERY or --query")
         rows = search_catalog(vault, query=actual_query, tag=tag, limit=10)
         if fmt == "json":
             print(json.dumps(rows, sort_keys=True))

@@ -31,3 +31,11 @@ def test_docs_match_generated_reference() -> None:
 
     # docs are now RST-only; skip markdown comparison
     pass
+
+
+def test_command_reference_includes_catalog_search() -> None:
+    from wikimason.commands import render_command_reference_markdown
+
+    text = render_command_reference_markdown()
+    assert "catalog search" in text
+    assert "QUERY|--query QUERY" in text

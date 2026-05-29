@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import posixpath
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -10,6 +11,8 @@ from .page_profiles import default_logical_ref_for_path
 from .wikilinks import WIKILINK_RE, normalize_wikilink_name
 
 MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)]+)\)")
+INLINE_CODE_RE = re.compile(r"`[^`]+`")
+_FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
 
 
 @dataclass(frozen=True)
@@ -23,6 +26,39 @@ class ParsedLink:
     start: int
     end: int
 
+
+
+def iter_link_scan_lines(text: str) -> Iterator[tuple[int, str]]:
+    """Yield (line_number, line_text) skipping fenced code blocks and inline code spans.
+
+    Lines inside fenced code blocks (triple backticks or tildes) are
+    excluded entirely.  Inline backtick spans within non-fenced lines
+    are replaced with empty strings so that links inside them are
+    invisible to link extractors.
+    """
+    in_fence = False
+    fence_char = ""
+    for line_number, raw_line in enumerate(text.splitlines(), start=1):
+        stripped = raw_line.strip()
+        fence_match = _FENCE_RE.match(stripped)
+        if fence_match:
+            if not in_fence:
+                in_fence = True
+                fence_char = fence_match.group(1)[0]
+                continue
+            else:
+                if (
+                    stripped[0] == fence_char
+                    and len(stripped.lstrip(fence_char)) == 0
+                ):
+                    in_fence = False
+                    fence_char = ""
+                continue
+        if in_fence:
+            continue
+        # Strip inline code spans
+        cleaned = INLINE_CODE_RE.sub("", raw_line)
+        yield line_number, cleaned
 
 def default_link_label(target_path: str) -> str:
     logical = default_logical_ref_for_path(target_path)
@@ -224,7 +260,9 @@ def _split_markdown_target(value: str) -> tuple[str, str | None]:
 def _canonicalize_target(
     value: str, *, source_path: str | Path | None = None
 ) -> str | None:
-    raw = value.strip().replace("\\", "/")
+    from .paths import decode_unicode_escape_literals
+
+    raw = decode_unicode_escape_literals(value.strip()).replace("\\", "/")
     if not raw or raw.startswith("#"):
         return None
     if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", raw):

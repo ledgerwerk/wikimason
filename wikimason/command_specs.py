@@ -104,6 +104,12 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         json_output=True,
     ),
     CommandSpec(
+        path=("source", "read"),
+        usage="wikimason source read QUERY [--lines N] [--format text|json]",
+        summary="Read a source file by path or fuzzy query.",
+        json_output=True,
+    ),
+    CommandSpec(
         path=("source", "scan"),
         usage="wikimason source scan [--update]"
         " [--accept-covered] [--format text|json]",
@@ -419,7 +425,8 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     # -- catalog --
     CommandSpec(
         path=("catalog", "search"),
-        usage="wikimason catalog search QUERY [--tag TAG] [--format text|json]",
+        usage="wikimason catalog search QUERY|--query QUERY"
+        " [--tag TAG] [--format text|json]",
         summary="Search the catalog.",
         json_output=True,
     ),

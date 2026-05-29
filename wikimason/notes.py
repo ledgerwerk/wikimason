@@ -217,8 +217,11 @@ def normalize_note(vault: Path, note_path: str, fix: bool = False) -> dict[str, 
 
 
 def normalize_source_path(value: str) -> str:
+    from .paths import decode_unicode_escape_literals
+
+    decoded = decode_unicode_escape_literals(value)
     cleaned = (
-        (normalize_internal_link_target(value) or value).replace("\\", "/").strip()
+        (normalize_internal_link_target(decoded) or decoded).replace("\\", "/").strip()
     )
     if not cleaned:
         raise UsageError("empty source path")
@@ -275,7 +278,10 @@ def resolve_source_path(vault: Path, value: str) -> str:
 
 
 def normalize_related_path(vault: Path, value: str) -> str:
-    cleaned = (normalize_internal_link_target(value) or value).replace("\\", "/")
+    from .paths import decode_unicode_escape_literals
+
+    decoded = decode_unicode_escape_literals(value)
+    cleaned = (normalize_internal_link_target(decoded) or decoded).replace("\\", "/")
     if not cleaned:
         raise UsageError("empty related path")
     if cleaned.startswith("Wiki/"):

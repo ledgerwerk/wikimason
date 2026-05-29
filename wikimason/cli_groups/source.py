@@ -178,3 +178,47 @@ def register_source(app: typer.Typer) -> None:
                 exit_code=1 if errors else 0,
             )
         )
+
+    @_source_app.command("read")
+    def source_read_cmd(
+        ctx: typer.Context,
+        query: str = typer.Argument(..., help="Source path or search query."),
+        lines: int | None = typer.Option(
+            None, "--lines", "-n", help="Limit output to first N lines."
+        ),
+        fmt: str = typer.Option("text", "--format", help="Output format."),
+    ) -> None:
+        from ..source_scan import source_resolve_report
+
+        vault = _vault_from_ctx(ctx)
+        # Try exact path first, then fuzzy resolve
+        exact = vault / query
+        if exact.exists() and exact.is_file():
+            resolved_rel = rel_to_vault(vault, exact)
+        else:
+            # Use fuzzy matching from source resolve
+            report = source_resolve_report(vault, query, limit=1)
+            matches = report.get("matches", [])
+            if matches:
+                resolved_rel = matches[0]["path"]
+            else:
+                resolved_rel = resolve_source_path(vault, query)
+        full_path = vault / resolved_rel
+        text = full_path.read_text(encoding="utf-8")
+        metadata, body = split_frontmatter(text)
+        content_lines = body.splitlines()
+        preview = "\n".join(content_lines[:lines]) if lines else body
+        payload = {
+            "path": resolved_rel,
+            "metadata": metadata,
+            "content": preview,
+            "total_lines": len(content_lines),
+        }
+        if fmt == "json":
+            import json
+
+            print(json.dumps(payload, sort_keys=True))
+        else:
+            print(f"Path: {resolved_rel}")
+            print(preview)
+        raise typer.Exit(0)

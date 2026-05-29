@@ -89,3 +89,40 @@ def test_source_resolve_json_output(tmp_path: Path, capsys) -> None:
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
     assert payload["matches"][0]["path"] == f"Raw/Sources/{name}"
     assert payload["matches"][0]["match"] in {"exact", "substring", "fuzzy"}
+
+
+def test_source_read_resolves_typographic_path(tmp_path: Path, capsys) -> None:
+    from conftest import write_source_rel
+
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    source_rel = write_source_rel(vault, "Agent Harness Engineering \u2013 O'Reilly.md")
+
+    assert main([
+        "source",
+        "read",
+        "Agent Harness Engineering O'Reilly",
+        "--vault",
+        str(vault),
+        "--lines",
+        "5",
+        "--format",
+        "json",
+    ]) == 0
+
+    payload = json.loads(capsys.readouterr().out.splitlines()[-1])
+    assert payload["path"] == source_rel
+    assert payload["content"]
+
+
+def test_source_delta_exit_2_has_exit_reason(tmp_path: Path, capsys) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    (vault / "Raw/Sources/new.md").write_text("# New", encoding="utf-8")
+
+    code = main(["source", "delta", "--vault", str(vault), "--format", "json"])
+    assert code == 2
+
+    payload = json.loads(capsys.readouterr().out.splitlines()[-1])
+    assert payload["actionable_count"] > 0
+    assert payload["exit_reason"] == "actionable_source_work"

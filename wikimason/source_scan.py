@@ -148,6 +148,8 @@ def raw_record(
 def build_source_coverage_map(
     vault: Path,
 ) -> tuple[dict[str, list[str]], list[dict[str, str]]]:
+    from .paths import decode_unicode_escape_literals
+
     prefixes = compiled_prefixes(load_vault_schema(vault))
     existing_raw = {p.relative_to(vault).as_posix() for p in source_md_files(vault)}
     coverage_map: dict[str, list[str]] = {}
@@ -164,7 +166,8 @@ def build_source_coverage_map(
             continue
         for source in sources:
             src_text = str(source).strip()
-            cleaned = normalize_internal_link_target(src_text) or src_text
+            decoded = decode_unicode_escape_literals(src_text)
+            cleaned = normalize_internal_link_target(decoded) or decoded
             normalized = cleaned if cleaned.endswith(".md") else f"{cleaned}.md"
             if not normalized.startswith("Raw/"):
                 weak_sources.append(

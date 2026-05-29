@@ -41,6 +41,33 @@ _PATH_PUNCT_TRANSLATION = str.maketrans(
     }
 )
 
+_UNICODE_ESCAPE_RE = re.compile(r"\\u([0-9a-fA-F]{4})|\\U([0-9a-fA-F]{8})")
+
+
+def decode_unicode_escape_literals(value: str) -> str:
+    """Decode literal Unicode escape sequences from JSON-based agent writes.
+
+    Only decode explicit \\uXXXX and \\UXXXXXXXX forms.  Do not use
+    bytes(...).decode("unicode_escape"), because that also rewrites
+    unrelated backslash escapes and can corrupt paths.
+    """
+
+    def repl(match: re.Match[str]) -> str:
+        code = match.group(1) or match.group(2)
+        return chr(int(code, 16))
+
+    return _UNICODE_ESCAPE_RE.sub(repl, value)
+
+
+def normalize_path_text_for_matching(value: str) -> str:
+    """Canonical path text for matching."""
+    value = decode_unicode_escape_literals(value)
+    value = unicodedata.normalize("NFKC", value)
+    value = value.translate(_PATH_PUNCT_TRANSLATION)
+    value = value.replace("\\", "/")
+    value = re.sub(r"\s+", " ", value).strip()
+    return value
+
 
 def is_vault(path: Path) -> bool:
     return find_wiki_root(path) is not None
@@ -151,9 +178,8 @@ def source_md_files(vault: Path) -> Iterator[Path]:
 
 
 def path_match_key(value: str) -> str:
-    normalized = unicodedata.normalize("NFKC", value).translate(_PATH_PUNCT_TRANSLATION)
-    normalized = normalized.replace("\\", "/").casefold()
-    normalized = re.sub(r"\s+", " ", normalized).strip()
+    normalized = normalize_path_text_for_matching(value)
+    normalized = normalized.casefold()
     return normalized
 
 

@@ -159,3 +159,23 @@ def test_catalog_rebuild_writes_generated_docs(tmp_path: Path) -> None:
         encoding="utf-8"
     ) == render_command_reference_markdown()
     assert not (vault / "Schema/wikimason-obsidian-commands.md").exists()
+
+
+def test_catalog_search_accepts_query_option(tmp_path: Path, capsys) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault, demo=True)
+    main(["vault", "build", "--vault", str(vault)])
+
+    assert main([
+        "catalog",
+        "search",
+        "--vault",
+        str(vault),
+        "--query",
+        "compiled knowledge",
+        "--format",
+        "json",
+    ]) == 0
+
+    payload = json.loads(capsys.readouterr().out.splitlines()[-1])
+    assert payload

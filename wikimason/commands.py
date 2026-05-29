@@ -46,6 +46,7 @@ PUBLIC_COMMAND_SEQUENCE: tuple[tuple[str, ...], ...] = (
     ("index", "check"),
     ("catalog", "build"),
     ("catalog", "check"),
+    ("catalog", "search"),
     ("lint",),
     ("status",),
     ("agents", "compile"),

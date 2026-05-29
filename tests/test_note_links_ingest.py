@@ -407,3 +407,59 @@ def test_first_run_acceptance_scenario(tmp_path: Path, capsys) -> None:
     assert main(["source", "lint", "--vault", str(vault)]) == 0
     assert main(["vault", "lint", "--vault", str(vault)]) == 0
     assert main(["vault", "doctor", "--vault", str(vault)]) == 0
+
+
+def test_links_normalize_fix_normalizes_source_frontmatter(
+    tmp_path: Path, capsys
+) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    from conftest import write_source_rel
+
+    source_rel = write_source_rel(vault, "Agent Skills \u2013 O'Reilly.md")
+    note = vault / "Wiki/Topics/agent-skills.md"
+    note.write_text(
+        """---
+tags:
+  - topic
+topics: []
+status: active
+created: 2026-05-29
+updated: 2026-05-29
+sources:
+  - Raw/Sources/Agent Skills \\u2013 O'Reilly.md
+source_count: 1
+aliases: []
+---
+
+# Agent Skills
+
+## Related
+
+-
+
+## Sources
+
+- [[Raw/Sources/Agent Skills \\u2013 O'Reilly.md]]
+""",
+        encoding="utf-8",
+    )
+
+    assert main(
+        [
+            "links",
+            "normalize",
+            "Wiki/Topics/agent-skills.md",
+            "--vault",
+            str(vault),
+            "--fix",
+            "--format",
+            "json",
+        ]
+    ) == 0
+
+    from wikimason.frontmatter import split_frontmatter
+
+    data, body = split_frontmatter(note.read_text(encoding="utf-8"))
+    assert data["sources"] == [source_rel]
+    assert source_rel.removesuffix(".md") in body or source_rel in body

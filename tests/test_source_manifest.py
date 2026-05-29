@@ -212,3 +212,49 @@ def test_manifest_record_has_source_id(tmp_path: Path) -> None:
         assert "original_filename" in row
         assert "content_sha256" in row
         assert "source_kind" in row
+
+
+def test_source_scan_decodes_literal_unicode_escape_in_coverage_map(
+    tmp_path: Path,
+) -> None:
+    from conftest import write_source_rel
+
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    source_rel = write_source_rel(vault, "Agent Harness Engineering \u2013 O'Reilly.md")
+
+    note = vault / "Wiki/Topics/escaped-source.md"
+    note.write_text(
+        """---
+tags:
+  - topic
+topics: []
+status: active
+created: 2026-05-29
+updated: 2026-05-29
+sources:
+  - Raw/Sources/Agent Harness Engineering \\u2013 O'Reilly.md
+source_count: 1
+aliases: []
+---
+
+# Escaped Source
+
+## Related
+
+-
+
+## Sources
+
+- [[Raw/Sources/Agent Harness Engineering \\u2013 O'Reilly.md]]
+""",
+        encoding="utf-8",
+    )
+
+    from wikimason.source_scan import source_scan_payload
+
+    payload, _ = source_scan_payload(vault, update=False)
+    assert payload is not None
+    assert payload["weak_sources"] == []
+    records = {row["path"]: row for row in payload["records"]}
+    assert records[source_rel]["coverage"] == ["Wiki/Topics/escaped-source.md"]

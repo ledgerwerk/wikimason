@@ -54,6 +54,9 @@ _PUNCT_RE = re.compile(r"[^\w/.-]+")
 
 
 def normalize_query(value: str) -> str:
+    from .paths import decode_unicode_escape_literals
+
+    value = decode_unicode_escape_literals(value)
     value = unicodedata.normalize("NFKC", value)
     value = value.replace("\\", "/").casefold()
     value = _PUNCT_RE.sub(" ", value)

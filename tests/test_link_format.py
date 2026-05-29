@@ -58,3 +58,48 @@ def test_normalize_internal_link_target_handles_markdown_and_wikilinks() -> None
         )
         == "Wiki/Concepts/compiled-knowledge.md"
     )
+
+
+def test_links_check_ignores_markdown_links_inside_code_fences(
+    tmp_path: Path, capsys
+) -> None:
+    from wikimason.cli import main
+    from wikimason.scaffold import init_vault
+
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    note = vault / "Wiki/Concepts/examples.md"
+    note.write_text(
+        """---
+tags:
+  - concept
+topics: []
+status: active
+created: 2026-05-29
+updated: 2026-05-29
+sources: []
+source_count: 0
+aliases: []
+---
+
+# Examples
+
+```markdown
+[example](path.md)
+[[missing.md]]
+```
+
+Use `[example](path.md)` as literal syntax.
+
+## Related
+
+-
+
+## Sources
+
+-
+""",
+        encoding="utf-8",
+    )
+
+    assert main(["links", "check", "--vault", str(vault), "--format", "json"]) == 0

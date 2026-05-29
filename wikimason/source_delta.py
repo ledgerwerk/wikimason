@@ -86,10 +86,12 @@ def source_delta(vault: Path) -> tuple[dict[str, Any] | None, list[str]]:
         delta[key] = sorted(
             delta[key], key=lambda row: str(row.get("path", row.get("source_id", "")))
         )
+    actionable_count = len(actionable_paths)
     result = {
         "delta": delta,
         "weak_sources": payload["weak_sources"],
-        "actionable_count": len(actionable_paths),
+        "actionable_count": actionable_count,
+        "exit_reason": "actionable_source_work" if actionable_count > 0 else "",
     }
     return result, errors
 

@@ -48,6 +48,7 @@ class LinkNormalization:
     path: str
     changed: bool
     replacements: tuple[dict[str, Any], ...]
+    field_replacements: tuple[dict[str, Any], ...]
     applied: bool
 
 
@@ -115,7 +116,9 @@ def deadend_notes(vault: Path) -> list[str]:
 
 
 def resolve_link_matches(vault: Path, query: str, limit: int = 10) -> list[LinkMatch]:
-    raw = query.replace("\\", "/").strip()
+    from .paths import decode_unicode_escape_literals
+
+    raw = decode_unicode_escape_literals(query).replace("\\", "/").strip()
     lower = raw.lower()
     config = load_runtime_config(vault)
     entries: dict[str, LinkMatch] = {}
@@ -140,24 +143,41 @@ def resolve_link_matches(vault: Path, query: str, limit: int = 10) -> list[LinkM
 def resolve_best_wikilink(
     vault: Path, query: str, *, source_path: str | None = None
 ) -> str | None:
-    matches = resolve_link_matches(vault, query, limit=2)
+    matches = resolve_link_matches(vault, query, limit=5)
+    if not matches:
+        return None
+    # Exact match (score 100) always wins even if fuzzy candidates exist.
+    if matches[0].score >= 100:
+        config = load_runtime_config(vault)
+        return format_link(
+            config.links,
+            matches[0].path,
+            label=matches[0].title,
+            source_path=source_path,
+        )
+    # For non-exact matches, require a unique strong match.
     if len(matches) != 1:
         return None
     if matches[0].score < 80:
         return None
     config = load_runtime_config(vault)
     return format_link(
-        config.links, matches[0].path, label=matches[0].title, source_path=source_path
+        config.links,
+        matches[0].path,
+        label=matches[0].title,
+        source_path=source_path,
     )
 
 
 def check_links(vault: Path) -> list[LinkCheckFinding]:
+    from .link_format import iter_link_scan_lines
+
     findings: list[LinkCheckFinding] = []
     link_targets = build_link_targets(vault)
     for path in compiled_md_files(vault):
         rel = rel_to_vault(vault, path)
-        lines = path.read_text(encoding="utf-8").splitlines()
-        for line_number, line in enumerate(lines, start=1):
+        text = path.read_text(encoding="utf-8")
+        for line_number, line in iter_link_scan_lines(text):
             for link in extract_internal_links(line, vault=vault, source_path=rel):
                 raw_link = link.query
                 if _link_resolves(link, link_targets):
@@ -182,12 +202,17 @@ def check_links(vault: Path) -> list[LinkCheckFinding]:
 def normalize_links(
     vault: Path, note_path: str, fix: bool = False
 ) -> LinkNormalization:
+    from .notes import normalize_related_path, normalize_source_path
+
     config = load_runtime_config(vault)
     path = resolve_path_in_vault(vault, note_path)
     rel = rel_to_vault(vault, path)
     text = path.read_text(encoding="utf-8")
     data, body = split_page_text(text, config=config)
     replacements: list[dict[str, Any]] = []
+    field_replacements: list[dict[str, Any]] = []
+
+    # Normalize body links
     spans = extract_internal_links(body, vault=vault, source_path=rel)
     updated_parts: list[str] = []
     cursor = 0
@@ -202,15 +227,68 @@ def normalize_links(
         cursor = link.end
     updated_parts.append(body[cursor:])
     updated_body = "".join(updated_parts)
-    changed = bool(replacements)
+
+    # Normalize frontmatter fields
+    updated_data = dict(data)
+    sources = data.get("sources", [])
+    if isinstance(sources, list) and sources:
+        new_sources: list[str] = []
+        for src in sources:
+            src_str = str(src).strip()
+            try:
+                normalized = normalize_source_path(src_str)
+            except Exception:
+                normalized = src_str
+            if normalized != src_str:
+                field_replacements.append(
+                    {"field": "sources", "from": src_str, "to": normalized}
+                )
+            new_sources.append(normalized)
+        if any(r["field"] == "sources" for r in field_replacements):
+            updated_data["sources"] = new_sources
+            updated_data["source_count"] = len(new_sources)
+
+    for field_name in ("topics", "related"):
+        values = data.get(field_name, [])
+        if not isinstance(values, list) or not values:
+            continue
+        new_values: list[str] = []
+        for val in values:
+            val_str = str(val).strip()
+            try:
+                normalized = normalize_related_path(vault, val_str)
+            except Exception:
+                normalized = val_str
+            if normalized != val_str:
+                field_replacements.append(
+                    {"field": field_name, "from": val_str, "to": normalized}
+                )
+            new_values.append(normalized)
+        if any(r["field"] == field_name for r in field_replacements):
+            updated_data[field_name] = new_values
+
+    changed = bool(replacements) or bool(field_replacements)
     if fix and changed:
-        path.write_text(
-            render_page_text(data, updated_body, config=config), encoding="utf-8"
-        )
+        if field_replacements:
+            # Write with updated frontmatter and body
+            from .page_profiles import update_page_text
+
+            updated_text = update_page_text(text, updated_data, config=config)
+            # Replace body if body links changed too
+            if replacements:
+                updated_text = render_page_text(
+                    updated_data, updated_body, config=config
+                )
+            path.write_text(updated_text, encoding="utf-8")
+        elif replacements:
+            path.write_text(
+                render_page_text(data, updated_body, config=config), encoding="utf-8"
+            )
     return LinkNormalization(
         path=rel,
         changed=changed,
         replacements=tuple(replacements),
+        field_replacements=tuple(field_replacements),
         applied=fix and changed,
     )
 
