@@ -445,18 +445,21 @@ aliases: []
         encoding="utf-8",
     )
 
-    assert main(
-        [
-            "links",
-            "normalize",
-            "Wiki/Topics/agent-skills.md",
-            "--vault",
-            str(vault),
-            "--fix",
-            "--format",
-            "json",
-        ]
-    ) == 0
+    assert (
+        main(
+            [
+                "links",
+                "normalize",
+                "Wiki/Topics/agent-skills.md",
+                "--vault",
+                str(vault),
+                "--fix",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
 
     from wikimason.frontmatter import split_frontmatter
 

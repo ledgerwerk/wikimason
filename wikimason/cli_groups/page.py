@@ -58,15 +58,15 @@ def register_page(app: typer.Typer) -> None:
     def page_update_cmd(
         ctx: typer.Context,
         path: str = typer.Argument(..., help="Page path."),
-        content: str | None = typer.Option(
-            None, "--content", help="New full content."
-        ),
+        content: str | None = typer.Option(None, "--content", help="New full content."),
         body_file: str | None = typer.Option(
-            None, "--body-file",
+            None,
+            "--body-file",
             help="Replace body with file, preserving frontmatter.",
         ),
         body: str | None = typer.Option(
-            None, "--body",
+            None,
+            "--body",
             help="Replace body with text, preserving frontmatter.",
         ),
         fmt: str = typer.Option("text", "--format", help="Output format."),
@@ -79,9 +79,7 @@ def register_page(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         if body_file is not None:
             # Body-only update: preserve frontmatter, replace body
-            new_body = (
-                Path(body_file).read_text(encoding="utf-8").rstrip() + "\n"
-            )
+            new_body = Path(body_file).read_text(encoding="utf-8").rstrip() + "\n"
             config = load_runtime_config(vault)
             target_path = resolve_path_in_vault(vault, path)
             text = target_path.read_text(encoding="utf-8")
@@ -100,9 +98,7 @@ def register_page(app: typer.Typer) -> None:
             target_path = resolve_path_in_vault(vault, path)
             text = target_path.read_text(encoding="utf-8")
             data, _ = split_page_text(text, config=config)
-            updated = render_page_text(
-                data, body.rstrip() + "\n", config=config
-            )
+            updated = render_page_text(data, body.rstrip() + "\n", config=config)
             target_path.write_text(updated, encoding="utf-8")
             normalize_note(vault, path, fix=True)
             payload = {
@@ -111,18 +107,14 @@ def register_page(app: typer.Typer) -> None:
                 "body_changed": True,
             }
         elif content is not None:
-            target = write_file(
-                vault, path, content=content, overwrite=True
-            )
+            target = write_file(vault, path, content=content, overwrite=True)
             payload = {
                 "path": rel_to_vault(vault, target),
                 "frontmatter_preserved": False,
                 "body_changed": True,
             }
         else:
-            raise UsageError(
-                "page update requires --content, --body-file, or --body"
-            )
+            raise UsageError("page update requires --content, --body-file, or --body")
         raise typer.Exit(emit(payload, payload["path"], fmt))
 
     @_page_app.command("move")

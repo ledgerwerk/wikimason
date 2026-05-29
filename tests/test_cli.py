@@ -1,3 +1,10 @@
+import re
+
+
+def _strip_ansi(text: str) -> str:
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
+
 import json
 from pathlib import Path
 
@@ -10,7 +17,7 @@ from wikimason.schema import load_vault_schema, write_default_schema
 
 def test_cli_help(capsys):
     assert main(["--help"]) == 0
-    out = capsys.readouterr().out
+    out = _strip_ansi(capsys.readouterr().out)
     assert "--config" in out
     assert "config" in out
     assert "init" in out
@@ -26,7 +33,7 @@ def test_cli_help(capsys):
 
 def test_cli_help_topic(capsys):
     assert main(["help", "source", "scan"]) == 0
-    out = capsys.readouterr().out
+    out = _strip_ansi(capsys.readouterr().out)
     assert "scan" in out
 
 
@@ -166,16 +173,21 @@ def test_catalog_search_accepts_query_option(tmp_path: Path, capsys) -> None:
     init_vault(vault, demo=True)
     main(["vault", "build", "--vault", str(vault)])
 
-    assert main([
-        "catalog",
-        "search",
-        "--vault",
-        str(vault),
-        "--query",
-        "compiled knowledge",
-        "--format",
-        "json",
-    ]) == 0
+    assert (
+        main(
+            [
+                "catalog",
+                "search",
+                "--vault",
+                str(vault),
+                "--query",
+                "compiled knowledge",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
 
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
     assert payload

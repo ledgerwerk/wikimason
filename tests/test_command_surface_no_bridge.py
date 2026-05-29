@@ -1,3 +1,10 @@
+import re
+
+
+def _strip_ansi(text: str) -> str:
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
+
 from pathlib import Path
 
 from wikimason.cli import main
@@ -6,7 +13,7 @@ from wikimason.config import load_config_file
 
 def test_help_has_no_obsidian_or_bridge_surface(capsys) -> None:
     assert main(["--help"]) == 0
-    out = capsys.readouterr().out
+    out = _strip_ansi(capsys.readouterr().out)
     assert "wikimason obsidian" not in out
     assert "wikimason bridge" not in out
     assert "page" in out

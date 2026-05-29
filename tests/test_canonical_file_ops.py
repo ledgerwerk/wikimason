@@ -76,33 +76,40 @@ def test_page_update_body_file_preserves_sources(tmp_path: Path, capsys) -> None
     vault = tmp_path / "vault"
     init_vault(vault)
     source_rel = write_source_rel(vault, "Agent Skills \u2013 O'Reilly.md")
-    main([
-        "note",
-        "new",
-        "--vault",
-        str(vault),
-        "--kind",
-        "topic",
-        "--title",
-        "Agent Skills",
-        "--source",
-        source_rel,
-        "--allow-incomplete",
-    ])
+    main(
+        [
+            "note",
+            "new",
+            "--vault",
+            str(vault),
+            "--kind",
+            "topic",
+            "--title",
+            "Agent Skills",
+            "--source",
+            source_rel,
+            "--allow-incomplete",
+        ]
+    )
     body = tmp_path / "body.md"
     body.write_text("# Agent Skills\n\nNew body\n", encoding="utf-8")
 
-    assert main([
-        "page",
-        "update",
-        "Wiki/Topics/agent-skills.md",
-        "--vault",
-        str(vault),
-        "--body-file",
-        str(body),
-        "--format",
-        "json",
-    ]) == 0
+    assert (
+        main(
+            [
+                "page",
+                "update",
+                "Wiki/Topics/agent-skills.md",
+                "--vault",
+                str(vault),
+                "--body-file",
+                str(body),
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
 
     data, body_text = split_frontmatter(
         (vault / "Wiki/Topics/agent-skills.md").read_text(encoding="utf-8")

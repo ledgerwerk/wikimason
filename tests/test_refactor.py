@@ -1,3 +1,10 @@
+import re
+
+
+def _strip_ansi(text: str) -> str:
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
+
 try:
     import tomllib
 except ImportError:
@@ -20,7 +27,7 @@ def test_runtime_dependencies_declared():
 
 def test_typer_help_root(capsys):
     assert main(["--help"]) == 0
-    out = capsys.readouterr().out
+    out = _strip_ansi(capsys.readouterr().out)
     assert "Usage:" in out
     assert "source" in out
     assert "--config" in out
@@ -28,14 +35,14 @@ def test_typer_help_root(capsys):
 
 def test_typer_help_nested(capsys):
     assert main(["source", "verify", "--help"]) == 0
-    out = capsys.readouterr().out
+    out = _strip_ansi(capsys.readouterr().out)
     assert "verify" in out
     assert "--format" in out
 
 
 def test_legacy_help_topic(capsys):
     assert main(["help", "source", "verify"]) == 0
-    assert "verify" in capsys.readouterr().out
+    assert "verify" in _strip_ansi(capsys.readouterr().out)
 
 
 def test_unknown_command_suggests(capsys):
@@ -142,7 +149,7 @@ def test_runtime_commands_match_specs(capsys):
     from wikimason.command_specs import COMMAND_SPECS
 
     assert main(["--help"]) == 0
-    help_out = capsys.readouterr().out
+    help_out = _strip_ansi(capsys.readouterr().out)
 
     # All top-level command groups should appear in help
     top_groups = sorted({s.path[0] for s in COMMAND_SPECS})

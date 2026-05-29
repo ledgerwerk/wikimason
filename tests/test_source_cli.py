@@ -98,17 +98,22 @@ def test_source_read_resolves_typographic_path(tmp_path: Path, capsys) -> None:
     init_vault(vault)
     source_rel = write_source_rel(vault, "Agent Harness Engineering \u2013 O'Reilly.md")
 
-    assert main([
-        "source",
-        "read",
-        "Agent Harness Engineering O'Reilly",
-        "--vault",
-        str(vault),
-        "--lines",
-        "5",
-        "--format",
-        "json",
-    ]) == 0
+    assert (
+        main(
+            [
+                "source",
+                "read",
+                "Agent Harness Engineering O'Reilly",
+                "--vault",
+                str(vault),
+                "--lines",
+                "5",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
 
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
     assert payload["path"] == source_rel
