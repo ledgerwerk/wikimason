@@ -1,14 +1,12 @@
 import re
-
-
-def _strip_ansi(text: str) -> str:
-    return re.sub(r"\x1b\[[0-9;]*m", "", text)
-
-
 from pathlib import Path
 
 from wikimason.cli import main
 from wikimason.config import load_config_file
+
+
+def _strip_ansi(text: str) -> str:
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
 
 
 def test_help_has_no_obsidian_or_bridge_surface(capsys) -> None:

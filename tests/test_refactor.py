@@ -1,18 +1,17 @@
 import re
-
-
-def _strip_ansi(text: str) -> str:
-    return re.sub(r"\x1b\[[0-9;]*m", "", text)
-
+from pathlib import Path
 
 try:
     import tomllib
 except ImportError:
     import tomli as tomllib
-from pathlib import Path
 
 from wikimason.cli import main
 from wikimason.scaffold import init_vault
+
+
+def _strip_ansi(text: str) -> str:
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
 
 
 def test_runtime_dependencies_declared():
