@@ -58,4 +58,3 @@ exclude = [".obsidian/workspace.json"]
 [profile.markdown]
 hub_filename = "index.md"
 pages_dir = "Wiki"
-

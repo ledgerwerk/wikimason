@@ -98,6 +98,7 @@ def test_logseq_invalid_status_fails(tmp_path: Path) -> None:
     target = next(p for p in (vault / "pages").rglob("*.md") if "index" not in p.name)
     text = target.read_text(encoding="utf-8")
     text = text.replace("- status:: active", "- status:: invalid_status")
+    text = text.replace("- status:: seed", "- status:: invalid_status")
     target.write_text(text, encoding="utf-8")
     errors = lint_vault(vault)
     assert any("invalid status" in error for error in errors), f"Got: {errors}"

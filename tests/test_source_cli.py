@@ -35,7 +35,19 @@ def test_source_nested_aliases_match_legacy(tmp_path: Path, capsys) -> None:
     assert main(["source-delta", "--vault", str(vault), "--format", "json"]) in {0, 2}
     legacy = json.loads(capsys.readouterr().out.splitlines()[-1])
 
-    assert nested == legacy
+    # Ignore timestamps which differ between runs
+    def _strip_ts(obj):
+        if isinstance(obj, dict):
+            return {
+                k: _strip_ts(v)
+                for k, v in obj.items()
+                if k not in ("last_scanned_at", "first_seen_at")
+            }
+        if isinstance(obj, list):
+            return [_strip_ts(v) for v in obj]
+        return obj
+
+    assert _strip_ts(nested) == _strip_ts(legacy)
 
 
 def test_source_delta_json_output(tmp_path: Path, capsys) -> None:

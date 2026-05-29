@@ -61,4 +61,3 @@ wikimason migrate logseq-to-obsidian \
 
 wikimason --vault ~/obsidian-vault source verify
 wikimason --vault ~/obsidian-vault lint
-

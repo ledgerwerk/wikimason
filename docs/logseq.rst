@@ -84,4 +84,3 @@ Migrate from Logseq to another profile:
 
 wikimason migrate logseq-to-obsidian --from ./logseq-graph --to ./obsidian-vault
 wikimason migrate logseq-to-markdown --from ./logseq-graph --to ./md-vault
-

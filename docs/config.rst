@@ -80,4 +80,3 @@ Write config for an existing wiki root
 ======================================
 
 wikimason config migrate [PATH] --profile markdown|obsidian|logseq
-
