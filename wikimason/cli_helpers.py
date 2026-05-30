@@ -6,7 +6,7 @@ import json
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 
 import typer
 
@@ -128,7 +128,7 @@ def _collect_tags(vault: Path) -> dict[str, int]:
 # ---------------------------------------------------------------------------
 
 
-def _exit_emit(payload: object, text: str, fmt: str, *, exit_code: int = 0) -> None:
+def _exit_emit(payload: object, text: str, fmt: str, *, exit_code: int = 0) -> NoReturn:
     """Emit *payload*/*text* via :func:`emit` and raise ``typer.Exit``."""
     raise typer.Exit(emit(payload, text, fmt, exit_code=exit_code))
 

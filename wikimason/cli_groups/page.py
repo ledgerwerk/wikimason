@@ -115,7 +115,7 @@ def register_page(app: typer.Typer) -> None:
             }
         else:
             raise UsageError("page update requires --content, --body-file, or --body")
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        raise typer.Exit(emit(payload, str(payload["path"]), fmt))
 
     @_page_app.command("move")
     def page_move_cmd(

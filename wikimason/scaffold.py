@@ -75,7 +75,12 @@ SCHEMA_DOCS = {
         "# Naming Conventions\n\nUse lowercase kebab-case filenames.\n"
     ),
     "workflow-examples.md": (
-        "# Workflow Examples\n\n1. wikimason init markdown .\n2. wikimason source scan --update --accept-covered\n3. wikimason source delta\n4. wikimason index build\n5. wikimason vault lint\n"
+        "# Workflow Examples\n\n"
+        "1. wikimason init markdown .\n"
+        "2. wikimason source scan --update --accept-covered\n"
+        "3. wikimason source delta\n"
+        "4. wikimason index build\n"
+        "5. wikimason vault lint\n"
     ),
 }
 
@@ -101,13 +106,16 @@ SECTION_INDEX_PLACEHOLDERS = {
         "# Topic Index\n\nTopic notes will appear here after `wikimason index build`.\n"
     ),
     "Wiki/Concepts/index.md": (
-        "# Concept Index\n\nConcept notes will appear here after `wikimason index build`.\n"
+        "# Concept Index\n\n"
+        "Concept notes will appear here after `wikimason index build`.\n"
     ),
     "Wiki/Entities/index.md": (
-        "# Entity Index\n\nEntity notes will appear here after `wikimason index build`.\n"
+        "# Entity Index\n\n"
+        "Entity notes will appear here after `wikimason index build`.\n"
     ),
     "Wiki/Projects/index.md": (
-        "# Project Index\n\nProject notes will appear here after `wikimason index build`.\n"
+        "# Project Index\n\n"
+        "Project notes will appear here after `wikimason index build`.\n"
     ),
     "Wiki/Logs/index.md": (
         "# Log Index\n\n"
@@ -398,19 +406,25 @@ def _core_keep_files(config: Any) -> list[str]:
 def _section_index_placeholders() -> dict[str, str]:
     return {
         "Wiki/Topics/index": (
-            "# Topic Index\n\nTopic notes will appear here after `wikimason index build`.\n"
+            "# Topic Index\n\n"
+            "Topic notes will appear here after `wikimason index build`.\n"
         ),
         "Wiki/Concepts/index": (
-            "# Concept Index\n\nConcept notes will appear here after `wikimason index build`.\n"  # noqa: E501
+            "# Concept Index\n\n"
+            "Concept notes will appear here after `wikimason index build`.\n"
         ),
         "Wiki/Entities/index": (
-            "# Entity Index\n\nEntity notes will appear here after `wikimason index build`.\n"
+            "# Entity Index\n\n"
+            "Entity notes will appear here after `wikimason index build`.\n"
         ),
         "Wiki/Projects/index": (
-            "# Project Index\n\nProject notes will appear here after `wikimason index build`.\n"  # noqa: E501
+            "# Project Index\n\n"
+            "Project notes will appear here after `wikimason index build`.\n"
         ),
         "Wiki/Logs/index": (
-            "# Log Index\n\nOperational log notes will appear here after `wikimason index build`.\n"  # noqa: E501
+            "# Log Index\n\n"
+            "Operational log notes will appear here after "
+            "`wikimason index build`.\n"
         ),
     }
 

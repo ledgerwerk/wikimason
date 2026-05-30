@@ -68,7 +68,8 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
         ),
         env: str | None = typer.Option(None, "--env", help="Named env config."),
     ) -> None:
-        # Support canonical positional profile: init markdown /path, init obsidian /path, init logseq /path.
+        # Support canonical positional profile:
+        # init markdown /path, init obsidian /path, init logseq /path.
         args = ctx.args
         positional_profile = None
         remaining: list[str] = []
