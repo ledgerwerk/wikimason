@@ -148,7 +148,7 @@ class FileNameBackend:
 
     def candidates(self, query: str, *, limit: int = 200) -> list[SearchCandidate]:
         results: list[SearchCandidate] = []
-        for path in sorted(self._vault.rglob("*.md")):
+        for path in self._vault.rglob("*.md"):
             rel = rel_to_vault(self._vault, path)
             results.append(
                 SearchCandidate(
@@ -158,6 +158,7 @@ class FileNameBackend:
                     path=rel,
                 )
             )
+        results.sort(key=lambda row: row.key)
         return results[:limit]
 
 
