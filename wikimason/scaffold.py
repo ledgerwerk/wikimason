@@ -61,7 +61,7 @@ OBSIDIAN_GITIGNORE_BLOCK = """# Obsidian local state
 
 WELCOME_TEMPLATE = """# Welcome
 
-Use `wikimason maintain` for regular maintenance.
+Use `wikimason vault maintain` for regular maintenance.
 """
 
 SCHEMA_DOCS = {
@@ -196,7 +196,8 @@ def init_vault(
     if not (vault / "AGENTS.md").exists():
         write_agents_md(vault, config=config)
     _write_if_missing(
-        vault / ".githooks/pre-commit", "#!/usr/bin/env bash\nwikimason maintain\n"
+        vault / ".githooks/pre-commit",
+        "#!/usr/bin/env bash\nwikimason vault maintain\n",
     )
     _append_gitignore(vault, include_obsidian=config.tool_config.create_dot_dir)
     if demo:

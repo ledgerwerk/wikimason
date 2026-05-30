@@ -19,6 +19,7 @@ except metadata.PackageNotFoundError:
 version = ".".join(release.split(".")[:2])
 
 extensions = [
+    "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",

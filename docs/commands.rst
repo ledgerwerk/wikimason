@@ -1,95 +1,68 @@
-Command Reference
-=================
+Commands
+========
 
 WikiMason uses a neutral command vocabulary across all profiles. There
-is no obsidian-specific or logseq-specific command set.
+is no profile-specific command set.
 
-Initialisation
---------------
-
-.. code:: bash
-
-   wikimason init markdown [PATH]    # Generic Markdown wiki
-   wikimason init obsidian [PATH]    # Obsidian-compatible vault
-   wikimason init logseq [PATH]      # Logseq graph
-
-Source management
------------------
-
-.. code:: bash
-
-   wikimason source add <path>             # Import a source file
-   wikimason source list                     # List source files
-   wikimason source show <id-or-path>        # Show source details
-   wikimason source verify                   # Verify source integrity
-   wikimason source lint                     # Check manifest integrity
-   wikimason source rehash                   # Recompute hashes
-
-Page operations
----------------
-
-.. code:: bash
-
-   wikimason page create --kind KIND --title TITLE
-   wikimason page show <path>
-   wikimason page update <path> --content TEXT
-   wikimason page move <old> <new>
-   wikimason page delete <path>
-
-Index and catalog
------------------
-
-.. code:: bash
-
-   wikimason index build    # Rebuild index pages
-   wikimason index check    # Check if indexes are current
-   wikimason catalog build  # Rebuild catalog
-   wikimason catalog check  # Check if catalog is current
-
-Query and ingest
+Command families
 ----------------
 
-.. code:: bash
+=============  ===================================================================
+Group          Purpose
+=============  ===================================================================
+``init``       Initialize a new wiki vault.
+``config``     Show, edit, and validate TOML configuration.
+``source``     Import, scan, verify, resolve, read, rehash, and lint raw sources.
+``ingest``     Plan and finish raw-source-to-note workflows.
+``note``       Create, validate, and normalize semantic notes.
+``page``       Create, show, update, move, and delete profile-neutral pages.
+``links``      Resolve, check, normalize, and inventory internal links.
+``file``       Safe vault-relative file and folder operations.
+``daily``      Daily notes and Markdown metadata utilities.
+``catalog``    Build generated catalog, index pages, and ``AGENTS.md``.
+``doctor``     Health, validation, and audit commands.
+``vault``      Vault initialization, registry, build, lint, doctor, and maintenance.
+``skill``      Locate or install the packaged WikiMason agent skill.
+=============  ===================================================================
 
-   wikimason query <query>     # Search the catalog
-   wikimason ingest            # Summarize ingest readiness
+Example workflows
+-----------------
 
-Lint and status
----------------
+Initialize a vault:
 
-.. code:: bash
+.. code-block:: bash
 
-   wikimason lint              # Lint compiled pages
-   wikimason status            # Overall vault health
+   wikimason init markdown .
+   wikimason init obsidian ~/Documents/MyVault
+   wikimason init logseq ~/Documents/Logseq/MyGraph
 
-AGENTS
-------
+Source lifecycle:
 
-.. code:: bash
+.. code-block:: bash
 
-   wikimason agents compile    # Generate AGENTS.md from schema/templates/config
-   wikimason agents check      # Check if AGENTS.md is current
+   wikimason source scan --update --format json
+   wikimason source delta --format json
 
-Vault administration
---------------------
+Create compiled pages:
 
-.. code:: bash
+.. code-block:: bash
 
-   wikimason config show        # Show active config
-   wikimason config edit        # Edit config
-   wikimason config validate    # Validate config
-   wikimason doctor             # Run vault diagnostics
+   wikimason note new --kind topic --title "Compiled Knowledge" \
+     --source "Raw/Sources/report.md" --allow-incomplete --format json
+   wikimason page update Wiki/Concepts/retrieval-pipeline.md --body-file /tmp/body.md --format json
 
-File utilities
---------------
+Validate and finish:
 
-.. code:: bash
+.. code-block:: bash
 
-   wikimason file list [path]
-   wikimason file read <path>
-   wikimason file write <path> --content TEXT
-   wikimason file append <path> --content TEXT
-   wikimason file prepend <path> --content TEXT
-   wikimason file move <old> <new>
-   wikimason file rename <old> <new>
-   wikimason file delete <path>
+   wikimason links check --format json
+   wikimason ingest finish --accept-covered --format json
+
+Maintain:
+
+.. code-block:: bash
+
+   wikimason vault maintain --format json
+
+For the full command reference with every flag and usage string, see
+:doc:`command-reference`.

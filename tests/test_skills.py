@@ -34,11 +34,11 @@ def test_skill_matches_generated_runbook() -> None:
     assert "scripts/wiki_tool.py" in skill_text
 
 
-def test_docs_match_generated_reference() -> None:
-    _repo_root = Path(__file__).resolve().parent.parent
-
-    # docs are now RST-only; skip markdown comparison
-    pass
+def test_generated_command_reference_is_current() -> None:
+    repo_root = Path(__file__).resolve().parent.parent
+    expected = render_command_reference_markdown()
+    actual = (repo_root / "docs/command-reference.md").read_text(encoding="utf-8")
+    assert actual == expected
 
 
 def test_command_reference_includes_catalog_search() -> None:
@@ -61,3 +61,60 @@ def test_command_reference_includes_public_workflow_commands() -> None:
         "page update",
     ]:
         assert phrase in text
+
+
+def test_readme_documents_core_workflows() -> None:
+    text = Path("README.md").read_text(encoding="utf-8")
+    for phrase in [
+        "wikimason init markdown",
+        "wikimason init obsidian",
+        "wikimason init logseq",
+        "wikimason source scan",
+        "wikimason source delta",
+        "wikimason note new",
+        "wikimason page update",
+        "wikimason ingest finish",
+        "wikimason vault maintain",
+        "Raw/Sources/",
+        "Schema/source-manifest.jsonl",
+        "AGENTS.md",
+    ]:
+        assert phrase in text
+
+
+def test_docs_index_exposes_main_pages() -> None:
+    text = Path("docs/index.rst").read_text(encoding="utf-8")
+    for page in [
+        "architecture",
+        "profiles",
+        "config",
+        "raw-sources",
+        "agent-workflow",
+        "commands",
+        "command-reference",
+        "logseq",
+        "migration",
+    ]:
+        assert page in text
+
+
+def test_docs_and_scaffold_do_not_reference_removed_maintain_command() -> None:
+    checked = [
+        "README.md",
+        "docs",
+        "skills/wikimason/SKILL.md",
+        "wikimason/scaffold.py",
+        "wikimason/git_hooks.py",
+    ]
+    offenders = []
+    for item in checked:
+        path = Path(item)
+        files = path.rglob("*") if path.is_dir() else [path]
+        for file in files:
+            if file.is_file() and file.suffix in {".md", ".rst", ".py"}:
+                content = file.read_text(encoding="utf-8")
+                has_bare = "wikimason maintain" in content
+                has_vault = "wikimason vault maintain" in content
+                if has_bare and not has_vault:
+                    offenders.append(str(file))
+    assert not offenders

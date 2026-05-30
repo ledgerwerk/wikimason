@@ -72,6 +72,11 @@ dev = [
 rich = [
     "rich",
 ]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "myst-parser",
+]
 
 [tool.setuptools_scm]
 write_to = "wikimason/_version.py"

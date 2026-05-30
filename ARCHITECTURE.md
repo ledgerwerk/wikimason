@@ -131,7 +131,7 @@ WikiMason vaults are designed to be version-controlled with Git. The `init` comm
 ## Details
 
 - Auto-generated `.gitignore` blocks exclude `Raw/Files/*`, Python artifacts, and Obsidian local state.
-- Pre-commit hook at `.githooks/pre-commit` runs `wikimason maintain`.
+- Pre-commit hook at `.githooks/pre-commit` runs `wikimason vault maintain`.
 - `AGENTS.md` is compiled and tracked in the repository.
 
 # Solution Strategy
@@ -236,7 +236,7 @@ Three primary runtime scenarios define WikiMason's operational behavior:
 
 2. **Source ingest workflow**: Discovers raw sources via `source scan`, detects changes via `source delta`, generates note creation plans via `ingest plan`, creates compiled notes via `note new`, and validates the result via `ingest finish`.
 
-3. **Vault build and maintenance** (`wikimason maintain` / `wikimason vault build`): Syncs source counts, writes catalog JSONL, rebuilds index pages, updates schema documentation, and compiles AGENTS.md with embedded input hashes for change detection.
+3. **Vault build and maintenance** (`wikimason vault maintain` / `wikimason vault build`): Syncs source counts, writes catalog JSONL, rebuilds index pages, updates schema documentation, and compiles AGENTS.md with embedded input hashes for change detection.
 
 All workflows produce JSON output when `--format json` is specified and use exit codes 0 (clean), 1 (errors), and 2 (actionable work remaining).
 
@@ -294,7 +294,7 @@ All workflows produce JSON output when `--format json` is specified and use exit
 
 ### Sequence
 
-1. `wikimason vault build` (or `wikimason maintain`):
+1. `wikimason vault build` (or `wikimason vault maintain`):
    - `build_vault()` orchestrates the following steps.
 2. `sync_source_count()`:
    - Iterates all compiled markdown files.

@@ -11,7 +11,7 @@ product is filesystem-backed and does not expose a runtime bridge or a
 First-run workflow
 ------------------
 
-1. ``wikimason vault doctor --format json``
+1. ``wikimason doctor --format json``
 2. ``wikimason source scan --update --format json``
 3. ``wikimason source delta --format json``
 4. ``wikimason ingest status --format json``
