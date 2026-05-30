@@ -1,4 +1,5 @@
 """Test vault maintain command — the single post-run gate for agents."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -109,11 +110,16 @@ def test_vault_maintain_acceptance_scenario(tmp_path: Path, capsys) -> None:
         ("log", "Initial Test Source Ingest"),
     ]:
         argv = [
-            "note", "new",
-            "--vault", str(vault),
-            "--kind", kind,
-            "--title", title,
-            "--source", "Raw/Sources/test-source.md",
+            "note",
+            "new",
+            "--vault",
+            str(vault),
+            "--kind",
+            kind,
+            "--title",
+            title,
+            "--source",
+            "Raw/Sources/test-source.md",
             "--allow-incomplete",
         ]
         assert main(argv) == 0

@@ -1,13 +1,12 @@
 """Test that ingest plan commands are executable against the installed CLI."""
+
 from __future__ import annotations
 
-import json
 import shlex
 from pathlib import Path
 
 from conftest import read_json, write_source
 
-from wikimason.build import build_vault
 from wikimason.cli import main
 from wikimason.scaffold import init_vault
 

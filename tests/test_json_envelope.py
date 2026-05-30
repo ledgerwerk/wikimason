@@ -1,15 +1,14 @@
 """Test that JSON output uses a standard envelope across agent-safe commands."""
+
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
-from conftest import read_json, write_source, write_source_rel
+from conftest import read_json, write_source
 
 from wikimason.build import build_vault
 from wikimason.cli import main
 from wikimason.scaffold import init_vault
-
 
 REQUIRED_ENVELOPE_KEYS = {
     "schema_version",
@@ -52,9 +51,7 @@ def test_source_delta_json_has_envelope(tmp_path: Path, capsys) -> None:
 def test_source_coverage_json_has_envelope(tmp_path: Path, capsys) -> None:
     vault = tmp_path / "vault"
     init_vault(vault)
-    assert (
-        main(["source", "coverage", "--vault", str(vault), "--format", "json"]) == 0
-    )
+    assert main(["source", "coverage", "--vault", str(vault), "--format", "json"]) == 0
     payload = read_json(capsys)
     _assert_envelope(payload)
 
@@ -91,9 +88,7 @@ def test_source_lint_json_has_envelope(tmp_path: Path, capsys) -> None:
 def test_ingest_status_json_has_envelope(tmp_path: Path, capsys) -> None:
     vault = tmp_path / "vault"
     init_vault(vault)
-    assert (
-        main(["ingest", "status", "--vault", str(vault), "--format", "json"]) == 0
-    )
+    assert main(["ingest", "status", "--vault", str(vault), "--format", "json"]) == 0
     payload = read_json(capsys)
     _assert_envelope(payload)
 

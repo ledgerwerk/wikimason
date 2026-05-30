@@ -23,23 +23,116 @@ from ..sources import (
 )
 
 
+def _source_result(
+    *,
+    command: str,
+    status: str,
+    data: object,
+    exit_code: int = 0,
+) -> dict[str, object]:
+    return result_payload(
+        command=command,
+        status=status,
+        data=data,
+        exit_code=exit_code,
+    )
+
+
+def _emit_errors(
+    command: str,
+    errors: list[str],
+    fmt: str,
+) -> None:
+    result = _source_result(
+        command=command,
+        status="invalid",
+        data={"errors": errors},
+        exit_code=1,
+    )
+    _exit_emit(result, "\n".join(errors), fmt, exit_code=1)
+
+
+def _compact_delta_data(payload: dict) -> dict:
+    delta = payload["delta"]
+    compact_actionable: dict[str, list[dict]] = {}
+    for key in (
+        "new",
+        "content_changed",
+        "metadata_changed",
+        "missing_coverage",
+    ):
+        rows = delta.get(key, [])
+        if rows:
+            compact_actionable[key] = [
+                {
+                    "path": r["path"],
+                    "source_id": r.get("source_id", ""),
+                    "title": r.get("title", ""),
+                }
+                for r in rows
+            ]
+    return {
+        "actionable_count": payload["actionable_count"],
+        "counts": {
+            "new": len(delta.get("new", [])),
+            "content_changed": len(delta.get("content_changed", [])),
+            "metadata_changed": len(delta.get("metadata_changed", [])),
+            "missing_coverage": len(delta.get("missing_coverage", [])),
+            "removed": len(delta.get("removed", [])),
+            "renamed": len(delta.get("renamed", [])),
+            "covered": len(delta.get("covered", [])),
+        },
+        "actionable": compact_actionable,
+        "weak_sources": payload.get("weak_sources", []),
+    }
+
+
+def _resolve_source_query(
+    vault: Path,
+    query: str,
+    first: bool,
+    fmt: str,
+    _sr: _source_result,  # noqa: ARG001
+) -> str | None:
+    """Resolve query to a relative vault path, or emit error and return None."""
+    from ..source_scan import source_resolve_report as _resolve_report
+
+    exact = vault / query
+    if exact.exists() and exact.is_file():
+        return rel_to_vault(vault, exact)
+    report = _resolve_report(vault, query, limit=5)
+    matches = report.get("matches", [])
+    exact_matches = [m for m in matches if m.get("match") == "exact"]
+    if len(exact_matches) == 1:
+        return str(exact_matches[0]["path"])
+    if len(matches) == 1 or first:
+        return matches[0]["path"]
+    if len(matches) > 1:
+        _exit_emit(
+            _source_result(
+                command="source.read",
+                status="ambiguous",
+                data={
+                    "query": query,
+                    "matches": matches,
+                    "message": (
+                        "source query matched multiple candidates; "
+                        "use exact path or --first"
+                    ),
+                },
+                exit_code=1,
+            ),
+            "source query matched multiple candidates; use exact path or --first",
+            fmt,
+            exit_code=1,
+        )
+        return None
+    return resolve_source_path(vault, query)
+
+
 def register_source(app: typer.Typer) -> None:
     _source_app = typer.Typer(help="Raw source management.")
     app.add_typer(_source_app, name="source")
-
-    def _source_result(
-        *,
-        command: str,
-        status: str,
-        data: object,
-        exit_code: int = 0,
-    ) -> dict[str, object]:
-        return result_payload(
-            command=command,
-            status=status,
-            data=data,
-            exit_code=exit_code,
-        )
 
     @_source_app.command("add")
     def source_add_cmd(
@@ -105,18 +198,8 @@ def register_source(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         payload, errors = source_delta(vault)
         if errors:
-            result = _source_result(
-                command="source.verify",
-                status="invalid",
-                data={"errors": errors},
-                exit_code=1,
-            )
-            _exit_emit(
-                result,
-                "\n".join(errors),
-                fmt,
-                exit_code=1,
-            )
+            _emit_errors("source.verify", errors, fmt)
+            return
         assert payload is not None
         text = _delta_text(payload["delta"])
         actionable = int(str(payload["actionable_count"])) > 0
@@ -171,18 +254,8 @@ def register_source(app: typer.Typer) -> None:
             vault, update=update, accept_covered=accept_covered
         )
         if errors:
-            result = _source_result(
-                command="source.scan",
-                status="invalid",
-                data={"errors": errors},
-                exit_code=1,
-            )
-            _exit_emit(
-                result,
-                "\n".join(errors),
-                fmt,
-                exit_code=1,
-            )
+            _emit_errors("source.scan", errors, fmt)
+            return
         assert payload is not None
         if details:
             data = payload
@@ -214,18 +287,8 @@ def register_source(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         payload, errors = source_delta(vault)
         if errors:
-            result = _source_result(
-                command="source.delta",
-                status="invalid",
-                data={"errors": errors},
-                exit_code=1,
-            )
-            _exit_emit(
-                result,
-                "\n".join(errors),
-                fmt,
-                exit_code=1,
-            )
+            _emit_errors("source.delta", errors, fmt)
+            return
         assert payload is not None
         text = _delta_text(payload["delta"])
         actionable = int(str(payload["actionable_count"])) > 0
@@ -233,39 +296,7 @@ def register_source(app: typer.Typer) -> None:
         if details:
             data = payload
         else:
-            # Compact output: counts and actionable summary only.
-            delta = payload["delta"]
-            compact_actionable: dict[str, list[dict]] = {}
-            for key in (
-                "new",
-                "content_changed",
-                "metadata_changed",
-                "missing_coverage",
-            ):
-                rows = delta.get(key, [])
-                if rows:
-                    compact_actionable[key] = [
-                        {
-                            "path": r["path"],
-                            "source_id": r.get("source_id", ""),
-                            "title": r.get("title", ""),
-                        }
-                        for r in rows
-                    ]
-            data = {
-                "actionable_count": payload["actionable_count"],
-                "counts": {
-                    "new": len(delta.get("new", [])),
-                    "content_changed": len(delta.get("content_changed", [])),
-                    "metadata_changed": len(delta.get("metadata_changed", [])),
-                    "missing_coverage": len(delta.get("missing_coverage", [])),
-                    "removed": len(delta.get("removed", [])),
-                    "renamed": len(delta.get("renamed", [])),
-                    "covered": len(delta.get("covered", [])),
-                },
-                "actionable": compact_actionable,
-                "weak_sources": payload.get("weak_sources", []),
-            }
+            data = _compact_delta_data(payload)
         result = _source_result(
             command="source.delta",
             status="actionable" if actionable else "clean",
@@ -333,45 +364,10 @@ def register_source(app: typer.Typer) -> None:
         ),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        from ..source_scan import source_resolve_report
-
         vault = _vault_from_ctx(ctx)
-        command = "source.read"
-        # Try exact path first, then fuzzy resolve.
-        exact = vault / query
-        if exact.exists() and exact.is_file():
-            resolved_rel = rel_to_vault(vault, exact)
-        else:
-            report = source_resolve_report(vault, query, limit=5)
-            matches = report.get("matches", [])
-            exact_matches = [m for m in matches if m.get("match") == "exact"]
-            if len(exact_matches) == 1:
-                resolved_rel = str(exact_matches[0]["path"])
-            elif len(matches) == 1 or first:
-                resolved_rel = matches[0]["path"]
-            elif len(matches) > 1:
-                payload = _source_result(
-                    command=command,
-                    status="ambiguous",
-                    data={
-                        "query": query,
-                        "matches": matches,
-                        "message": (
-                            "source query matched multiple candidates; "
-                            "use exact path or --first"
-                        ),
-                    },
-                    exit_code=1,
-                )
-                _exit_emit(
-                    payload,
-                    "source query matched multiple candidates; "
-                    "use exact path or --first",
-                    fmt,
-                    exit_code=1,
-                )
-            else:
-                resolved_rel = resolve_source_path(vault, query)
+        resolved_rel = _resolve_source_query(vault, query, first, fmt, _source_result)
+        if resolved_rel is None:
+            return
         full_path = vault / resolved_rel
         text = full_path.read_text(encoding="utf-8")
         metadata, body = split_frontmatter(text)
@@ -383,7 +379,7 @@ def register_source(app: typer.Typer) -> None:
             "content": preview,
             "total_lines": len(content_lines),
         }
-        payload = _source_result(command=command, status="clean", data=raw)
+        payload = _source_result(command="source.read", status="clean", data=raw)
         text = (
             f"Path: {resolved_rel}\n{preview}" if preview else f"Path: {resolved_rel}"
         )
