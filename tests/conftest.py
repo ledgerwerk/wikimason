@@ -50,5 +50,6 @@ def read_json(capsys):
     """Parse the last line of captured stdout as JSON."""
     return json.loads(capsys.readouterr().out.splitlines()[-1])
 
+
 def _strip_ansi(text: str) -> str:
     return re.sub(r"\x1b\[[0-9;]*m", "", text)

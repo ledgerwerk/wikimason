@@ -1,10 +1,9 @@
 from pathlib import Path
 
 from conftest import _strip_ansi
+
 from wikimason.cli import main
 from wikimason.config import load_config_file
-
-
 
 
 def test_help_has_no_obsidian_or_bridge_surface(capsys) -> None:

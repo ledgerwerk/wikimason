@@ -71,7 +71,9 @@ def test_source_lifecycle_removed_contract(tmp_path: Path) -> None:
     removed_path = "Raw/Sources/wikimason-demo-source.md"
     (vault / removed_path).unlink()
 
-    scan_payload, scan_errors = source_scan_payload(vault, update=False, accept_covered=False)
+    scan_payload, scan_errors = source_scan_payload(
+        vault, update=False, accept_covered=False
+    )
     assert scan_errors == []
     assert scan_payload is not None
 

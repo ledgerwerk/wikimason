@@ -5,7 +5,6 @@ from types import SimpleNamespace
 
 import pytest
 
-from wikimason.config import load_runtime_config
 from wikimason.errors import UsageError
 from wikimason.files import (
     append_file,
@@ -61,7 +60,9 @@ def test_write_file_template_and_overwrite_guards(tmp_path: Path) -> None:
         read_template(vault, "missing-template")
 
 
-def test_resolve_existing_path_falls_back_to_filename_resolution(tmp_path: Path) -> None:
+def test_resolve_existing_path_falls_back_to_filename_resolution(
+    tmp_path: Path,
+) -> None:
     vault = tmp_path / "vault"
     init_vault(vault)
     target = vault / "Wiki/Topics/fallback-demo.md"
@@ -99,11 +100,15 @@ def test_move_and_rename_paths(tmp_path: Path) -> None:
     renamed_slug = rename_file(vault, "Wiki/Topics/moved.md", "Readable Title")
     assert renamed_slug.name == "readable-title.md"
 
-    renamed_path = rename_file(vault, "Wiki/Topics/readable-title.md", "Wiki/Topics/final.md")
+    renamed_path = rename_file(
+        vault, "Wiki/Topics/readable-title.md", "Wiki/Topics/final.md"
+    )
     assert renamed_path.as_posix().endswith("Wiki/Topics/final.md")
 
 
-def test_open_file_uses_uri_template_and_browser_toggle(tmp_path: Path, monkeypatch) -> None:
+def test_open_file_uses_uri_template_and_browser_toggle(
+    tmp_path: Path, monkeypatch
+) -> None:
     vault = tmp_path / "vault"
     init_vault(vault)
     target = vault / "Wiki/Topics/open-me.md"
@@ -112,7 +117,9 @@ def test_open_file_uses_uri_template_and_browser_toggle(tmp_path: Path, monkeypa
 
     opened: list[str] = []
     monkeypatch.setenv("WIKIMASON_OPEN_BROWSER", "1")
-    monkeypatch.setattr("wikimason.files.webbrowser.open", lambda uri: opened.append(uri))
+    monkeypatch.setattr(
+        "wikimason.files.webbrowser.open", lambda uri: opened.append(uri)
+    )
 
     config = SimpleNamespace(
         tool_config=SimpleNamespace(open_uri_template="obsidian://open?path={path}")
@@ -130,7 +137,9 @@ def test_search_files_context_limit_and_fuzzy_paths(tmp_path: Path) -> None:
     a = vault / "Wiki/Topics/a.md"
     b = vault / "Wiki/Topics/b.md"
     a.parent.mkdir(parents=True, exist_ok=True)
-    a.write_text("Alpha line\nRun wikimason init obsidian before ingest.\n", encoding="utf-8")
+    a.write_text(
+        "Alpha line\nRun wikimason init obsidian before ingest.\n", encoding="utf-8"
+    )
     b.write_text("Alpha second\n", encoding="utf-8")
 
     rows = search_files(vault, "Alpha", limit=1)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from conftest import read_json
+
 from wikimason.audit import audit_vault
 from wikimason.cli import main
 from wikimason.files import delete_file, prepend_file
@@ -21,7 +22,9 @@ def run_cli(vault: Path, *argv: str) -> int:
     return main(["--vault", str(vault), *argv])
 
 
-def test_review_queue_round_trip_ignores_blank_and_malformed_lines(tmp_path: Path) -> None:
+def test_review_queue_round_trip_ignores_blank_and_malformed_lines(
+    tmp_path: Path,
+) -> None:
     vault = tmp_path / "vault"
     init_vault(vault)
 
@@ -29,7 +32,9 @@ def test_review_queue_round_trip_ignores_blank_and_malformed_lines(tmp_path: Pat
     add_review_item(vault, item)
 
     queue = review_queue_path(vault)
-    queue.write_text(queue.read_text(encoding="utf-8") + "\n\n{bad json}\n", encoding="utf-8")
+    queue.write_text(
+        queue.read_text(encoding="utf-8") + "\n\n{bad json}\n", encoding="utf-8"
+    )
 
     items = load_review_queue(vault)
     assert [row.review_id for row in items] == [item.review_id]
@@ -75,7 +80,9 @@ def test_review_cli_add_show_and_resolve_json(tmp_path: Path, capsys) -> None:
     )
     created = read_json(capsys)
 
-    assert run_cli(vault, "review", "show", created["review_id"], "--format", "json") == 0
+    assert (
+        run_cli(vault, "review", "show", created["review_id"], "--format", "json") == 0
+    )
     shown = read_json(capsys)
     assert shown["review_id"] == created["review_id"]
     assert shown["status"] == "open"
@@ -105,14 +112,18 @@ def test_review_show_missing_returns_exit_1(tmp_path: Path, capsys) -> None:
     assert "review item not found" in capsys.readouterr().out
 
 
-def test_audit_vault_flags_workspace_local_paths_and_binary_in_text_area(tmp_path: Path) -> None:
+def test_audit_vault_flags_workspace_local_paths_and_binary_in_text_area(
+    tmp_path: Path,
+) -> None:
     vault = tmp_path / "vault"
     (vault / ".obsidian").mkdir(parents=True)
     (vault / ".obsidian/workspace.json").write_text("{}", encoding="utf-8")
     (vault / "Nested/Wiki").mkdir(parents=True)
     (vault / "Nested/Wiki/manual.pdf").write_bytes(b"%PDF-1.4")
     (vault / "Wiki").mkdir(parents=True)
-    (vault / "Wiki/leak.md").write_text("developer home: /Users/alice", encoding="utf-8")
+    (vault / "Wiki/leak.md").write_text(
+        "developer home: /Users/alice", encoding="utf-8"
+    )
 
     findings = audit_vault(vault)
     assert any("tracked local obsidian state" in row for row in findings)

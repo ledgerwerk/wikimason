@@ -2,13 +2,12 @@ import json
 from pathlib import Path
 
 from conftest import _strip_ansi
+
 from wikimason.cli import main
 from wikimason.commands import render_command_reference_markdown
 from wikimason.config import load_config_file
 from wikimason.scaffold import init_vault
 from wikimason.schema import load_vault_schema, write_default_schema
-
-
 
 
 def test_cli_help(capsys):

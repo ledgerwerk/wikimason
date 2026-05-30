@@ -223,5 +223,7 @@ def register_source(app: typer.Typer) -> None:
             "content": preview,
             "total_lines": len(content_lines),
         }
-        text = f"Path: {resolved_rel}\n{preview}" if preview else f"Path: {resolved_rel}"
+        text = (
+            f"Path: {resolved_rel}\n{preview}" if preview else f"Path: {resolved_rel}"
+        )
         _exit_emit(payload, text, fmt)

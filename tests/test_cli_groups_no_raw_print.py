@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 ALLOWED_RAW_PRINT_GROUPS = {
     "wikimason/cli_groups/root.py",
     "wikimason/cli_groups/skill.py",

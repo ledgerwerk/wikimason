@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 import typer
 
 from ..build import build_vault

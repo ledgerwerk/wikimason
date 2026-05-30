@@ -38,13 +38,25 @@ def _verify_presence(
     file_path: Path | None,
 ) -> tuple[list[dict[str, Any]], int, bool]:
     if present and file_path is None:
-        return [
-            _finding(source_id, path, "file_missing", "marked present but file not found")
-        ], 4, True
+        return (
+            [
+                _finding(
+                    source_id, path, "file_missing", "marked present but file not found"
+                )
+            ],
+            4,
+            True,
+        )
     if not present and file_path is not None:
-        return [
-            _finding(source_id, path, "file_reappeared", "marked removed but file exists")
-        ], 4, True
+        return (
+            [
+                _finding(
+                    source_id, path, "file_reappeared", "marked removed but file exists"
+                )
+            ],
+            4,
+            True,
+        )
     if file_path is None:
         return [], 0, True
     return [], 0, False
@@ -68,11 +80,15 @@ def _verify_hash_changes(
     current_meta = str(row.get("metadata_sha256", ""))
 
     if current_body and current_body != expected_body:
-        findings.append(_finding(source_id, path, "content_changed", "body hash mismatch"))
+        findings.append(
+            _finding(source_id, path, "content_changed", "body hash mismatch")
+        )
         exit_code = max(exit_code, 1)
         content_changed = True
     if current_meta and current_meta != expected_meta:
-        findings.append(_finding(source_id, path, "metadata_changed", "metadata hash mismatch"))
+        findings.append(
+            _finding(source_id, path, "metadata_changed", "metadata hash mismatch")
+        )
         exit_code = max(exit_code, 2)
         metadata_changed = True
     return findings, exit_code, content_changed, metadata_changed
@@ -87,14 +103,19 @@ def _verify_duplicate(
 ) -> tuple[list[dict[str, Any]], int, bool, str]:
     content_hash = str(expected.get("content_sha256", ""))
     if content_hash and content_hash in seen_content:
-        return [
-            _finding(
-                source_id,
-                path,
-                "duplicate_content",
-                f"same content_sha256 as {seen_content[content_hash]}",
-            )
-        ], 3, True, content_hash
+        return (
+            [
+                _finding(
+                    source_id,
+                    path,
+                    "duplicate_content",
+                    f"same content_sha256 as {seen_content[content_hash]}",
+                )
+            ],
+            3,
+            True,
+            content_hash,
+        )
     return [], 0, False, content_hash
 
 
@@ -143,7 +164,9 @@ def _verify_manifest_row(
         return findings, presence_exit, False, False, False, "", source_id
     assert file_path is not None
 
-    expected = raw_record(vault, file_path, coverage_map, old_record=row, timestamp=now_iso())
+    expected = raw_record(
+        vault, file_path, coverage_map, old_record=row, timestamp=now_iso()
+    )
 
     hash_findings, hash_exit, content_changed, metadata_changed = _verify_hash_changes(
         source_id=source_id,
@@ -153,11 +176,13 @@ def _verify_manifest_row(
     )
     findings.extend(hash_findings)
 
-    duplicate_findings, duplicate_exit, duplicate_found, content_hash = _verify_duplicate(
-        source_id=source_id,
-        path=path,
-        expected=expected,
-        seen_content=seen_content,
+    duplicate_findings, duplicate_exit, duplicate_found, content_hash = (
+        _verify_duplicate(
+            source_id=source_id,
+            path=path,
+            expected=expected,
+            seen_content=seen_content,
+        )
     )
     findings.extend(duplicate_findings)
     findings.extend(
@@ -281,22 +306,30 @@ def _lint_manifest_row(
     for field in sorted(missing):
         errors.append(f"{SOURCE_MANIFEST}: {source_id or path}: missing field {field}")
     if row.get("schema_version") != SOURCE_SCHEMA_VERSION:
-        errors.append(f"{SOURCE_MANIFEST}: {source_id or path}: schema_version mismatch")
+        errors.append(
+            f"{SOURCE_MANIFEST}: {source_id or path}: schema_version mismatch"
+        )
     if not source_id:
         errors.append(f"{SOURCE_MANIFEST}: {path}: missing source_id")
 
     present = bool(row.get("present", True))
     raw_path = existing_raw.get(path)
     if present and raw_path is None:
-        errors.append(f"{SOURCE_MANIFEST}: {source_id or path}: marked present but file missing")
+        errors.append(
+            f"{SOURCE_MANIFEST}: {source_id or path}: marked present but file missing"
+        )
         return errors
     if not present and raw_path is not None:
-        errors.append(f"{SOURCE_MANIFEST}: {source_id or path}: marked removed but file exists")
+        errors.append(
+            f"{SOURCE_MANIFEST}: {source_id or path}: marked removed but file exists"
+        )
         return errors
     if raw_path is None:
         return errors
 
-    expected = raw_record(vault, raw_path, coverage_map, old_record=row, timestamp=now_iso())
+    expected = raw_record(
+        vault, raw_path, coverage_map, old_record=row, timestamp=now_iso()
+    )
     for field in ("body_sha256", "metadata_sha256"):
         if row.get(field) != expected.get(field):
             errors.append(f"{SOURCE_MANIFEST}: {source_id or path}: {field} mismatch")
@@ -312,7 +345,9 @@ def _lint_manifest_row(
         errors.append(f"{SOURCE_MANIFEST}: {source_id or path}: coverage mismatch")
     expected_status = "covered" if expected_coverage else "missing"
     if row.get("coverage_status") != expected_status:
-        errors.append(f"{SOURCE_MANIFEST}: {source_id or path}: coverage_status mismatch")
+        errors.append(
+            f"{SOURCE_MANIFEST}: {source_id or path}: coverage_status mismatch"
+        )
 
     return errors
 

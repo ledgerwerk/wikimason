@@ -459,7 +459,9 @@ def source_scan_payload(
 
         source_id = str(row["source_id"])
         new_records[source_id] = row
-        if update and _maybe_embed_missing_wm_metadata(path, source_id=source_id, timestamp=timestamp):
+        if update and _maybe_embed_missing_wm_metadata(
+            path, source_id=source_id, timestamp=timestamp
+        ):
             refreshed = raw_record(
                 vault,
                 path,

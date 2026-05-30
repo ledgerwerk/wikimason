@@ -79,7 +79,12 @@ def _classify_record_delta(
     if covered_meta and covered_meta != current_meta:
         delta["metadata_changed"].append(record)
         actionable_paths.add(sid)
-    if covered_body and covered_meta and covered_body == current_body and covered_meta == current_meta:
+    if (
+        covered_body
+        and covered_meta
+        and covered_body == current_body
+        and covered_meta == current_meta
+    ):
         delta["covered"].append(record)
 
 

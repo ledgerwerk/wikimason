@@ -10,11 +10,10 @@ try:
 except ImportError:
     import tomli as tomllib
 
-from wikimason.cli import main
 from conftest import _strip_ansi
+
+from wikimason.cli import main
 from wikimason.scaffold import init_vault
-
-
 
 
 def test_runtime_dependencies_declared():
@@ -111,6 +110,7 @@ def test_search_module_imports_without_fuzzysearch(monkeypatch):
             "wikimason init obsdian",
             "Run wikimason init obsidian before ingest.",
         )
+
 
 def test_frontmatter_yaml_preserves_dates_as_strings():
     from wikimason.frontmatter import split_frontmatter

@@ -41,7 +41,9 @@ def register_review(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         items = load_review_queue(vault)
         payload = [item.__dict__ for item in items]
-        text = "\n".join(f"{item.review_id} [{item.status}] {item.title}" for item in items)
+        text = "\n".join(
+            f"{item.review_id} [{item.status}] {item.title}" for item in items
+        )
         _exit_emit(payload, text or "(no review items)", fmt)
 
     @_review_app.command("show")

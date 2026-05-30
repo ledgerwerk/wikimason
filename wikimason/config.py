@@ -22,6 +22,7 @@ from .errors import UsageError
 from .profiles import profile_defaults
 from .toml_tools import toml_string, toml_value
 
+
 @dataclass(frozen=True)
 class PathConfig:
     raw: str

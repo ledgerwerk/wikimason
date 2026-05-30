@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 import pytest
-
 from conftest import read_json, write_source
+
 from wikimason.cli import main
 from wikimason.command_registry import COMMAND_REGISTRY
 from wikimason.links import backlinks, deadend_notes, orphan_notes, unresolved_links
@@ -94,7 +94,9 @@ def test_source_path_and_filename_backends_are_deterministic(tmp_path: Path) -> 
 
 
 def test_command_backend_excludes_legacy_aliases() -> None:
-    expected = [" ".join(info.path) for info in COMMAND_REGISTRY if not info.legacy_aliases]
+    expected = [
+        " ".join(info.path) for info in COMMAND_REGISTRY if not info.legacy_aliases
+    ]
     actual = [row.key for row in CommandBackend().candidates("", limit=500)]
     assert actual == expected[:500]
 

@@ -3,13 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from conftest import read_json, write_source
+
 from wikimason.build import build_vault
 from wikimason.cli import main
 from wikimason.scaffold import init_vault
-
-
 
 
 @pytest.mark.parametrize("tool", ["obsidian", "markdown"])
