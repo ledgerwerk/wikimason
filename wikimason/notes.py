@@ -189,9 +189,7 @@ def _note_target_path(
     if not rel.endswith(".md"):
         rel = f"{rel}.md"
     if not rel.startswith(f"{expected_folder}/"):
-        raise UsageError(
-            f"note kind '{kind}' requires path under {expected_folder}/"
-        )
+        raise UsageError(f"note kind '{kind}' requires path under {expected_folder}/")
     return resolve_path_in_vault(vault, rel)
 
 

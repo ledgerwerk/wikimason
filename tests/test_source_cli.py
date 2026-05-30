@@ -135,9 +135,7 @@ def test_source_read_returns_ambiguous_without_first(tmp_path: Path, capsys) -> 
     vault = tmp_path / "vault"
     init_vault(vault)
     (vault / "Raw/Sources/semantic-contracts.md").write_text("# A", encoding="utf-8")
-    (vault / "Raw/Sources/semantic-contracts-v2.md").write_text(
-        "# B", encoding="utf-8"
-    )
+    (vault / "Raw/Sources/semantic-contracts-v2.md").write_text("# B", encoding="utf-8")
 
     code = main(
         [

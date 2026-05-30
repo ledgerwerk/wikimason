@@ -84,6 +84,7 @@ wikimason agents check --format json
 ## Shell Escape Policy
 
 Prefer WikiMason commands over shell inventory/edit operations:
+
 - Use `wikimason file list`, not `find`.
 - Use `wikimason source list` / `source scan`, not manual `Raw/Sources` traversal.
 - Use `wikimason note new`/`page create` and `wikimason page update`, not direct file writes for normal note workflows.

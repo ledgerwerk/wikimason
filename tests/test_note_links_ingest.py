@@ -216,9 +216,7 @@ def test_ingest_plan_returns_note_targets_for_source(tmp_path: Path, capsys) -> 
     payload = read_json(capsys)
     data = payload["data"]
     assert data["source_title"] == "LLMs Core Setup"
-    assert (
-        data["recommended_notes"][0]["path_hint"] == "Wiki/Topics/llms-core-setup.md"
-    )
+    assert data["recommended_notes"][0]["path_hint"] == "Wiki/Topics/llms-core-setup.md"
     assert data["recommended_notes"][-1]["path_hint"].startswith("Wiki/Logs/")
     assert data["commands"]
 

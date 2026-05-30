@@ -105,10 +105,7 @@ def ingest_finish(
     global_findings = lint_errors
     global_lint_ok = not global_findings
     exit_code = 0
-    if (
-        not (source_scan_ok and source_lint_ok and doctor_ok)
-        or delta_errors
-    ):
+    if not (source_scan_ok and source_lint_ok and doctor_ok) or delta_errors:
         exit_code = 1
     elif not scoped_lint_ok:
         exit_code = 1

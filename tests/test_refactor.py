@@ -71,8 +71,7 @@ def test_source_resolve_typo_uses_rapidfuzz(tmp_path: Path, capsys):
     payload = __import__("json").loads(capsys.readouterr().out.splitlines()[-1])
     assert payload["data"]["matches"]
     assert any(
-        "wikimason-demo-source" in str(m["path"])
-        for m in payload["data"]["matches"]
+        "wikimason-demo-source" in str(m["path"]) for m in payload["data"]["matches"]
     )
 
 
