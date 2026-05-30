@@ -21,6 +21,9 @@ def normalize_format(fmt: str | OutputFormat) -> OutputFormat:
         raise UsageError("--format must be one of: text, json") from exc
 
 
+SCHEMA_VERSION = 1
+
+
 def result_payload(
     *,
     command: str,
@@ -29,8 +32,10 @@ def result_payload(
     exit_code: int = 0,
     errors: list[str] | None = None,
     warnings: list[str] | None = None,
+    next_action: str | None = None,
 ) -> dict[str, object]:
     return {
+        "schema_version": SCHEMA_VERSION,
         "ok": exit_code == 0,
         "command": command,
         "status": status,
@@ -38,6 +43,7 @@ def result_payload(
         "data": data,
         "errors": errors or [],
         "warnings": warnings or [],
+        "next_action": next_action,
     }
 
 
@@ -47,9 +53,39 @@ def emit(
     fmt: str | OutputFormat,
     *,
     exit_code: int = 0,
+    command: str | None = None,
+    status: str | None = None,
+    warnings: list[str] | None = None,
+    errors: list[str] | None = None,
+    next_action: str | None = None,
 ) -> int:
     normalized = normalize_format(fmt)
     if normalized is OutputFormat.json:
+        # Wrap raw payloads in the standard envelope.
+        if command is not None and not isinstance(payload, dict):
+            payload = emit_json_envelope(
+                command=command,
+                data=payload,
+                exit_code=exit_code,
+                status=status,
+                warnings=warnings,
+                errors=errors,
+                next_action=next_action,
+            )
+        elif (
+            command is not None
+            and isinstance(payload, dict)
+            and "schema_version" not in payload
+        ):
+            payload = emit_json_envelope(
+                command=command,
+                data=payload,
+                exit_code=exit_code,
+                status=status,
+                warnings=warnings,
+                errors=errors,
+                next_action=next_action,
+            )
         print(json.dumps(payload, sort_keys=True))
     else:
         print(text)
@@ -86,3 +122,28 @@ def print_findings_payload(
         else:
             print(success_text)
     return exit_code
+
+
+def emit_json_envelope(
+    *,
+    command: str,
+    data: object,
+    exit_code: int = 0,
+    status: str | None = None,
+    warnings: list[str] | None = None,
+    errors: list[str] | None = None,
+    next_action: str | None = None,
+) -> dict[str, object]:
+    """Build a standard JSON envelope for agent-facing output."""
+    status_value = status or ("clean" if exit_code == 0 else "error")
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "command": command,
+        "ok": exit_code == 0,
+        "status": status_value,
+        "exit_code": exit_code,
+        "data": data,
+        "warnings": warnings or [],
+        "errors": errors or [],
+        "next_action": next_action,
+    }

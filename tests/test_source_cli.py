@@ -26,7 +26,16 @@ def test_source_delta_json_output(tmp_path: Path, capsys) -> None:
     vault = tmp_path / "vault"
     init_vault(vault, demo=True)
     main(["source", "scan", "--vault", str(vault), "--update", "--accept-covered"])
+    # Default compact output
     code = main(["source", "delta", "--vault", str(vault), "--format", "json"])
+    assert code == 0
+    payload = json.loads(capsys.readouterr().out.splitlines()[-1])
+    assert "actionable_count" in payload["data"]
+    assert "counts" in payload["data"]
+    # --details includes full delta records
+    code = main(
+        ["source", "delta", "--vault", str(vault), "--details", "--format", "json"]
+    )
     assert code == 0
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
     assert "delta" in payload["data"]

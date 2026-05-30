@@ -109,19 +109,19 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         path=("source", "scan"),
         usage="wikimason source scan [--update]"
-        " [--accept-covered] [--format text|json]",
+        " [--accept-covered] [--details] [--format text|json]",
         summary="Scan raw sources and update manifest.",
         json_output=True,
     ),
     CommandSpec(
         path=("source", "delta"),
-        usage="wikimason source delta [--check] [--format text|json]",
+        usage="wikimason source delta [--check] [--details] [--format text|json]",
         summary="Show delta between manifest and files.",
         json_output=True,
     ),
     CommandSpec(
         path=("source", "coverage"),
-        usage="wikimason source coverage [PATH] [--format text|json]",
+        usage="wikimason source coverage [PATH] [--details] [--format text|json]",
         summary="Show source coverage report.",
         json_output=True,
     ),
@@ -141,11 +141,13 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("file", "list"),
         usage="wikimason file list [PATH] [--total] [--format text|json]",
         summary="List files in the vault.",
+        json_output=True,
     ),
     CommandSpec(
         path=("file", "read"),
         usage="wikimason file read PATH [--format text|json]",
         summary="Read a file.",
+        json_output=True,
     ),
     CommandSpec(
         path=("file", "write"),
@@ -153,37 +155,44 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--overwrite] [--template NAME] [--title TITLE]"
         " [--format text|json]",
         summary="Write a file.",
+        json_output=True,
     ),
     CommandSpec(
         path=("file", "append"),
         usage="wikimason file append PATH --content TEXT"
         " [--inline] [--format text|json]",
         summary="Append to a file.",
+        json_output=True,
     ),
     CommandSpec(
         path=("file", "prepend"),
         usage="wikimason file prepend PATH --content TEXT [--format text|json]",
         summary="Prepend to a file.",
+        json_output=True,
     ),
     CommandSpec(
         path=("file", "move"),
         usage="wikimason file move OLD NEW [--format text|json]",
         summary="Move a file.",
+        json_output=True,
     ),
     CommandSpec(
         path=("file", "rename"),
         usage="wikimason file rename OLD NEW [--format text|json]",
         summary="Rename a file.",
+        json_output=True,
     ),
     CommandSpec(
         path=("file", "delete"),
         usage="wikimason file delete PATH [--permanent] [--format text|json]",
         summary="Delete a file.",
+        json_output=True,
     ),
     CommandSpec(
         path=("file", "open"),
         usage="wikimason file open PATH [--format text|json]",
         summary="Open a file.",
+        json_output=True,
     ),
     CommandSpec(
         path=("file", "search"),
@@ -191,6 +200,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--path PATH] [--limit N] [--context]"
         " [--case] [--fuzzy] [--total] [--format text|json]",
         summary="Search files for text.",
+        json_output=True,
     ),
     # -- folder --
     CommandSpec(
@@ -202,11 +212,13 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("folder", "list"),
         usage="wikimason folder list [PATH] [--total] [--format text|json]",
         summary="List folders.",
+        json_output=True,
     ),
     CommandSpec(
         path=("folder", "info"),
         usage="wikimason folder info [PATH] [--files] [--format text|json]",
         summary="Folder info.",
+        json_output=True,
     ),
     # -- daily --
     CommandSpec(
@@ -218,21 +230,25 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("daily", "path"),
         usage="wikimason daily path [DATE] [--format text|json]",
         summary="Show daily note path.",
+        json_output=True,
     ),
     CommandSpec(
         path=("daily", "read"),
         usage="wikimason daily read [DATE] [--format text|json]",
         summary="Read daily note.",
+        json_output=True,
     ),
     CommandSpec(
         path=("daily", "append"),
         usage="wikimason daily append --content TEXT [DATE] [--format text|json]",
         summary="Append to daily note.",
+        json_output=True,
     ),
     CommandSpec(
         path=("daily", "prepend"),
         usage="wikimason daily prepend --content TEXT [DATE] [--format text|json]",
         summary="Prepend to daily note.",
+        json_output=True,
     ),
     # -- property --
     CommandSpec(
@@ -244,22 +260,26 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("property", "list"),
         usage="wikimason property list [PATH] [--total] [--format text|json]",
         summary="List property names.",
+        json_output=True,
     ),
     CommandSpec(
         path=("property", "get"),
         usage="wikimason property get PATH KEY [--format text|json]",
         summary="Get a property value.",
+        json_output=True,
     ),
     CommandSpec(
         path=("property", "set"),
         usage="wikimason property set PATH KEY VALUE"
         " [--type TYPE] [--format text|json]",
         summary="Set a property value.",
+        json_output=True,
     ),
     CommandSpec(
         path=("property", "remove"),
         usage="wikimason property remove PATH KEY [--format text|json]",
         summary="Remove a property.",
+        json_output=True,
     ),
     CommandSpec(
         path=("property", "aliases"),
@@ -267,6 +287,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--add ALIAS ...] [--remove ALIAS ...]"
         " [--format text|json]",
         summary="Update aliases.",
+        json_output=True,
     ),
     # -- tag --
     CommandSpec(
@@ -278,11 +299,13 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("tag", "list"),
         usage="wikimason tag list [--counts] [--sort-count] [--total] [--format text|json]",  # noqa: E501
         summary="List tags.",
+        json_output=True,
     ),
     CommandSpec(
         path=("tag", "count"),
         usage="wikimason tag count NAME [--format text|json]",
         summary="Count tag occurrences.",
+        json_output=True,
     ),
     # -- task --
     CommandSpec(
@@ -295,16 +318,19 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason task list [--daily|--path PATH]"
         " [--todo|--done] [--verbose] [--format text|json]",
         summary="List tasks.",
+        json_output=True,
     ),
     CommandSpec(
         path=("task", "toggle"),
         usage="wikimason task toggle PATH LINE [--format text|json]",
         summary="Toggle task status.",
+        json_output=True,
     ),
     CommandSpec(
         path=("task", "set"),
         usage="wikimason task set PATH LINE --status STATUS [--format text|json]",
         summary="Set task status.",
+        json_output=True,
     ),
     # -- template --
     CommandSpec(
@@ -316,16 +342,19 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("template", "list"),
         usage="wikimason template list [--total] [--format text|json]",
         summary="List templates.",
+        json_output=True,
     ),
     CommandSpec(
         path=("template", "read"),
         usage="wikimason template read NAME [--format text|json]",
         summary="Read a template.",
+        json_output=True,
     ),
     CommandSpec(
         path=("template", "render"),
         usage="wikimason template render NAME --title TITLE [--format text|json]",
         summary="Render a template.",
+        json_output=True,
     ),
     # -- text --
     CommandSpec(
@@ -337,11 +366,13 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("text", "wordcount"),
         usage="wikimason text wordcount PATH [--words|--characters] [--format text|json]",  # noqa: E501
         summary="Word count.",
+        json_output=True,
     ),
     CommandSpec(
         path=("text", "outline"),
         usage="wikimason text outline PATH [--format text|json]",
         summary="Text outline.",
+        json_output=True,
     ),
     # -- vault --
     CommandSpec(
@@ -359,11 +390,13 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("vault", "list"),
         usage="wikimason vault list [--total] [--format text|json]",
         summary="List registered vaults.",
+        json_output=True,
     ),
     CommandSpec(
         path=("vault", "register"),
         usage="wikimason vault register NAME PATH [--format text|json]",
         summary="Register a vault.",
+        json_output=True,
     ),
     CommandSpec(
         path=("vault", "doctor"),
@@ -375,16 +408,19 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("vault", "build"),
         usage="wikimason vault build [--format text|json]",
         summary="Build vault indexes and catalog.",
+        json_output=True,
     ),
     CommandSpec(
         path=("vault", "lint"),
         usage="wikimason vault lint [--strict] [--format text|json]",
         summary="Lint vault.",
+        json_output=True,
     ),
     CommandSpec(
         path=("vault", "maintain"),
         usage="wikimason vault maintain [--log TEXT] [--format text|json]",
         summary="Full vault maintenance.",
+        json_output=True,
     ),
     # -- query --
     CommandSpec(
@@ -471,11 +507,13 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("note", "validate"),
         usage="wikimason note validate PATH [--strict] [--format text|json]",
         summary="Validate a note.",
+        json_output=True,
     ),
     CommandSpec(
         path=("note", "normalize"),
         usage="wikimason note normalize PATH [--fix] [--format text|json]",
         summary="Normalize a note.",
+        json_output=True,
     ),
     # -- catalog --
     CommandSpec(
@@ -518,6 +556,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("links", "resolve"),
         usage="wikimason links resolve QUERY [--format text|json]",
         summary="Resolve link matches.",
+        json_output=True,
     ),
     CommandSpec(
         path=("links", "check"),
@@ -529,31 +568,37 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("links", "normalize"),
         usage="wikimason links normalize PATH [--fix] [--format text|json]",
         summary="Normalize links.",
+        json_output=True,
     ),
     CommandSpec(
         path=("links", "outgoing"),
         usage="wikimason links outgoing PATH [--total] [--format text|json]",
         summary="Show outgoing links.",
+        json_output=True,
     ),
     CommandSpec(
         path=("links", "backlinks"),
         usage="wikimason links backlinks PATH [--total] [--format text|json]",
         summary="Show backlinks.",
+        json_output=True,
     ),
     CommandSpec(
         path=("links", "unresolved"),
         usage="wikimason links unresolved [--format text|json]",
         summary="List unresolved links.",
+        json_output=True,
     ),
     CommandSpec(
         path=("links", "orphans"),
         usage="wikimason links orphans [--format text|json]",
         summary="List orphan notes.",
+        json_output=True,
     ),
     CommandSpec(
         path=("links", "deadends"),
         usage="wikimason links deadends [--format text|json]",
         summary="List dead-end notes.",
+        json_output=True,
     ),
     # -- ingest --
     CommandSpec(

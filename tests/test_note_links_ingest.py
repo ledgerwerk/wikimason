@@ -441,3 +441,58 @@ aliases: []
     data, body = split_frontmatter(note.read_text(encoding="utf-8"))
     assert data["sources"] == [source_rel]
     assert source_rel.removesuffix(".md") in body or source_rel in body
+
+
+def test_note_normalize_repairs_sources_from_body_links(tmp_path: Path, capsys) -> None:
+    """P1 fix: note normalize --fix should infer sources from body links."""
+    from conftest import write_source_rel
+
+    from wikimason.frontmatter import split_frontmatter
+
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    source_rel = write_source_rel(vault, "dry-thinking.md", title="DRY Thinking")
+
+    # Create a note with empty sources in frontmatter but valid body link.
+    note = vault / "Wiki/Topics/dry-thinking.md"
+    note.parent.mkdir(parents=True, exist_ok=True)
+    note.write_text(
+        f"---\n"
+        f"tags:\n  - topic\n"
+        f"topics: []\n"
+        f"status: seed\n"
+        f"created: 2026-05-30\n"
+        f"updated: 2026-05-30\n"
+        f"sources: []\n"
+        f"source_count: 0\n"
+        f"aliases: []\n"
+        f"---\n\n"
+        f"# DRY Thinking\n\n"
+        f"## Sources\n\n"
+        f"- [[{source_rel}|DRY Thinking]]\n",
+        encoding="utf-8",
+    )
+
+    assert (
+        main(
+            [
+                "note",
+                "normalize",
+                "Wiki/Topics/dry-thinking.md",
+                "--vault",
+                str(vault),
+                "--fix",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+
+    data, body = split_frontmatter(note.read_text(encoding="utf-8"))
+    assert data["sources"] == [source_rel], (
+        f"Expected sources=[{source_rel}], got {data['sources']}"
+    )
+    assert data["source_count"] == 1, (
+        f"Expected source_count=1, got {data['source_count']}"
+    )

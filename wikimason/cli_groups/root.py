@@ -122,7 +122,15 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
         payload = ingest_status(vault)
         payload["doctor"] = doctor_status(vault)
         text = str(payload["next_action"])
-        raise typer.Exit(emit(payload, text, fmt))
+        raise typer.Exit(
+            emit(
+                payload,
+                text,
+                fmt,
+                command="status",
+                status=payload.get("next_action", "clean"),
+            )
+        )
 
     @app.command("doctor")
     def doctor_cmd(

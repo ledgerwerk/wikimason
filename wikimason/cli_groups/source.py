@@ -163,6 +163,7 @@ def register_source(app: typer.Typer) -> None:
         ctx: typer.Context,
         update: bool = typer.Option(False, "--update"),
         accept_covered: bool = typer.Option(False, "--accept-covered"),
+        details: bool = typer.Option(False, "--details", help="Include full records."),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
@@ -183,10 +184,21 @@ def register_source(app: typer.Typer) -> None:
                 exit_code=1,
             )
         assert payload is not None
+        if details:
+            data = payload
+        else:
+            # Compact: counts only.
+            records = payload.get("records", [])
+            covered = sum(1 for r in records if r.get("coverage"))
+            data = {
+                "total": len(records),
+                "covered": covered,
+                "weak_sources": payload.get("weak_sources", []),
+            }
         result = _source_result(
             command="source.scan",
             status="changed" if update else "clean",
-            data=payload,
+            data=data,
         )
         _exit_emit(result, str(len(payload["records"])), fmt)
 
@@ -194,6 +206,9 @@ def register_source(app: typer.Typer) -> None:
     def source_delta_cmd(
         ctx: typer.Context,
         check: bool = typer.Option(False, "--check", help="Exit 2 when actionable."),
+        details: bool = typer.Option(
+            False, "--details", help="Include full record objects."
+        ),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
@@ -215,10 +230,46 @@ def register_source(app: typer.Typer) -> None:
         text = _delta_text(payload["delta"])
         actionable = int(str(payload["actionable_count"])) > 0
         exit_code = 2 if check and actionable else 0
+        if details:
+            data = payload
+        else:
+            # Compact output: counts and actionable summary only.
+            delta = payload["delta"]
+            compact_actionable: dict[str, list[dict]] = {}
+            for key in (
+                "new",
+                "content_changed",
+                "metadata_changed",
+                "missing_coverage",
+            ):
+                rows = delta.get(key, [])
+                if rows:
+                    compact_actionable[key] = [
+                        {
+                            "path": r["path"],
+                            "source_id": r.get("source_id", ""),
+                            "title": r.get("title", ""),
+                        }
+                        for r in rows
+                    ]
+            data = {
+                "actionable_count": payload["actionable_count"],
+                "counts": {
+                    "new": len(delta.get("new", [])),
+                    "content_changed": len(delta.get("content_changed", [])),
+                    "metadata_changed": len(delta.get("metadata_changed", [])),
+                    "missing_coverage": len(delta.get("missing_coverage", [])),
+                    "removed": len(delta.get("removed", [])),
+                    "renamed": len(delta.get("renamed", [])),
+                    "covered": len(delta.get("covered", [])),
+                },
+                "actionable": compact_actionable,
+                "weak_sources": payload.get("weak_sources", []),
+            }
         result = _source_result(
             command="source.delta",
             status="actionable" if actionable else "clean",
-            data=payload,
+            data=data,
             exit_code=exit_code,
         )
         _exit_emit(result, text, fmt, exit_code=exit_code)
@@ -227,11 +278,27 @@ def register_source(app: typer.Typer) -> None:
     def source_coverage_cmd(
         ctx: typer.Context,
         path: str = typer.Argument(None, help="Optional path filter."),
+        details: bool = typer.Option(False, "--details", help="Include full records."),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
         report = source_coverage_report(vault, path_arg=path)
-        payload = _source_result(command="source.coverage", status="clean", data=report)
+        if details:
+            data = report
+        else:
+            missing = [
+                {"path": r["path"], "source_id": r.get("source_id", "")}
+                for r in report.get("records", [])
+                if not r.get("coverage")
+            ]
+            data = {
+                "total": report["total"],
+                "covered": report["covered"],
+                "missing": report["total"] - report["covered"],
+                "coverage_percent": report["coverage_percent"],
+                "missing_sources": missing,
+            }
+        payload = _source_result(command="source.coverage", status="clean", data=data)
         _exit_emit(payload, f"{report['covered']}/{report['total']}", fmt)
 
     @_source_app.command("lint")

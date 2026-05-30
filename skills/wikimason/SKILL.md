@@ -94,7 +94,7 @@ Prefer WikiMason commands over shell inventory/edit operations:
 
 ```bash
 wikimason source read QUERY [--lines N] [--first] [--format text|json]
-wikimason source coverage [PATH] [--format text|json]
+wikimason source coverage [PATH] [--details] [--format text|json]
 wikimason source lint [--format text|json]
 wikimason page update PATH [--content TEXT|--body TEXT|--body-file PATH] [--format text|json]
 wikimason note new --kind KIND --title TITLE [--source PATH ...] [--related PATH ...] [--status STATUS] [--summary TEXT] [--body TEXT] [--body-file PATH] [--path PATH] [--dry-run] [--print] [--allow-incomplete] [--format text|json]

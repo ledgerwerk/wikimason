@@ -158,6 +158,23 @@ def source_plan(vault: Path, source_arg: str) -> dict[str, Any]:
     ).strip()
     slug = slugify_title(title)
     today = date.today().isoformat()
+    note_specs = [
+        {
+            "kind": "topic",
+            "title_hint": title,
+            "path_hint": f"Wiki/Topics/{slug}.md",
+        },
+        {
+            "kind": "concept",
+            "title_hint": title,
+            "path_hint": f"Wiki/Concepts/{slug}.md",
+        },
+        {
+            "kind": "log",
+            "title_hint": f"Initial {title} Ingest",
+            "path_hint": f"Wiki/Logs/{today}-initial-{slug}-ingest.md",
+        },
+    ]
     commands = [
         _note_new_command(
             kind=note["kind"],
@@ -165,50 +182,34 @@ def source_plan(vault: Path, source_arg: str) -> dict[str, Any]:
             source=path,
             path_hint=str(note["path_hint"]),
         )
-        for note in [
-            {
-                "kind": "topic",
-                "title_hint": title,
-                "path_hint": f"Wiki/Topics/{slug}.md",
+        for note in note_specs
+    ]
+    recommended_notes = [
+        {
+            **note,
+            "command": {
+                "argv": _note_new_argv(
+                    kind=note["kind"],
+                    title=str(note["title_hint"]),
+                    source=path,
+                    path_hint=str(note["path_hint"]),
+                )
             },
-            {
-                "kind": "concept",
-                "title_hint": title,
-                "path_hint": f"Wiki/Concepts/{slug}.md",
-            },
-            {
-                "kind": "log",
-                "title_hint": f"Initial {title} Ingest",
-                "path_hint": f"Wiki/Logs/{today}-initial-{slug}-ingest.md",
-            },
-        ]
+        }
+        for note in note_specs
     ]
     validation_commands = [
-        "wikimason links check --format json",
-        "wikimason source scan --update --accept-covered --format json",
-        "wikimason source coverage --format json",
-        "wikimason ingest finish --accept-covered --format json",
+        "wikimason vault maintain --accept-covered --format json",
     ]
     return {
         "source": path,
         "source_title": title,
-        "recommended_notes": [
-            {
-                "kind": "topic",
-                "title_hint": title,
-                "path_hint": f"Wiki/Topics/{slug}.md",
-            },
-            {
-                "kind": "concept",
-                "title_hint": title,
-                "path_hint": f"Wiki/Concepts/{slug}.md",
-            },
-            {
-                "kind": "log",
-                "title_hint": f"Initial {title} Ingest",
-                "path_hint": f"Wiki/Logs/{today}-initial-{slug}-ingest.md",
-            },
-        ],
+        "recommended_notes": recommended_notes,
+        "commands": commands,
+        "validation": {
+            "argv": ["vault", "maintain", "--accept-covered", "--format", "json"],
+        },
+        "validation_commands": validation_commands,
         "required_validations": [
             "wikimason vault build",
             "wikimason vault lint",
@@ -217,8 +218,6 @@ def source_plan(vault: Path, source_arg: str) -> dict[str, Any]:
             "wikimason vault doctor",
             "wikimason source coverage --format json",
         ],
-        "commands": commands,
-        "validation_commands": validation_commands,
     }
 
 
@@ -290,24 +289,41 @@ def _next_action(
 
 
 def _note_new_command(*, kind: str, title: str, source: str, path_hint: str) -> str:
-    return " ".join(
-        [
-            "wikimason",
-            "note",
-            "new",
-            "--kind",
-            shlex.quote(kind),
-            "--title",
-            shlex.quote(title),
-            "--source",
-            shlex.quote(source),
-            "--path",
-            shlex.quote(path_hint),
-            "--allow-incomplete",
-            "--format",
-            "json",
-        ]
-    )
+    parts = [
+        "wikimason",
+        "note",
+        "new",
+        "--kind",
+        kind,
+        "--title",
+        title,
+        "--source",
+        source,
+        "--path",
+        path_hint,
+        "--allow-incomplete",
+        "--format",
+        "json",
+    ]
+    return shlex.join(parts)
+
+
+def _note_new_argv(*, kind: str, title: str, source: str, path_hint: str) -> list[str]:
+    return [
+        "note",
+        "new",
+        "--kind",
+        kind,
+        "--title",
+        title,
+        "--source",
+        source,
+        "--path",
+        path_hint,
+        "--allow-incomplete",
+        "--format",
+        "json",
+    ]
 
 
 def _scoped_note_paths(vault: Path, *, scope: str, source: str | None) -> set[str]:

@@ -200,6 +200,18 @@ def _load_note_template(vault: Path, name: str, kind: str) -> str:
     return packaged_template_for_kind(kind)
 
 
+CLI_AUTHORITATIVE_FIELDS = (
+    "tags",
+    "topics",
+    "status",
+    "created",
+    "updated",
+    "sources",
+    "source_count",
+    "aliases",
+)
+
+
 def _finalize_rendered_note(
     rendered: str, default_data: dict[str, Any], *, config: Any
 ) -> str:
@@ -209,21 +221,44 @@ def _finalize_rendered_note(
     else:
         data, body = {}, text
     normalized = dict(data)
-    normalized.setdefault("tags", default_data["tags"])
-    normalized.setdefault("topics", default_data["topics"])
-    normalized.setdefault("status", default_data["status"])
-    normalized.setdefault("created", default_data["created"])
-    normalized.setdefault("updated", default_data["updated"])
-    normalized.setdefault("sources", default_data["sources"])
-    normalized.setdefault("source_count", default_data["source_count"])
-    normalized.setdefault("aliases", default_data["aliases"])
-    sources = normalized.get("sources", default_data["sources"])
+
+    # CLI-provided core metadata is authoritative over template defaults.
+    # Templates may contain stale values (e.g. sources: [], status: active,
+    # old dates) that must not override the CLI options.
+    for key in CLI_AUTHORITATIVE_FIELDS:
+        if key in default_data:
+            normalized[key] = default_data[key]
+
+    sources = normalized.get("sources", [])
     if not isinstance(sources, list):
         sources = list(default_data["sources"])
         normalized["sources"] = sources
     normalized["source_count"] = len(sources)
     body_text = body.lstrip() if body else ""
     return render_page_text(normalized, body_text, config=config)
+
+
+def _extract_body_source_links(vault: Path, body: str) -> list[str]:
+    """Parse internal links in body that point to raw source directories."""
+    import re
+
+    # Extract wiki-style links: [[path]] or [[path|display]]
+    link_pattern = re.compile(r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]")
+    links = link_pattern.findall(body)
+    source_links: list[str] = []
+    for link in links:
+        cleaned = link.strip()
+        if not cleaned:
+            continue
+        # Check if this looks like a source path
+        if cleaned.startswith("Raw/Sources/") or cleaned.startswith("Raw/Files/"):
+            try:
+                resolved = resolve_source_path(vault, cleaned)
+                if resolved not in source_links:
+                    source_links.append(resolved)
+            except UsageError:
+                continue
+    return source_links
 
 
 def normalize_note(vault: Path, note_path: str, fix: bool = False) -> dict[str, Any]:
@@ -239,6 +274,13 @@ def normalize_note(vault: Path, note_path: str, fix: bool = False) -> dict[str, 
         updates["sources"] = sources
     if int(data.get("source_count", 0)) != len(sources):
         updates["source_count"] = len(sources)
+
+    # P1 fix: infer source frontmatter from body links when sources is empty.
+    body_source_links = _extract_body_source_links(vault, body)
+    if not sources and body_source_links:
+        updates["sources"] = body_source_links
+        updates["source_count"] = len(body_source_links)
+
     changed = bool(updates)
     if changed and fix:
         path.write_text(
@@ -251,6 +293,7 @@ def normalize_note(vault: Path, note_path: str, fix: bool = False) -> dict[str, 
         "updates": updates,
         "body_has_related": "## Related" in body,
         "body_has_sources": "## Sources" in body,
+        "body_source_links": body_source_links,
     }
 
 

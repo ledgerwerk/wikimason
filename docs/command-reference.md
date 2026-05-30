@@ -90,19 +90,19 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 
 ### `source scan`
 
-- Usage: `wikimason source scan [--update] [--accept-covered] [--format text|json]`
+- Usage: `wikimason source scan [--update] [--accept-covered] [--details] [--format text|json]`
 - Summary: Scan raw sources and update manifest.
 - JSON output: yes
 
 ### `source delta`
 
-- Usage: `wikimason source delta [--check] [--format text|json]`
+- Usage: `wikimason source delta [--check] [--details] [--format text|json]`
 - Summary: Show delta between manifest and files.
 - JSON output: yes
 
 ### `source coverage`
 
-- Usage: `wikimason source coverage [PATH] [--format text|json]`
+- Usage: `wikimason source coverage [PATH] [--details] [--format text|json]`
 - Summary: Show source coverage report.
 - JSON output: yes
 
@@ -162,13 +162,13 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 
 - Usage: `wikimason note validate PATH [--strict] [--format text|json]`
 - Summary: Validate a note.
-- JSON output: no
+- JSON output: yes
 
 ### `note normalize`
 
 - Usage: `wikimason note normalize PATH [--fix] [--format text|json]`
 - Summary: Normalize a note.
-- JSON output: no
+- JSON output: yes
 
 ## Page
 
@@ -208,7 +208,7 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 
 - Usage: `wikimason links resolve QUERY [--format text|json]`
 - Summary: Resolve link matches.
-- JSON output: no
+- JSON output: yes
 
 ### `links check`
 
@@ -220,7 +220,7 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 
 - Usage: `wikimason links normalize PATH [--fix] [--format text|json]`
 - Summary: Normalize links.
-- JSON output: no
+- JSON output: yes
 
 ## File
 
@@ -228,19 +228,19 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 
 - Usage: `wikimason file list [PATH] [--total] [--format text|json]`
 - Summary: List files in the vault.
-- JSON output: no
+- JSON output: yes
 
 ### `file read`
 
 - Usage: `wikimason file read PATH [--format text|json]`
 - Summary: Read a file.
-- JSON output: no
+- JSON output: yes
 
 ### `file search`
 
 - Usage: `wikimason file search --query QUERY [--path PATH] [--limit N] [--context] [--case] [--fuzzy] [--total] [--format text|json]`
 - Summary: Search files for text.
-- JSON output: no
+- JSON output: yes
 
 ## Review
 
@@ -280,19 +280,19 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 
 - Usage: `wikimason vault build [--format text|json]`
 - Summary: Build vault indexes and catalog.
-- JSON output: no
+- JSON output: yes
 
 ### `vault lint`
 
 - Usage: `wikimason vault lint [--strict] [--format text|json]`
 - Summary: Lint vault.
-- JSON output: no
+- JSON output: yes
 
 ### `vault maintain`
 
 - Usage: `wikimason vault maintain [--log TEXT] [--format text|json]`
 - Summary: Full vault maintenance.
-- JSON output: no
+- JSON output: yes
 
 ## Query
 
