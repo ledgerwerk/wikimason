@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .config import find_local_config, load_config_data
-from .constants import LEGACY_VAULT_SCHEMA_PATH, SOURCE_MANIFEST, SOURCE_SCHEMA_VERSION
+from .constants import SOURCE_MANIFEST, SOURCE_SCHEMA_VERSION
 from .errors import UsageError
 from .page_profiles import default_logical_ref_for_path
 
@@ -142,22 +141,6 @@ def default_schema() -> VaultSchema:
     )
 
 
-def legacy_schema_path(vault: Path) -> Path:
-    return vault / LEGACY_VAULT_SCHEMA_PATH
-
-
-def schema_path(vault: Path) -> Path:
-    return legacy_schema_path(vault)
-
-
-def write_default_schema(vault: Path) -> None:
-    legacy_schema_path(vault).write_text(
-        json.dumps(schema_to_dict(default_schema()), indent=2, ensure_ascii=False)
-        + "\n",
-        encoding="utf-8",
-    )
-
-
 def load_vault_schema(
     vault: Path, config: WikiMasonConfig | None = None
 ) -> VaultSchema:
@@ -179,33 +162,7 @@ def load_vault_schema(
             ),
             generated=_merge_generated(default.generated, raw.get("generated", [])),
         )
-
-    path = legacy_schema_path(vault)
-    if not path.exists():
-        return default
-    try:
-        legacy_raw = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        raise UsageError(f"invalid vault schema JSON: {exc.msg}") from exc
-    if not isinstance(legacy_raw, dict):
-        raise UsageError("invalid vault schema: expected a JSON object")
-    version = legacy_raw.get("schema_version", default.schema_version)
-    if version != default.schema_version:
-        raise UsageError(
-            f"unsupported vault schema version: "
-            f"{version} (expected {default.schema_version})"
-        )
-    return VaultSchema(
-        schema_version=default.schema_version,
-        note_kinds=_merge_note_kinds(
-            default.note_kinds, legacy_raw.get("note_kinds", {})
-        ),
-        statuses=_merge_statuses(default.statuses, legacy_raw.get("statuses", {})),
-        frontmatter=_merge_frontmatter(
-            default.frontmatter, legacy_raw.get("frontmatter", {})
-        ),
-        generated=_merge_generated(default.generated, legacy_raw.get("generated", [])),
-    )
+    return default
 
 
 def schema_to_dict(schema: VaultSchema) -> dict[str, object]:
@@ -379,9 +336,6 @@ def schema_source_label(vault: Path, config: WikiMasonConfig | None = None) -> s
     config_path = _schema_config_path(vault, config=config)
     if config_path is not None:
         return config_path.name
-    path = legacy_schema_path(vault)
-    if path.exists():
-        return path.relative_to(vault).as_posix()
     return "wikimason.toml"
 
 

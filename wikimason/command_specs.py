@@ -50,13 +50,6 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         summary="Validate the active config.",
         json_output=True,
     ),
-    CommandSpec(
-        path=("config", "migrate"),
-        usage="wikimason config migrate [PATH] [--profile PROFILE]"
-        " [--env NAME] [--force] [--format text|json]",
-        summary="Write TOML config for an existing wiki root.",
-        json_output=True,
-    ),
     # -- source --
     CommandSpec(
         path=("source", "add"),
@@ -79,14 +72,6 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason source verify [--vault PATH] [--format text|json]",
         summary="Verify raw-source state against the current"
         " manifest and coverage delta.",
-        json_output=True,
-    ),
-    CommandSpec(
-        path=("source", "migrate-frontmatter"),
-        usage="wikimason source migrate-frontmatter"
-        " [--vault PATH] [--format text|json]",
-        summary="Normalize raw-source frontmatter into"
-        " the current source metadata shape.",
         json_output=True,
     ),
     CommandSpec(
@@ -558,30 +543,5 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("skill", "install"),
         usage="wikimason skill install --target PATH [--symlink]",
         summary="Install skill.",
-    ),
-    # -- migrate --
-    CommandSpec(
-        path=("migrate", "logseq-to-obsidian"),
-        usage="wikimason migrate logseq-to-obsidian"
-        " --from PATH --to PATH [--format text|json]",
-        summary="Migrate Logseq to Obsidian.",
-    ),
-    CommandSpec(
-        path=("migrate", "obsidian-to-logseq"),
-        usage="wikimason migrate obsidian-to-logseq"
-        " --from PATH --to PATH [--format text|json]",
-        summary="Migrate Obsidian to Logseq.",
-    ),
-    CommandSpec(
-        path=("migrate", "markdown-to-logseq"),
-        usage="wikimason migrate markdown-to-logseq"
-        " --from PATH --to PATH [--format text|json]",
-        summary="Migrate Markdown to Logseq.",
-    ),
-    CommandSpec(
-        path=("migrate", "logseq-to-markdown"),
-        usage="wikimason migrate logseq-to-markdown"
-        " --from PATH --to PATH [--format text|json]",
-        summary="Migrate Logseq to Markdown.",
     ),
 )

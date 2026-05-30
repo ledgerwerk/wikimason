@@ -26,7 +26,6 @@ wikimason ingest finish --accept-covered --format json
 wikimason agents compile --check --format json
 ```
 
-
 ## Migration note
 
 Older starter-kit material may mention `scripts/wiki_tool.py`; that file is not part of WikiMason. Use the WikiMason commands in this README instead.

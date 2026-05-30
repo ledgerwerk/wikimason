@@ -55,7 +55,7 @@ Binary sources get a sidecar file:
 
 
 Raw/Sources/report.pdf
-Raw/Sources/report.pdf.wikimason.yml
+Raw/Sources/report.pdf.wikimason.json
 
 
 The sidecar is a JSON file containing the same `wm_` fields as text sources.
@@ -105,11 +105,6 @@ Verify source integrity
 =======================
 
 wikimason source verify
-
-Migrate old-format frontmatter to the new wikimason format
-==========================================================
-
-wikimason source migrate-frontmatter
 
 Recompute hashes from current file state
 ========================================

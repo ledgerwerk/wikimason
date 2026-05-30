@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from wikimason.build import build_vault
 from wikimason.cli import main
 from wikimason.scaffold import init_vault
-from wikimason.schema import default_schema, schema_to_dict
 
 
 def _write_source(vault: Path, name: str = "a") -> None:
@@ -168,58 +166,4 @@ required_sections = ["Decision", "Related", "Sources"]
     )
     assert "Wiki/Decisions/adopt-schema.md" in (vault / "Wiki/catalog.jsonl").read_text(
         encoding="utf-8"
-    )
-
-
-def test_legacy_schema_json_is_still_loaded_without_toml(tmp_path: Path) -> None:
-    vault = tmp_path / "vault"
-    init_vault(vault)
-    _write_source(vault)
-    (vault / "wikimason.toml").unlink()
-    schema = schema_to_dict(default_schema())
-    assert isinstance(schema["statuses"], dict)
-    schema["statuses"]["allowed"].append("researching")
-    (vault / "Schema/wikimason.json").write_text(
-        json.dumps(schema),
-        encoding="utf-8",
-    )
-
-    assert (
-        main(
-            [
-                "note",
-                "new",
-                "--vault",
-                str(vault),
-                "--kind",
-                "topic",
-                "--title",
-                "Legacy Research Topic",
-                "--source",
-                "Raw/Sources/a.md",
-                "--allow-incomplete",
-            ]
-        )
-        == 0
-    )
-    assert (
-        main(
-            [
-                "note",
-                "new",
-                "--vault",
-                str(vault),
-                "--kind",
-                "concept",
-                "--title",
-                "Legacy Research Note",
-                "--source",
-                "Raw/Sources/a.md",
-                "--status",
-                "researching",
-                "--related",
-                "Wiki/Topics/legacy-research-topic.md",
-            ]
-        )
-        == 0
     )

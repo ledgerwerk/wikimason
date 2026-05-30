@@ -102,20 +102,6 @@ def _doctor_text(payload: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _migrate_text(result: dict[str, Any]) -> str:
-    lines = [
-        f"Migrated {result.get('migrated_pages', 0)} pages",
-        f"Source: {result.get('source_vault', '')}",
-        f"Target: {result.get('target_vault', '')}",
-        f"Target profile: {result.get('target_profile', '')}",
-    ]
-    for err in result.get("errors", []):
-        lines.append(f"Error: {err}")
-    for err in result.get("lint_errors", []):
-        lines.append(f"Lint: {err}")
-    return "\n".join(lines) if lines else "Migration complete"
-
-
 def _collect_tags(vault: Path) -> dict[str, int]:
     from .config import load_runtime_config
     from .page_profiles import split_page_text
@@ -135,23 +121,6 @@ def _collect_tags(vault: Path) -> dict[str, int]:
             if token.startswith("#") and len(token) > 1 and token[1].isalnum():
                 rows[token] = rows.get(token, 0) + 1
     return rows
-
-
-def _write_migrated_config(
-    path: Path, config: Any, schema: Any, *, root_value: str
-) -> None:  # noqa: E501
-    from .config import write_config_file
-    from .schema import schema_toml_lines
-
-    target = path.expanduser().resolve()
-    write_config_file(target, config, root_value=root_value)
-    target.write_text(
-        target.read_text(encoding="utf-8")
-        + "\n"
-        + "\n".join(schema_toml_lines(schema))
-        + "\n",
-        encoding="utf-8",
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -240,14 +209,6 @@ def _run_note_create(
     )
     payload = _note_create_payload(vault, scaffold)
     _exit_emit(payload, payload["path"], fmt)
-
-
-def _run_migration(from_path: Path, to_path: Path, profile: str, fmt: str) -> None:
-    """Shared body for all ``migrate *`` commands."""
-    from .migrate import migrate_vault
-
-    result = migrate_vault(from_path, to_path, profile)
-    _exit_emit(result, _migrate_text(result), fmt)
 
 
 def _run_row_command(ctx: typer.Context, get_rows: Any, fmt: str) -> None:

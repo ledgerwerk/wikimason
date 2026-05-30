@@ -24,7 +24,6 @@ Source management
    wikimason source verify                   # Verify source integrity
    wikimason source lint                     # Check manifest integrity
    wikimason source rehash                   # Recompute hashes
-   wikimason source migrate-frontmatter      # Upgrade old frontmatter
 
 Page operations
 ---------------
@@ -71,16 +70,6 @@ AGENTS
    wikimason agents compile    # Generate AGENTS.md from schema/templates/config
    wikimason agents check      # Check if AGENTS.md is current
 
-Migration
----------
-
-.. code:: bash
-
-   wikimason migrate logseq-to-obsidian --from PATH --to PATH
-   wikimason migrate obsidian-to-logseq --from PATH --to PATH
-   wikimason migrate markdown-to-logseq --from PATH --to PATH
-   wikimason migrate logseq-to-markdown --from PATH --to PATH
-
 Vault administration
 --------------------
 
@@ -89,7 +78,6 @@ Vault administration
    wikimason config show        # Show active config
    wikimason config edit        # Edit config
    wikimason config validate    # Validate config
-   wikimason config migrate     # Write config for existing root
    wikimason doctor             # Run vault diagnostics
 
 File utilities
@@ -105,4 +93,3 @@ File utilities
    wikimason file move <old> <new>
    wikimason file rename <old> <new>
    wikimason file delete <path>
-

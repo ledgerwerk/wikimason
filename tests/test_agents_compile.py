@@ -32,7 +32,7 @@ def test_agents_compile_preserves_manual_block(tmp_path: Path) -> None:
     vault = tmp_path / "vault"
     init_vault(vault)
     (vault / "AGENTS.md").write_text(
-        "<!-- wikimason:manual:start -->\nLocal note.\n<!-- wikimason:manual:end -->\n",
+        "<!-- WIKIMASON:MANUAL BEGIN -->\nLocal note.\n<!-- WIKIMASON:MANUAL END -->\n",
         encoding="utf-8",
     )
 

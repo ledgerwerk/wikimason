@@ -20,12 +20,6 @@ MANUAL_BLOCK_RE = re.compile(
     re.DOTALL,
 )
 
-# Legacy marker support
-_LEGACY_MANUAL_BLOCK_RE = re.compile(
-    r"<!-- wikimason:manual:start -->.*?<!-- wikimason:manual:end -->",
-    re.DOTALL,
-)
-
 
 def agents_sources(vault: Path, *, config: WikiMasonConfig | None = None) -> list[Path]:
     active_config = config or load_runtime_config(vault)
@@ -40,9 +34,6 @@ def agents_sources(vault: Path, *, config: WikiMasonConfig | None = None) -> lis
     ]
     if active_config.source_path is not None:
         candidates.insert(0, active_config.source_path)
-    else:
-        legacy_schema = vault / "Schema/wikimason.json"
-        candidates.insert(0, legacy_schema)
     return [path for path in candidates if path.exists()]
 
 
@@ -106,7 +97,7 @@ def compile_agents_md(vault: Path, *, config: WikiMasonConfig | None = None) -> 
     schema = load_vault_schema(vault, config=active_config)
     agents_path = vault / active_config.paths.agents
     existing = agents_path.read_text(encoding="utf-8") if agents_path.exists() else ""
-    manual = _manual_block(existing) or _legacy_manual_block(existing)
+    manual = _manual_block(existing)
     schema_dir = vault / active_config.paths.schema
     templates_dir = vault / active_config.paths.templates
     workflow = _read_or_default(
@@ -235,11 +226,6 @@ def _manual_block(text: str) -> str:
     if match:
         return match.group(0)
     return ""
-
-
-def _legacy_manual_block(text: str) -> str:
-    match = _LEGACY_MANUAL_BLOCK_RE.search(text)
-    return match.group(0) if match else ""
 
 
 def _read_or_default(path: Path, default: str) -> str:

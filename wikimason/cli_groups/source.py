@@ -16,7 +16,6 @@ from ..sources import (
     source_coverage_report,
     source_delta,
     source_lint,
-    source_migrate_frontmatter,
     source_rehash,
     source_resolve_report,
     source_scan_payload,
@@ -86,20 +85,6 @@ def register_source(app: typer.Typer) -> None:
         text = _delta_text(payload["delta"])
         exit_code = 2 if int(str(payload["actionable_count"])) > 0 else 0
         _exit_emit(payload, text, fmt, exit_code=exit_code)
-
-    @_source_app.command("migrate-frontmatter")
-    def source_migrate_frontmatter_cmd(
-        ctx: typer.Context,
-        fmt: str = typer.Option("text", "--format", help="Output format."),
-    ) -> None:
-        vault = _vault_from_ctx(ctx)
-        result = source_migrate_frontmatter(vault)
-        text = (
-            f"Migrated {result['count']} sources"
-            if result["count"]
-            else "No sources needed migration"
-        )
-        _exit_emit(result, text, fmt)
 
     @_source_app.command("rehash")
     def source_rehash_cmd(

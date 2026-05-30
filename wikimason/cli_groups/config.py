@@ -5,27 +5,16 @@ from __future__ import annotations
 import os
 import shlex
 import subprocess
-from pathlib import Path
-from typing import Any
 
 import typer
 
 from ..cli_helpers import (
     _config_payload,
     _config_text,
-    _write_migrated_config,
 )
 from ..cli_output import emit
-from ..config import (
-    default_config,
-    env_config_path,
-    find_wiki_root,
-    looks_like_wiki_root,
-)
 from ..context import resolve_context
 from ..errors import UsageError
-from ..profiles import canonical_profile_name
-from ..schema import load_vault_schema
 
 
 def register_config(app: typer.Typer) -> None:
@@ -83,54 +72,3 @@ def register_config(app: typer.Typer) -> None:
         payload = _config_payload(context)
         payload["ok"] = True
         raise typer.Exit(emit(payload, "config valid", fmt))
-
-    @_config_app.command("migrate")
-    def config_migrate(
-        ctx: typer.Context,
-        path: Path = typer.Argument(None, help="Target wiki root."),
-        profile: str = typer.Option(None, "--profile", "--tool", help="Profile."),
-        env_name: str | None = typer.Option(None, "--env", help="Named env config."),
-        force: bool = typer.Option(False, "--force", help="Overwrite existing config."),
-        fmt: str = typer.Option("text", "--format", help="Output format."),
-    ) -> None:
-        state = ctx.find_root().obj
-        requested_root = path or (Path(str(state.vault)) if state.vault else Path.cwd())
-        target = find_wiki_root(requested_root) or requested_root
-        if not looks_like_wiki_root(target):
-            raise UsageError("config migrate requires an existing wiki root")
-        inferred_tool = "obsidian" if (target / ".obsidian").exists() else "markdown"
-        actual_profile = canonical_profile_name(profile or inferred_tool)
-        base_config = default_config(actual_profile, target, name=target.name)
-        schema = load_vault_schema(target, config=base_config)
-        writes = [{"path": target / "wikimason.toml", "name": target.name, "root": "."}]
-        if env_name:
-            writes.append(
-                {
-                    "path": env_config_path(env_name),
-                    "name": env_name,
-                    "root": str(target),
-                }
-            )
-        existing = [
-            w["path"]
-            for w in writes
-            if isinstance(w["path"], Path) and w["path"].exists()
-        ]  # noqa: E501
-        if existing and not force:
-            raise UsageError(f"config already exists: {existing[0]}")
-        written: list[str] = []
-        for item in writes:
-            path_val: Any = item["path"]
-            name_val: Any = item["name"]
-            root_val: Any = item["root"]
-            if (
-                not isinstance(path_val, Path)
-                or not isinstance(name_val, str)
-                or not isinstance(root_val, str)
-            ):  # noqa: E501
-                continue
-            config = default_config(actual_profile, target, name=name_val)
-            _write_migrated_config(path_val, config, schema, root_value=root_val)
-            written.append(str(path_val.expanduser().resolve()))
-        payload = {"root": str(target), "profile": actual_profile, "written": written}
-        raise typer.Exit(emit(payload, "\n".join(written), fmt))

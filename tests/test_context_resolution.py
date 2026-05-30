@@ -220,34 +220,6 @@ profile = "logseq"
     assert context.resolution == "built_in_defaults"
 
 
-def test_resolve_context_falls_back_to_legacy_registry(
-    tmp_path: Path, monkeypatch
-) -> None:
-    legacy_root = tmp_path / "legacy"
-    legacy_root.mkdir()
-    registry_path = tmp_path / "vaults.json"
-    registry_path.write_text(
-        json.dumps(
-            {
-                "last_used": "legacy",
-                "vaults": {
-                    "legacy": {
-                        "path": str(legacy_root),
-                        "id": "legacy",
-                    }
-                },
-            }
-        ),
-        encoding="utf-8",
-    )
-    monkeypatch.setenv("WIKIMASON_REGISTRY_PATH", str(registry_path))
-
-    context = resolve_context(cwd=tmp_path / "nowhere")
-
-    assert context.root == legacy_root.resolve()
-    assert context.config.profile == "markdown"
-
-
 def test_write_config_file_round_trips(tmp_path: Path) -> None:
     root = tmp_path / "wiki"
     root.mkdir()

@@ -12,7 +12,6 @@ from wikimason.sources import (
     extract_wikimason_metadata,
     generate_source_id,
     source_delta,
-    source_migrate_frontmatter,
     source_rehash,
     source_scan,
     source_verify,
@@ -186,19 +185,6 @@ def test_source_rehash_updates_records(tmp_path: Path) -> None:
     assert "updated" in result
     assert result["updated"] >= 1
     assert "errors" in result
-
-
-def test_source_migrate_frontmatter_is_noop_after_init(tmp_path: Path) -> None:
-    vault = tmp_path / "vault"
-    init_vault(vault, demo=True)
-    # After init with demo, source scan already added wm_ fields
-    src = vault / "Raw/Sources/wikimason-demo-source.md"
-    text = src.read_text(encoding="utf-8")
-    meta, _ = split_frontmatter(text)
-    assert extract_wikimason_metadata(meta) is not None
-    # migrate-frontmatter should be a no-op
-    result = source_migrate_frontmatter(vault)
-    assert result["count"] == 0
 
 
 def test_manifest_record_has_source_id(tmp_path: Path) -> None:

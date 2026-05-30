@@ -15,7 +15,6 @@ from .constants import (
     DEFAULT_PROFILE,
     DEFAULT_TOOL_PROFILE,
     GLOBAL_CONFIG_DIRNAME,
-    LEGACY_GLOBAL_ENV_DIRNAME,
     LOCAL_CONFIG_NAMES,
 )
 from .errors import UsageError
@@ -136,10 +135,6 @@ def global_config_dir() -> Path:
     return user_home() / GLOBAL_CONFIG_DIRNAME
 
 
-def legacy_global_env_dir() -> Path:
-    return user_home() / LEGACY_GLOBAL_ENV_DIRNAME
-
-
 def default_env_config_path() -> Path:
     return global_config_dir() / "default.toml"
 
@@ -152,10 +147,9 @@ def env_config_path(name: str) -> Path:
 
 
 def resolve_existing_env_config_path(name: str) -> Path | None:
-    candidates = [env_config_path(name), legacy_global_env_dir() / f"{name}.toml"]
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
+    candidate = env_config_path(name)
+    if candidate.exists():
+        return candidate
     return None
 
 

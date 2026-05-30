@@ -7,7 +7,6 @@ from wikimason.cli import main
 from wikimason.commands import render_command_reference_markdown
 from wikimason.config import load_config_file
 from wikimason.scaffold import init_vault
-from wikimason.schema import load_vault_schema, write_default_schema
 
 
 def test_cli_help(capsys):
@@ -116,25 +115,6 @@ def test_cli_config_validate_accepts_explicit_config(tmp_path: Path) -> None:
     init_vault(vault, profile="logseq")
 
     assert main(["--config", str(vault / "wikimason.toml"), "config", "validate"]) == 0
-
-
-def test_cli_config_migrate_restores_toml_from_legacy_root(tmp_path: Path) -> None:
-    vault = tmp_path / "legacy"
-    init_vault(vault, demo=False, tool="obsidian")
-    (vault / "wikimason.toml").unlink()
-    write_default_schema(vault)
-
-    legacy_path = vault / "Schema/wikimason.json"
-    legacy_raw = json.loads(legacy_path.read_text(encoding="utf-8"))
-    legacy_raw["generated"] = [*legacy_raw.get("generated", []), "Schema/custom.md"]
-    legacy_path.write_text(json.dumps(legacy_raw, indent=2) + "\n", encoding="utf-8")
-
-    assert main(["config", "migrate", str(vault)]) == 0
-
-    config = load_config_file(vault / "wikimason.toml")
-    schema = load_vault_schema(vault, config=config)
-    assert config.profile == "obsidian"
-    assert "Schema/custom.md" in schema.generated
 
 
 def test_cli_doctor_json_shape(tmp_path: Path, capsys) -> None:

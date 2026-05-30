@@ -24,12 +24,6 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 - Summary: Validate the active config.
 - JSON output: yes
 
-### `config migrate`
-
-- Usage: `wikimason config migrate [PATH] [--profile PROFILE] [--env NAME] [--force] [--format text|json]`
-- Summary: Write TOML config for an existing wiki root.
-- JSON output: yes
-
 ## Source
 
 ### `source add`
@@ -54,12 +48,6 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 
 - Usage: `wikimason source verify [--vault PATH] [--format text|json]`
 - Summary: Verify raw-source state against the current manifest and coverage delta.
-- JSON output: yes
-
-### `source migrate-frontmatter`
-
-- Usage: `wikimason source migrate-frontmatter [--vault PATH] [--format text|json]`
-- Summary: Normalize raw-source frontmatter into the current source metadata shape.
 - JSON output: yes
 
 ### `source rehash`
@@ -179,32 +167,6 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 - Usage: `wikimason agents check [--format text|json]`
 - Summary: Check AGENTS.md freshness.
 - JSON output: yes
-
-## Migrate
-
-### `migrate logseq-to-obsidian`
-
-- Usage: `wikimason migrate logseq-to-obsidian --from PATH --to PATH [--format text|json]`
-- Summary: Migrate Logseq to Obsidian.
-- JSON output: no
-
-### `migrate obsidian-to-logseq`
-
-- Usage: `wikimason migrate obsidian-to-logseq --from PATH --to PATH [--format text|json]`
-- Summary: Migrate Obsidian to Logseq.
-- JSON output: no
-
-### `migrate markdown-to-logseq`
-
-- Usage: `wikimason migrate markdown-to-logseq --from PATH --to PATH [--format text|json]`
-- Summary: Migrate Markdown to Logseq.
-- JSON output: no
-
-### `migrate logseq-to-markdown`
-
-- Usage: `wikimason migrate logseq-to-markdown --from PATH --to PATH [--format text|json]`
-- Summary: Migrate Logseq to Markdown.
-- JSON output: no
 
 ## Doctor
 

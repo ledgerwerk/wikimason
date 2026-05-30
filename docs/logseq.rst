@@ -74,13 +74,16 @@ AGENTS.md
 wikimason.toml
 
 
-Migration
----------
+Profile changes
+---------------
 
-
-Migrate from Logseq to another profile:
+WikiMason does not expose profile migration commands in the current
+pre-release surface. To move between profiles, create a fresh target
+vault and then use canonical verification/build commands after copying
+content:
 
 .. code-block:: bash
 
-wikimason migrate logseq-to-obsidian --from ./logseq-graph --to ./obsidian-vault
-wikimason migrate logseq-to-markdown --from ./logseq-graph --to ./md-vault
+   wikimason source verify
+   wikimason index build
+   wikimason lint

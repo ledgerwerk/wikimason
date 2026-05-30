@@ -1,4 +1,4 @@
-"""Source verify, rehash, frontmatter migration, and lint."""
+"""Source verify, rehash, and lint."""
 
 from __future__ import annotations
 
@@ -6,15 +6,9 @@ from pathlib import Path
 from typing import Any
 
 from .constants import SOURCE_MANIFEST, SOURCE_SCHEMA_VERSION
-from .frontmatter import split_frontmatter
 from .paths import rel_to_vault, source_md_files
 from .source_manifest import load_source_manifest
 from .source_metadata import (
-    _build_wm_fields,
-    embed_wikimason_metadata,
-    extract_wikimason_metadata,
-    generate_source_id,
-    is_binary_source,
     manifest_required_fields,
     now_iso,
 )
@@ -260,35 +254,6 @@ def source_rehash(vault: Path, accept_covered: bool = False) -> dict[str, Any]:
         "errors": errors,
         "records": payload["records"] if payload else [],
     }
-
-
-def source_migrate_frontmatter(vault: Path) -> dict[str, Any]:
-    """Migrate legacy raw-source frontmatter to the wikimason-namespaced format."""
-    migrated: list[str] = []
-    errors: list[str] = []
-    existing = sorted((vault / "Raw/Sources").rglob("*.md"))
-
-    for path in existing:
-        if is_binary_source(path):
-            continue
-        try:
-            text = path.read_text(encoding="utf-8")
-            metadata, body = split_frontmatter(text)
-            if extract_wikimason_metadata(metadata) is not None:
-                continue
-            source_id = generate_source_id(body)
-            wb = _build_wm_fields(
-                source_id=source_id,
-                captured_at=now_iso(),
-                original_filename=path.name,
-                current_filename=path.name,
-            )
-            path.write_text(embed_wikimason_metadata(text, wb), encoding="utf-8")
-            migrated.append(rel_to_vault(vault, path))
-        except Exception as exc:
-            errors.append(f"{rel_to_vault(vault, path)}: {exc}")
-
-    return {"migrated": migrated, "errors": errors, "count": len(migrated)}
 
 
 def _lint_manifest_row(

@@ -102,6 +102,7 @@ def test_command_backend_matches_public_command_registry() -> None:
     assert "source-coverage" not in actual
     assert "build" not in actual
 
+
 def test_query_cli_json_shape(tmp_path: Path, capsys) -> None:
     vault = tmp_path / "vault"
     init_vault(vault, demo=True)

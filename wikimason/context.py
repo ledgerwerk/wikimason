@@ -6,7 +6,6 @@ from pathlib import Path
 from .config import (
     WikiMasonConfig,
     default_config,
-    default_env_config_path,
     env_config_path,
     find_local_config,
     find_wiki_root,
@@ -14,7 +13,6 @@ from .config import (
     resolve_existing_env_config_path,
 )
 from .errors import UsageError
-from .vault_registry import VaultRegistry
 
 
 @dataclass(frozen=True)
@@ -81,8 +79,6 @@ def resolve_context(
         return _default_context(root)
 
     default_env_path = resolve_existing_env_config_path("default")
-    if default_env_path is None and default_env_config_path().exists():
-        default_env_path = default_env_config_path()
     if default_env_path is not None:
         config = load_config_file(default_env_path)
         return WikiContext(
@@ -95,10 +91,6 @@ def resolve_context(
     wiki_root = find_wiki_root(working_dir)
     if wiki_root is not None:
         return _default_context(wiki_root)
-
-    legacy_root = _legacy_registry_root()
-    if legacy_root is not None:
-        return _default_context(legacy_root)
 
     raise UsageError(
         "could not resolve wiki context; pass --config PATH, "
@@ -122,21 +114,3 @@ def _resolve_existing_root(path: Path) -> Path:
     if not root.exists():
         raise UsageError(f"vault path not found: {root}")
     return root
-
-
-def _legacy_registry_root() -> Path | None:
-    registry = VaultRegistry.default().load()
-    last_used = registry.get("last_used")
-    vaults = registry.get("vaults")
-    if not isinstance(last_used, str) or not isinstance(vaults, dict):
-        return None
-    entry = vaults.get(last_used)
-    if not isinstance(entry, dict):
-        return None
-    path_value = entry.get("path")
-    if not isinstance(path_value, str):
-        return None
-    candidate = Path(path_value).expanduser().resolve()
-    if not candidate.exists():
-        return None
-    return candidate

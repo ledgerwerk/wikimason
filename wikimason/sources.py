@@ -5,7 +5,7 @@ All implementation lives in the split source modules:
   - source_manifest.py  -- manifest load/write
   - source_scan.py      -- scan, record construction, source_add, source_resolve
   - source_delta.py     -- delta, coverage report
-  - source_verify.py    -- verify, rehash, frontmatter migration, lint
+  - source_verify.py    -- verify, rehash, lint
 """
 
 from __future__ import annotations
@@ -25,9 +25,7 @@ from .source_manifest import (
 
 # Metadata
 from .source_metadata import (
-    _LEGACY_EXTRA_FIELDS,
     ACCEPTED_WM_KINDS,
-    LEGACY_SIDECAR_SUFFIX,
     SIDECAR_SUFFIX,
     SOURCE_REQUIRED_FIELDS,
     WIKIMASON_KIND,
@@ -40,7 +38,6 @@ from .source_metadata import (
     is_binary_source,
     manifest_required_fields,
     now_iso,
-    raw_source_fields,
     read_sidecar,
     sha256_text,
     sidecar_path,
@@ -60,7 +57,6 @@ from .source_scan import (
 # Verify
 from .source_verify import (
     source_lint,
-    source_migrate_frontmatter,
     source_rehash,
     source_verify,
 )
@@ -70,9 +66,7 @@ __all__ = [
     "WIKIMASON_VERSION",
     "ACCEPTED_WM_KINDS",
     "SIDECAR_SUFFIX",
-    "LEGACY_SIDECAR_SUFFIX",
     "SOURCE_REQUIRED_FIELDS",
-    "_LEGACY_EXTRA_FIELDS",
     "_build_wm_fields",
     "_guess_mime",
     "build_source_coverage_map",
@@ -84,7 +78,6 @@ __all__ = [
     "manifest_required_fields",
     "now_iso",
     "raw_record",
-    "raw_source_fields",
     "read_sidecar",
     "sha256_text",
     "sidecar_path",
@@ -93,7 +86,6 @@ __all__ = [
     "source_coverage_report",
     "source_delta",
     "source_lint",
-    "source_migrate_frontmatter",
     "source_rehash",
     "source_resolve_report",
     "source_scan",

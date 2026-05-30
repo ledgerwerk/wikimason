@@ -22,7 +22,6 @@ from .source_metadata import (
     generate_source_id,
     is_binary_source,
     now_iso,
-    raw_source_fields,
     read_sidecar,
     sha256_text,
     sidecar_path,
@@ -125,31 +124,6 @@ def _covered_hashes(
     return covered_sha256, covered_body_sha256, covered_metadata_sha256
 
 
-def _apply_legacy_fields(
-    record: dict[str, Any],
-    *,
-    prior: dict[str, Any],
-    source_kind: str,
-    metadata: dict[str, Any],
-    path: Path,
-    full_sha: str,
-) -> None:
-    from .source_metadata import _LEGACY_EXTRA_FIELDS
-
-    if prior:
-        for field in _LEGACY_EXTRA_FIELDS:
-            if field in prior:
-                record[field] = prior[field]
-    if not record.get("source_title"):
-        if source_kind == "text":
-            source_fields = raw_source_fields(metadata)
-            record["source_title"] = source_fields["source_title"] or path.stem
-        else:
-            record["source_title"] = path.stem
-    if not record.get("sha256"):
-        record["sha256"] = full_sha
-
-
 def _base_record(
     *,
     source_id: str,
@@ -246,14 +220,6 @@ def raw_record(
         covered_metadata_sha256=covered_metadata_sha256,
         coverage=coverage,
         coverage_status=coverage_status,
-    )
-    _apply_legacy_fields(
-        record,
-        prior=prior,
-        source_kind=content_inputs["source_kind"],
-        metadata=content_inputs["metadata"],
-        path=path,
-        full_sha=content_inputs["full_sha"],
     )
     return record
 

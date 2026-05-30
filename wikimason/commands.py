@@ -17,7 +17,6 @@ PUBLIC_COMMAND_ORDER: tuple[str, ...] = (
     "lint",
     "status",
     "agents",
-    "migrate",
     "doctor",
 )
 
@@ -28,12 +27,10 @@ PUBLIC_COMMAND_SEQUENCE: tuple[tuple[str, ...], ...] = (
     ("config", "show"),
     ("config", "edit"),
     ("config", "validate"),
-    ("config", "migrate"),
     ("source", "add"),
     ("source", "list"),
     ("source", "show"),
     ("source", "verify"),
-    ("source", "migrate-frontmatter"),
     ("source", "rehash"),
     ("ingest",),
     ("query",),
@@ -51,10 +48,6 @@ PUBLIC_COMMAND_SEQUENCE: tuple[tuple[str, ...], ...] = (
     ("status",),
     ("agents", "compile"),
     ("agents", "check"),
-    ("migrate", "logseq-to-obsidian"),
-    ("migrate", "obsidian-to-logseq"),
-    ("migrate", "markdown-to-logseq"),
-    ("migrate", "logseq-to-markdown"),
     ("doctor",),
 )
 
@@ -99,7 +92,7 @@ def render_main_help() -> str:
         "",
         "Global context options:",
         "  --config PATH   Use an explicit WikiMason TOML config file.",
-        "  --env NAME      Select a named env config from ~/.config/wikimason/envs/.",
+        "  --env NAME      Select a named env config from ~/.config/wikimason/.",
         "  --vault PATH    Wiki root override when TOML config is absent.",
         "",
         "Public commands:",

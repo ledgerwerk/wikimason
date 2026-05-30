@@ -42,9 +42,7 @@ def main_callback(
         None, "--config", help="Use an explicit WikiMason TOML config file."
     ),
     env: str | None = typer.Option(None, "--env", help="Select a named env config."),
-    vault: str | None = typer.Option(
-        None, "--vault", help="Wiki root override."
-    ),
+    vault: str | None = typer.Option(None, "--vault", help="Wiki root override."),
 ) -> None:
     """Global callback: initialises CliState on the context."""
     ctx.ensure_object(dict)
@@ -68,7 +66,6 @@ from .cli_groups.folder import register_folder
 from .cli_groups.index import register_index
 from .cli_groups.ingest import register_ingest
 from .cli_groups.links import register_links
-from .cli_groups.migrate import register_migrate
 from .cli_groups.note import register_note
 from .cli_groups.page import register_page
 from .cli_groups.property import register_property
@@ -92,7 +89,6 @@ register_folder(app)
 register_index(app)
 register_ingest(app)
 register_links(app)
-register_migrate(app)
 register_note(app)
 register_page(app)
 register_property(app)

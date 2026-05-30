@@ -22,8 +22,6 @@ def test_source_cli_commands(tmp_path: Path, capsys) -> None:
     assert "total" in payload
 
 
-
-
 def test_source_delta_json_output(tmp_path: Path, capsys) -> None:
     vault = tmp_path / "vault"
     init_vault(vault, demo=True)
@@ -49,6 +47,27 @@ def test_removed_legacy_build_command_is_invalid(tmp_path: Path, capsys) -> None
     init_vault(vault, demo=True)
 
     assert main(["build", "--vault", str(vault)]) == 2
+
+
+def test_removed_migration_commands_are_invalid(tmp_path: Path) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault, demo=True)
+
+    assert main(["source", "migrate-frontmatter", "--vault", str(vault)]) == 2
+    assert main(["config", "migrate", str(vault)]) == 2
+    assert (
+        main(
+            [
+                "migrate",
+                "logseq-to-obsidian",
+                "--from",
+                str(vault),
+                "--to",
+                str(vault / "other"),
+            ]
+        )
+        == 2
+    )
 
 
 def test_source_resolve_json_output(tmp_path: Path, capsys) -> None:

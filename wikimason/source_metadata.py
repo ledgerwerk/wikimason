@@ -44,23 +44,13 @@ SOURCE_REQUIRED_FIELDS = {
     "removed_at",
 }
 
-# Legacy fields that were split out in old schema
-_LEGACY_EXTRA_FIELDS = {
-    "sha256",
-    "source_title",
-    "author",
-    "reference",
-    "created",
-    "processed",
-}
-
 # ---------------------------------------------------------------------------
 # Field construction
 # ---------------------------------------------------------------------------
 
 WIKIMASON_KIND = "raw-source"
 WIKIMASON_VERSION = SOURCE_SCHEMA_VERSION
-ACCEPTED_WM_KINDS = {"raw-source", "wikimason_source"}
+ACCEPTED_WM_KINDS = {"raw-source"}
 
 
 def manifest_required_fields() -> set[str]:
@@ -124,22 +114,10 @@ def extract_wikimason_metadata(metadata: dict[str, object]) -> dict[str, object]
     return result if result else None
 
 
-def raw_source_fields(data: dict[str, object]) -> dict[str, object]:
-    """Extract legacy display fields from frontmatter (backward compat)."""
-    return {
-        "source_title": str(data.get("Title") or data.get("title") or ""),
-        "author": str(data.get("Author") or ""),
-        "reference": str(data.get("Reference") or ""),
-        "created": str(data.get("Created") or data.get("created") or ""),
-        "processed": bool(data.get("Processed", False)),
-    }
-
-
 # ---------------------------------------------------------------------------
 # Binary sidecar helpers
 # ---------------------------------------------------------------------------
 SIDECAR_SUFFIX = ".wikimason.json"
-LEGACY_SIDECAR_SUFFIX = ".wikimason.yml"
 
 
 def sidecar_path(source_path: Path) -> Path:
@@ -153,19 +131,8 @@ def is_binary_source(path: Path) -> bool:
 
 
 def read_sidecar(sidecar: Path) -> dict[str, object] | None:
-    """Read a JSON sidecar, falling back to legacy YAML."""
+    """Read a JSON sidecar."""
     if not sidecar.exists():
-        # Try legacy .yml sidecar
-        legacy = sidecar.with_name(
-            sidecar.name.replace(SIDECAR_SUFFIX, LEGACY_SIDECAR_SUFFIX)
-        )
-        if legacy.exists():
-            import yaml
-
-            with legacy.open(encoding="utf-8") as fh:
-                data = yaml.safe_load(fh)
-            if isinstance(data, dict):
-                return data
         return None
     with sidecar.open(encoding="utf-8") as fh:
         data = json.loads(fh.read())
