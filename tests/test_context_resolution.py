@@ -185,6 +185,41 @@ profile = "logseq"
     assert context.resolution == "default_env"
 
 
+def test_default_env_config_path_honors_home_for_ci_sandbox(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    assert default_env_config_path() == (tmp_path / ".config/wikimason/default.toml")
+
+
+def test_resolve_context_prefers_explicit_vault_over_default_env(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    env_root = tmp_path / "env-root"
+    env_root.mkdir()
+    vault_root = tmp_path / "vault"
+    vault_root.mkdir()
+    default_path = default_env_config_path()
+    default_path.parent.mkdir(parents=True, exist_ok=True)
+    default_path.write_text(
+        f"""config_version = 1
+
+[wiki]
+root = {json.dumps(str(env_root))}
+profile = "logseq"
+""",
+        encoding="utf-8",
+    )
+
+    context = resolve_context(cwd=tmp_path / "nowhere", vault=vault_root)
+
+    assert context.root == vault_root.resolve()
+    assert context.resolution == "built_in_defaults"
+
+
 def test_resolve_context_falls_back_to_legacy_registry(
     tmp_path: Path, monkeypatch
 ) -> None:

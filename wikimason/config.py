@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -117,12 +118,25 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
+def user_home() -> Path:
+    """Return the home directory used for WikiMason config discovery.
+
+    ``Path.home()`` ignores ``HOME`` on Windows, which makes tests and CI leak
+    state into the real runner profile.  Honor ``HOME`` first so callers can
+    sandbox config discovery portably, then fall back to the platform home.
+    """
+    home = os.environ.get("HOME")
+    if home:
+        return Path(home).expanduser()
+    return Path.home()
+
+
 def global_config_dir() -> Path:
-    return Path.home() / GLOBAL_CONFIG_DIRNAME
+    return user_home() / GLOBAL_CONFIG_DIRNAME
 
 
 def legacy_global_env_dir() -> Path:
-    return Path.home() / LEGACY_GLOBAL_ENV_DIRNAME
+    return user_home() / LEGACY_GLOBAL_ENV_DIRNAME
 
 
 def default_env_config_path() -> Path:
