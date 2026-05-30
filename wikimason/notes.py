@@ -244,7 +244,26 @@ def find_source_path_matches(vault: Path, value: str) -> list[Path]:
     if exact is not None:
         return [exact]
     wanted = path_match_key(normalized)
-    return [path for rel, path in index.items() if path_match_key(rel) == wanted]
+    matches = [path for rel, path in index.items() if path_match_key(rel) == wanted]
+    if matches:
+        return matches
+    # Fallback: direct file check and directory listing for platforms
+    # where Path.resolve() / rglob() may produce inconsistent paths.
+    direct = vault / normalized
+    if direct.is_file():
+        return [direct]
+    sources_dir = vault / "Raw/Sources"
+    if sources_dir.is_dir():
+        for f in sorted(sources_dir.iterdir()):
+            if not f.is_file() or f.suffix != ".md":
+                continue
+            try:
+                rel = f.relative_to(vault).as_posix()
+            except ValueError:
+                continue
+            if path_match_key(rel) == wanted:
+                matches.append(f)
+    return matches
 
 
 def suggest_source_paths(vault: Path, value: str, limit: int = 3) -> list[str]:

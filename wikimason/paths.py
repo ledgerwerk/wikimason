@@ -101,7 +101,10 @@ def ensure_inside_vault(vault: Path, path: Path) -> Path:
 
 
 def rel_to_vault(vault: Path, path: Path) -> str:
-    return path.resolve().relative_to(vault.resolve()).as_posix()
+    try:
+        return path.relative_to(vault).as_posix()
+    except ValueError:
+        return path.resolve().relative_to(vault.resolve()).as_posix()
 
 
 def resolve_path_in_vault(vault: Path, rel: str) -> Path:
