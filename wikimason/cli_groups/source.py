@@ -92,7 +92,6 @@ def _resolve_source_query(
     query: str,
     first: bool,
     fmt: str,
-    _sr: _source_result,  # noqa: ARG001
 ) -> str | None:
     """Resolve query to a relative vault path, or emit error and return None."""
     from ..source_scan import source_resolve_report as _resolve_report
@@ -100,13 +99,14 @@ def _resolve_source_query(
     exact = vault / query
     if exact.exists() and exact.is_file():
         return rel_to_vault(vault, exact)
+
     report = _resolve_report(vault, query, limit=5)
     matches = report.get("matches", [])
     exact_matches = [m for m in matches if m.get("match") == "exact"]
     if len(exact_matches) == 1:
         return str(exact_matches[0]["path"])
-    if len(matches) == 1 or first:
-        return matches[0]["path"]
+    if matches and (len(matches) == 1 or first):
+        return str(matches[0]["path"])
     if len(matches) > 1:
         _exit_emit(
             _source_result(
@@ -126,7 +126,6 @@ def _resolve_source_query(
             fmt,
             exit_code=1,
         )
-        return None
     return resolve_source_path(vault, query)
 
 
@@ -365,7 +364,7 @@ def register_source(app: typer.Typer) -> None:
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
-        resolved_rel = _resolve_source_query(vault, query, first, fmt, _source_result)
+        resolved_rel = _resolve_source_query(vault, query, first, fmt)
         if resolved_rel is None:
             return
         full_path = vault / resolved_rel

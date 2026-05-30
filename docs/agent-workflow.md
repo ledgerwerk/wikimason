@@ -1,10 +1,10 @@
 # Agent Workflow
 
-Use canonical top-level WikiMason commands for wiki workflows. The product is filesystem-backed and does not expose a runtime bridge or command namespace.
+Use canonical top-level WikiMason commands for wiki workflows. The product is filesystem-backed and does not expose a runtime bridge or a `wikimason obsidian` command namespace.
 
 ## First-run workflow
 
-1. `wikimason vault doctor --format json`
+1. `wikimason doctor --format json`
 2. `wikimason source scan --update --format json`
 3. `wikimason source delta --format json`
 4. `wikimason ingest status --format json`
