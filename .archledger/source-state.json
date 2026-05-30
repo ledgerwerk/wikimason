@@ -1,0 +1,481 @@
+{
+  "created_at": "2026-05-30T10:11:00Z",
+  "directories": {
+    ".": {
+      "file_count": 135,
+      "sha256": "1872e508bae26edd8e8952682b8fb9ac983e5e80b9aaaa6a4c7dd21610583c90"
+    },
+    ".github": {
+      "file_count": 4,
+      "sha256": "0119ea651c188d1072b11f7f841887798c4af35b6b7cb32e9dd79472f7f7f40f"
+    },
+    ".github/workflows": {
+      "file_count": 4,
+      "sha256": "57ace192497869227fb3aef2e1fe8d7cf0b56532cc1affe796b56e8a12f41161"
+    },
+    "docs": {
+      "file_count": 13,
+      "sha256": "ccc4af0ca8d88f3ddd89e62e3592355b3e5af38173ae3650d8f8ca946bff0ac5"
+    },
+    "skills": {
+      "file_count": 1,
+      "sha256": "d67bae72f417caaa1dc0f9f9d9448fc26def80aa06d3c7a14f5c41b3a3594a97"
+    },
+    "skills/wikimason": {
+      "file_count": 1,
+      "sha256": "cc976ac8317a047d308734f9aa825373236f83e08cc240f1103bdbe9b9652574"
+    },
+    "tests": {
+      "file_count": 27,
+      "sha256": "13c22599c17a5bbeada9e5b4e6937db2a282edba6a82e93d9fb807fcea786e32"
+    },
+    "wikimason": {
+      "file_count": 81,
+      "sha256": "6ad5bcd03f40abcc37ad3ae3ed32d889014a55b7285861fbf03adf892eb6bf7c"
+    },
+    "wikimason/cli_groups": {
+      "file_count": 22,
+      "sha256": "071336c61f0f3e907cde1b710f485f8a4e3196fc6593823a82fba2cb5828faa0"
+    }
+  },
+  "files": {
+    ".archledger.toml": {
+      "sha256": "1b245075b73f3b41033e658d87e62a1c7cae688a6f8be6ed2b31596f6013ddfb"
+    },
+    ".codecrate.toml": {
+      "sha256": "909e0c9b6bc5b8a59513d1f397720d8966349ceced469b06d93058caf96f92e5"
+    },
+    ".github/workflows/codecov.yml": {
+      "sha256": "38f978fafd266e8c0ede289c983c4ed9dd443846f5c7c73b3e4007bec90c4915"
+    },
+    ".github/workflows/pre-commit.yml": {
+      "sha256": "58d92d74ca5f6b04a2e3acc3030e14d81d3aec1100570ce0e5bf80cac4042d11"
+    },
+    ".github/workflows/python-publish.yml": {
+      "sha256": "2a9e59c962656ff18116500344a5d783d258c66abe899fe528726736076320ac"
+    },
+    ".github/workflows/tests.yml": {
+      "sha256": "13a9661952305332f38a16bcddf8f1338e7d4fcf533c07d4cec27ccead52af96"
+    },
+    ".pre-commit-config.yaml": {
+      "sha256": "f62c5fe9146a9e7f992c5af12f5f02010bc1896d9a5426c02d6829547b016dc9"
+    },
+    ".readthedocs.yaml": {
+      "sha256": "da28d5b8d562fdb135b048a945b344a2a99ad9132754dc0aa5e3125f04c09e71"
+    },
+    ".ruff.toml": {
+      "sha256": "faf8c4af3a338696328b20e603c1a64f24a6a6e1c2fe68ef5c71d805c25d3820"
+    },
+    ".taskledger.toml": {
+      "sha256": "2185d7dbe18160053b9075bb1d260273bfcc4177f158480bebe46b4ca74340cd"
+    },
+    "README.md": {
+      "sha256": "890a24b0e04166caf16c9e71509d1757dee7bef59ce09a81e978557639b095a3"
+    },
+    "docs/agent-workflow.md": {
+      "sha256": "660d85bc6d580c1bca71e1ed8b0b4667a4fe60feec7c3fb5f19e5d33d26ad2a6"
+    },
+    "docs/agent-workflow.rst": {
+      "sha256": "fcd67521ed0e73829b6572f2b0c605bc664354c2d508633deab4343906e29a15"
+    },
+    "docs/architecture.rst": {
+      "sha256": "fc1b443e1cf6463f835f1278a296880a92f5f02763e6b14ada6611e65bf1bb53"
+    },
+    "docs/command-reference.md": {
+      "sha256": "77916c83b1e35ae7af2b60f48e7b589e1509042ac7b07f6cdacc99c34eb4d403"
+    },
+    "docs/command-reference.rst": {
+      "sha256": "2c11830825ebcf1d86b80fc60f42b56e0f35a2ccfc6cc538fcb0fd23039dc0b4"
+    },
+    "docs/commands.rst": {
+      "sha256": "65650ac7e643043197e41e579e75766574567d994db3713cf4b6d3b22adaf305"
+    },
+    "docs/conf.py": {
+      "sha256": "45782a00d075f5a51dfb2d9311c7696d729b75edb47711cbf14fed673b951720"
+    },
+    "docs/config.rst": {
+      "sha256": "53f69819f91447cd9775ee0cc0528397157503f2f0cc31fc064197691e8f9fc9"
+    },
+    "docs/index.rst": {
+      "sha256": "9f74c73f7d76b079ce2b684d7a488dd95ca153ad69b0033dd9ecf7d355b7ff1e"
+    },
+    "docs/logseq.rst": {
+      "sha256": "24f33ab70231fcf06badeb7aa65e58d93d9710a42dc259761d6cf853a85e0f9d"
+    },
+    "docs/migration.rst": {
+      "sha256": "529a59e5fed538609a222ae9673da0e70c66ba2771581cfba7f38071c7b1edc9"
+    },
+    "docs/profiles.rst": {
+      "sha256": "2b654be0a095234a87d46ced66c7a336a59fcfbcdae8244d07f8ec7c2db14ab7"
+    },
+    "docs/raw-sources.rst": {
+      "sha256": "8a971bcb65d5514ec93a5527484ea71acde27cf61dda9f0b52619484ff7354f8"
+    },
+    "pyproject.toml": {
+      "sha256": "546b8207c21a46426cb7a614b2d7bd51f2984bb444377cb69f825885756404d0"
+    },
+    "setup.py": {
+      "sha256": "a56677de77b536aa1b2c20b526f4b341bbe73d43b4f3445ae5345196c2d0b3bf"
+    },
+    "skills/wikimason/SKILL.md": {
+      "sha256": "58d78f8b9d6a5abed47d564398425a13f137613f6e44cb5a35246ea54b184ab1"
+    },
+    "tests/conftest.py": {
+      "sha256": "163e7e2666124bf7bcea03f0d5288fd98aab57971e53c6e49b387565e7fb15c8"
+    },
+    "tests/test_agents_compile.py": {
+      "sha256": "a34ae0ac39f1d0d5f044f848d9eeae49e95ec6807ce81b96829c7324760701bc"
+    },
+    "tests/test_build_indexes.py": {
+      "sha256": "6e5248313d694bc2669a60c11e147f62059d2723e735437b4c986939a5ca9ec3"
+    },
+    "tests/test_canonical_file_ops.py": {
+      "sha256": "cfb56e027bde8c2d4213b3ad745238ee40e934b0c2bc18f965a6baadce90bb9a"
+    },
+    "tests/test_cli.py": {
+      "sha256": "e41e6f4aa907eb454d3527d5fb88c451a99cf3a0249888b5acb40df379ddf040"
+    },
+    "tests/test_cli_groups_no_raw_print.py": {
+      "sha256": "56a8562b304e5bd609a3782280bfe19fa8310a4632c9d84ff41ef8739388e837"
+    },
+    "tests/test_command_surface_no_bridge.py": {
+      "sha256": "9987af701901ac4d3fe176ed1d2ab82ea2876436a600dd35179daf4d7a6efcb5"
+    },
+    "tests/test_context_resolution.py": {
+      "sha256": "3cd874eaf57f2158c32401da89142afb02b433e02654bca3bffe4e3cd52883c1"
+    },
+    "tests/test_files_behavior.py": {
+      "sha256": "16dffcd67c34cd8a336b3b1c9118c4dfaff729d3071ad763138c5ca4b1f8b30d"
+    },
+    "tests/test_link_format.py": {
+      "sha256": "22fee939acd2d9484f472db4b036cd7e6f2d938f777ef1b7ed5847b1ef320cce"
+    },
+    "tests/test_links_search_backends.py": {
+      "sha256": "6ee100368d174d5c7aecf52c3603d88c7dc908f16d56053042dc39db1241822a"
+    },
+    "tests/test_lint_starter_contract.py": {
+      "sha256": "76f20365dfa72655b47a832733cd9835cb337b464e1609e08af4cbe3db650622"
+    },
+    "tests/test_note_links_ingest.py": {
+      "sha256": "14708e006d8b20e03ad3e178358fadea18dca127df0bdb87362a41696c0ddd5a"
+    },
+    "tests/test_page_profiles.py": {
+      "sha256": "140e8a2502c79e1567acc6b497eb83e212bf402d5f4e5f988f3f1bd3a4975f85"
+    },
+    "tests/test_path_names.py": {
+      "sha256": "9b3023be8740ff0eb52806ce98f6240c2c55403e38ae9e6a88bd6da59af28841"
+    },
+    "tests/test_refactor.py": {
+      "sha256": "0ab7ff812b4c99ec73e2501f52fef769107df327a278ee320e4f2304d72a23fb"
+    },
+    "tests/test_review_audit_files.py": {
+      "sha256": "3db56ee37a1e6b1bf5700f9056efbf1991e840dec1735d740a643b2371c5aed5"
+    },
+    "tests/test_scaffold.py": {
+      "sha256": "5f59b70b1b02fc6edab81592c87a14f22fef756bd96e5758354293cc652c9022"
+    },
+    "tests/test_schema_behavior.py": {
+      "sha256": "3d0c258601f50f98d45b8a283908374dcf1ea10e7f53a06c873de5fc1b8350fe"
+    },
+    "tests/test_skills.py": {
+      "sha256": "7d56c8b99e1d8931b9664e4e1fe75b0a73fa210d8834cc42f8bc27b06a5cddb4"
+    },
+    "tests/test_source_cli.py": {
+      "sha256": "28465c6a8b03d7ea146dcdb0b8a94688e72fd5cebc5efde406179be9d1fca144"
+    },
+    "tests/test_source_lifecycle_characterization.py": {
+      "sha256": "cc5f3bdd54c6a8bd1be8950ad3bd81630479a229a11f6c8e83c933f10e18b50a"
+    },
+    "tests/test_source_manifest.py": {
+      "sha256": "a38048ab6d5f4b830084a371b13ef868ef21e3dad32fa51da155ad32ecc978ff"
+    },
+    "tests/test_templates_starter_style.py": {
+      "sha256": "cb435b80ae4cb637ebc559f1c072366e19605f4e117dbb0e377f2eea30baf170"
+    },
+    "tests/test_test_helper_guards.py": {
+      "sha256": "a393c3294e53948d2f4add301f545ea8a8d6c751d51bf7c637452db2f9a95e53"
+    },
+    "tests/test_toml_tools.py": {
+      "sha256": "3fc54e50907129d511df5a470da3cca99074ed1ed9579426875fcdc25877b2ab"
+    },
+    "tests/test_workflow.py": {
+      "sha256": "f2d611c99c4019b4ff683b02250b599433c4be47d311c561579225327aa3a92c"
+    },
+    "wikimason/__init__.py": {
+      "sha256": "e2dfdcaf386b2ee9befa8ca8c14331b63053cd4b56a7ba114c5db67b012f246e"
+    },
+    "wikimason/__main__.py": {
+      "sha256": "307299fda7b77d22c64cb51430ec75e5f59d78e9c948786afb3b2544fe45e4b7"
+    },
+    "wikimason/agents.py": {
+      "sha256": "5c5ee2df64880207c53877df013634920522707900a8537bd92a0bb91acce32a"
+    },
+    "wikimason/audit.py": {
+      "sha256": "c989b8b0c577d28259c25794b231583ab10a9a9aad1a644102c97b752cdf0216"
+    },
+    "wikimason/build.py": {
+      "sha256": "80d409a3dfebe74a6f535957eb0a09370b71a595ccc6674c0fd441fcd4fe3c0d"
+    },
+    "wikimason/catalog.py": {
+      "sha256": "13eb03a7943dc50782d271221dc7300a75c3101b6fe8fa8ec93500d884f3847f"
+    },
+    "wikimason/cli.py": {
+      "sha256": "80ced4decbbaafef89c080a56e7eb642868734d3da4d9f0510c89a4db8c3cd7d"
+    },
+    "wikimason/cli_app.py": {
+      "sha256": "a1a6ff88229c25769162bd79e272b011c863c7b710d138aecbf3c48d773c860f"
+    },
+    "wikimason/cli_groups/__init__.py": {
+      "sha256": "00b4bbf7020fc912dec5e4e8e5724449dde2694fb1a9e32ed0a3b9ebc098aa74"
+    },
+    "wikimason/cli_groups/agents.py": {
+      "sha256": "0a76a22f51fea97561cacefcfa538715a357783c88cec3bcc6340d079d3d5433"
+    },
+    "wikimason/cli_groups/catalog.py": {
+      "sha256": "53574696b2d5dcdc911fefae502994c97a1cb9eed7773e4b78d819f8689b8c85"
+    },
+    "wikimason/cli_groups/config.py": {
+      "sha256": "cbc2ae12634a13c1176739637fb9a52dc214a69207b996192ff13bcc761c04e3"
+    },
+    "wikimason/cli_groups/daily.py": {
+      "sha256": "aa5c3f895a3643dc0e1ff97b1fa7de7945941df8d3512cf8e409626ebcf8aac0"
+    },
+    "wikimason/cli_groups/file.py": {
+      "sha256": "c617519f6da26fbd3ff38f3ac82d98ee50cd9696c74c300906c3e40008acb001"
+    },
+    "wikimason/cli_groups/folder.py": {
+      "sha256": "4f4f87e123f47286483fdae5ebb3620f05ce829bd2c4bc4ac88c86582f54d877"
+    },
+    "wikimason/cli_groups/index.py": {
+      "sha256": "bc5cecd1c27193d41b683088d8a12aca3870f0e01148459642da15e45779dffc"
+    },
+    "wikimason/cli_groups/ingest.py": {
+      "sha256": "25a15288167d895e9b87a55a7b843dfe5875064051a360a4b6a3459259c4e576"
+    },
+    "wikimason/cli_groups/links.py": {
+      "sha256": "25805eba04bd8ad43ebb4e55276e5cb39a234d3c43d6766a1c3ad78ae7221e6f"
+    },
+    "wikimason/cli_groups/note.py": {
+      "sha256": "2ae22840dad4c8575be1a0101795fe223f23fec88924f8aca37241a3f4039581"
+    },
+    "wikimason/cli_groups/page.py": {
+      "sha256": "87b7e3e17024dc6b770fe8077e9b68e66a44409ff4443cbfb3dc8d51a2978d3a"
+    },
+    "wikimason/cli_groups/property.py": {
+      "sha256": "c489f76d51b67f89166cfc9764bd6821894ff82c6bcb56d5140da3ef4de82165"
+    },
+    "wikimason/cli_groups/review.py": {
+      "sha256": "e911d1b91ef6a663cf2b47c8ed07736804732ebf002d0ce4863039907c0e41d6"
+    },
+    "wikimason/cli_groups/root.py": {
+      "sha256": "f402004314e7540c190cb814da82c4ccf0bd7a320d84d53528942534ed92d084"
+    },
+    "wikimason/cli_groups/skill.py": {
+      "sha256": "36ef9efae588e16953a5310bdc2ed074c83c3dff48796d750ac949f7a56a0b80"
+    },
+    "wikimason/cli_groups/source.py": {
+      "sha256": "9b5b4e69706452fdb10c9fe89b78540697a533dc2873e30bf849de66923e9866"
+    },
+    "wikimason/cli_groups/tag.py": {
+      "sha256": "76102115f12592c2637edd03e5015f7b041154a36bd44597d21a81bc605b86f2"
+    },
+    "wikimason/cli_groups/task.py": {
+      "sha256": "d71f81e5799f68557f9fd7ef4c0955f9f73978a13a8b4411ff99ed8dc84810f0"
+    },
+    "wikimason/cli_groups/template.py": {
+      "sha256": "20d1a7cbf0efbc697e6025322e51a95d0fa2fc62f25183f0be46de6606ae31a2"
+    },
+    "wikimason/cli_groups/text.py": {
+      "sha256": "1191b92db0dcfcc5a2e681421862d0046b7c670e14ded67503bfa47cdf1d711e"
+    },
+    "wikimason/cli_groups/vault.py": {
+      "sha256": "93011c923ee03d0bc9b048eb46c905664081ddef7688e4debf6464b507a5ef2a"
+    },
+    "wikimason/cli_helpers.py": {
+      "sha256": "87ec8cd153be563efdc738a106404135d800c58d41813a0d15d7817af507f4d9"
+    },
+    "wikimason/cli_output.py": {
+      "sha256": "09ad1ec453daf934c5f4030650faf74fe173b669b0b909e0b0b4c0c248b817ff"
+    },
+    "wikimason/cli_state.py": {
+      "sha256": "fc2fd22539b82e0333af64ef1095c602d0f49cfcb535f2acbd394b893ba2a0de"
+    },
+    "wikimason/cli_suggestions.py": {
+      "sha256": "ef08a9eb079cc361afb1694ec8c2b7290354538eda1ee7493b2f36ae12617a7d"
+    },
+    "wikimason/clipboard.py": {
+      "sha256": "2318c5f78859b4be690728eb849a66a3fea7df61e39bf306497495b87037e631"
+    },
+    "wikimason/command_registry.py": {
+      "sha256": "ffc68961b1384786c4cb44b09f34536070308e68f26732ff5d0135422a20eed6"
+    },
+    "wikimason/command_specs.py": {
+      "sha256": "98561db326778c19c6237c283e6d060ce985d655952237791a32bbe3cdc25809"
+    },
+    "wikimason/commands.py": {
+      "sha256": "6acace7217c552cf59baec0dc482632607bb3e52999a2dcad5329428a2720d41"
+    },
+    "wikimason/config.py": {
+      "sha256": "0c46c8047d48aae7cc5fde6889ddbc0b9534b447fd5607bc23923e2aab34485d"
+    },
+    "wikimason/constants.py": {
+      "sha256": "be68b6449ebf9b92c1dd881e75e51fc495c400e72628dc19368b07aec68db6f9"
+    },
+    "wikimason/context.py": {
+      "sha256": "e3e5973e436e957b41bd1978ebd652bb77ceeefe5372eadb9c89144f5438a6d6"
+    },
+    "wikimason/coverage.py": {
+      "sha256": "f4013038d44b2dace763413ebdec446896ebd8789e1f51988b299cb941e56cd2"
+    },
+    "wikimason/daily.py": {
+      "sha256": "d72adc456e99184461407de7daf85f65d0b3c9ee6fc2fd9fa0f9893a9df9e683"
+    },
+    "wikimason/errors.py": {
+      "sha256": "6ccdc7bf08e48b84cd54b931f73f13abe639398e3b5e95604abb74c8cfab134e"
+    },
+    "wikimason/files.py": {
+      "sha256": "4ac283596eb4cc681912f3f788b0edd5d39ac7239ee55714697a75349f62e6a8"
+    },
+    "wikimason/frontmatter.py": {
+      "sha256": "92b2ecbc9fcab24e5530645ac60484f76d3496a1c6f74b05ab31fc60145e0a04"
+    },
+    "wikimason/git_hooks.py": {
+      "sha256": "e94476fffd9280d1c3c5889dc999d3860c311f4871c6cf7884808a1925348bb6"
+    },
+    "wikimason/ingest.py": {
+      "sha256": "af4b25d04219197525cd959ebdf9f22f7dc5fc0e336d7fb2395c40c94def125c"
+    },
+    "wikimason/link_format.py": {
+      "sha256": "019e9ba750bb5d5aef1439fac6d413cf657a698165b1be0e845f2b9a72a49bf1"
+    },
+    "wikimason/links.py": {
+      "sha256": "987ffcee16a38aef7d72166d162562ce9651d1736751aa75e91044d9d0340c54"
+    },
+    "wikimason/lint.py": {
+      "sha256": "08000da5db629de8ad0526dcc3b500c8bfd5ab53ffe5068e4b545591a9d97ffc"
+    },
+    "wikimason/lint_credentials.py": {
+      "sha256": "2bfa7ddb362a5f96805f6ee82b607eafcb2f2431cfda9ff05f7346c291a4f606"
+    },
+    "wikimason/lint_links.py": {
+      "sha256": "6c984dae49852ace2f5c25f239c424b596ae25d346d7ac0abea943046905fa69"
+    },
+    "wikimason/lint_rules.py": {
+      "sha256": "61934bf5555ebc8146e8edd1c1901f1db4854bcffcc23109771f6b76a2667511"
+    },
+    "wikimason/logs.py": {
+      "sha256": "80c430a9359f193150d1c259b9008797340391662937a30459b193cd57b67266"
+    },
+    "wikimason/notes.py": {
+      "sha256": "dc2542a8e54569464caba788350f720cb760b0d1ad1e94084537c04d3acfaf9c"
+    },
+    "wikimason/page_profiles.py": {
+      "sha256": "5754148d23533a910f18ddc9140456860e38ba0bfdb0c4f7b14106c7d5ab7f3e"
+    },
+    "wikimason/paths.py": {
+      "sha256": "0b11ef210ebd8e18b5418ea48af79a353ceba78b657e0c9167309f4f3047d602"
+    },
+    "wikimason/profiles.py": {
+      "sha256": "67020f2ed5124d4bc65afde9a684074c9137b283285cf670cf9fe663dd08b780"
+    },
+    "wikimason/properties.py": {
+      "sha256": "876cabd21af2d8ae14af71ded12854305c9428e8a555e6c65703653ad86630ab"
+    },
+    "wikimason/review.py": {
+      "sha256": "7a2f243814bec5291c44ad1dc69f0deee3952b81a9a9a6148f815ba5e08905a4"
+    },
+    "wikimason/scaffold.py": {
+      "sha256": "603288a72c4a479bcf982f1e84aa28397a09082c0c3cfc5a3390cdf3bfcec18c"
+    },
+    "wikimason/schema.py": {
+      "sha256": "aa2bed11509c4526b3011cf953bc526dc561c9e5bf4086129b47c20a92528f2d"
+    },
+    "wikimason/search.py": {
+      "sha256": "4da0ac97e7f7d4fa457aef5a8cf8e2ee68272cf29031f7666ddc73b0fbf7cbbc"
+    },
+    "wikimason/search_backends.py": {
+      "sha256": "72b2aa0c8129a773637ef6dd11eb080f7534b3fbe5e85bb80b7c53dc5972765b"
+    },
+    "wikimason/search_index.py": {
+      "sha256": "2987230841dccb148dba373381f47057dc2073692f78e9cb555d47a219d8b9ea"
+    },
+    "wikimason/skills.py": {
+      "sha256": "ce3263c2a3439e7a86598a473b65c05af5080c643a952867ba2c26ebc497da25"
+    },
+    "wikimason/source_delta.py": {
+      "sha256": "fa8386e0b3ef801b751050b40abf74b9e81c395acfac7280299a0134991eb29f"
+    },
+    "wikimason/source_manifest.py": {
+      "sha256": "00f05f764af70b420adec8de54565e5e63e1eb15b25192a4b76935d07d24b3ca"
+    },
+    "wikimason/source_metadata.py": {
+      "sha256": "18b2bc434f291c21ed9c1de6ec0acd6b12983eed04fc3b3d251df3509729a502"
+    },
+    "wikimason/source_scan.py": {
+      "sha256": "ab9a2d63e5a69ef5ff21a6c958af3a5eb3ecc5b21408dd3101d4197ba4b6ba2f"
+    },
+    "wikimason/source_verify.py": {
+      "sha256": "4b6257d2f73fd3418963d3d060522c01ea6dbef54b2bac400dcc7ca489aea8be"
+    },
+    "wikimason/sources.py": {
+      "sha256": "055b0f52d9be35d53473bf31080c600cd8656c9f1f32456db777e460423e6b84"
+    },
+    "wikimason/tasks.py": {
+      "sha256": "e7fba0fdf6f886fd2346eba387eb6177b71128bc55911640de87df2de721ae7b"
+    },
+    "wikimason/templates.py": {
+      "sha256": "0f49d70af660da14d50e168ed094fa1ea81734c575236175e123e797c9b5a1ea"
+    },
+    "wikimason/text.py": {
+      "sha256": "7fdf0e34159bc0a613facc5a2f325a8b51330519ba28f1c3214ea8c8c4562547"
+    },
+    "wikimason/text_tools.py": {
+      "sha256": "a21ed65c3e7ec51dafce33993cfa7e296cbed6b0278a27bd20925bf32644eecd"
+    },
+    "wikimason/toml_tools.py": {
+      "sha256": "80947da0fe3a61c25d1d4077d09b7b5208b3a54a07e6109c583416d6524e8ab6"
+    },
+    "wikimason/tool_profiles.py": {
+      "sha256": "a2dd5afabd2b399f31666dbd01fbc2e38a406390dfdb5143f5bd4dabaf2e1485"
+    },
+    "wikimason/vault_registry.py": {
+      "sha256": "8acdc7d066a8fe74a681c4b301f21ccc817d5d5cc47ca65e7fbc55d0860526ca"
+    },
+    "wikimason/wikilinks.py": {
+      "sha256": "9fdab5f4d127490d8fc08756df66fb3dac37e38a108000980e84cd42ebd00909"
+    }
+  },
+  "project_name": "wikimason",
+  "project_uuid": "11579965-fd8e-4cdd-afe7-e064f02db62a",
+  "reason": "after-archledger-update",
+  "scanner": {
+    "exclude": [
+      ".git/**",
+      ".venv/**",
+      "**/__pycache__/**",
+      ".mypy_cache/**",
+      ".pytest_cache/**",
+      ".ruff_cache/**",
+      "dist/**",
+      "build/**"
+    ],
+    "hash_algorithm": "sha256",
+    "hash_content": "utf8-surrogateescape-lf-normalized",
+    "include": [
+      "**/*.py",
+      "**/*.toml",
+      "**/*.md",
+      "**/*.adoc",
+      "**/*.rst",
+      "**/*.j2",
+      "**/*.yaml",
+      "**/*.yml",
+      "**/*.json"
+    ],
+    "max_file_bytes": 1000000,
+    "mode": "auto",
+    "used": "git"
+  },
+  "schema": "archledger.source-state.v2",
+  "updated_at": "2026-05-30T10:11:00Z"
+}
