@@ -4,8 +4,6 @@ from pathlib import Path
 
 ALLOWED_RAW_PRINT_GROUPS = {
     "wikimason/cli_groups/root.py",
-    "wikimason/cli_groups/skill.py",
-    "wikimason/cli_groups/vault.py",
 }
 
 

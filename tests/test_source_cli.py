@@ -15,11 +15,11 @@ def test_source_cli_commands(tmp_path: Path, capsys) -> None:
         == 0
     )
     assert main(["source", "lint", "--vault", str(vault)]) == 0
-    assert main(["source", "delta", "--vault", str(vault)]) in {0, 2}
+    assert main(["source", "delta", "--vault", str(vault)]) == 0
     assert main(["source", "coverage", "--vault", str(vault), "--format", "json"]) == 0
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
-    assert "covered" in payload
-    assert "total" in payload
+    assert "covered" in payload["data"]
+    assert "total" in payload["data"]
 
 
 def test_source_delta_json_output(tmp_path: Path, capsys) -> None:
@@ -27,10 +27,10 @@ def test_source_delta_json_output(tmp_path: Path, capsys) -> None:
     init_vault(vault, demo=True)
     main(["source", "scan", "--vault", str(vault), "--update", "--accept-covered"])
     code = main(["source", "delta", "--vault", str(vault), "--format", "json"])
-    assert code in {0, 2}
+    assert code == 0
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
-    assert "delta" in payload
-    assert "actionable_count" in payload
+    assert "delta" in payload["data"]
+    assert "actionable_count" in payload["data"]
 
 
 def test_removed_legacy_source_commands_are_invalid(tmp_path: Path, capsys) -> None:
@@ -96,8 +96,9 @@ def test_source_resolve_json_output(tmp_path: Path, capsys) -> None:
     )
 
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
-    assert payload["matches"][0]["path"] == f"Raw/Sources/{name}"
-    assert payload["matches"][0]["match"] in {"exact", "substring", "fuzzy"}
+    data = payload["data"]
+    assert data["matches"][0]["path"] == f"Raw/Sources/{name}"
+    assert data["matches"][0]["match"] in {"exact", "substring", "fuzzy"}
 
 
 def test_source_read_resolves_typographic_path(tmp_path: Path, capsys) -> None:
@@ -125,18 +126,63 @@ def test_source_read_resolves_typographic_path(tmp_path: Path, capsys) -> None:
     )
 
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
-    assert payload["path"] == source_rel
-    assert payload["content"]
+    data = payload["data"]
+    assert data["path"] == source_rel
+    assert data["content"]
 
 
-def test_source_delta_exit_2_has_exit_reason(tmp_path: Path, capsys) -> None:
+def test_source_read_returns_ambiguous_without_first(tmp_path: Path, capsys) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    (vault / "Raw/Sources/semantic-contracts.md").write_text("# A", encoding="utf-8")
+    (vault / "Raw/Sources/semantic-contracts-v2.md").write_text(
+        "# B", encoding="utf-8"
+    )
+
+    code = main(
+        [
+            "source",
+            "read",
+            "semantic contracts",
+            "--vault",
+            str(vault),
+            "--format",
+            "json",
+        ]
+    )
+    assert code == 1
+    payload = json.loads(capsys.readouterr().out.splitlines()[-1])
+    assert payload["status"] == "ambiguous"
+    assert payload["data"]["matches"]
+
+
+def test_source_delta_report_mode_exits_zero_when_actionable(
+    tmp_path: Path, capsys
+) -> None:
     vault = tmp_path / "vault"
     init_vault(vault)
     (vault / "Raw/Sources/new.md").write_text("# New", encoding="utf-8")
 
     code = main(["source", "delta", "--vault", str(vault), "--format", "json"])
+    assert code == 0
+
+    payload = json.loads(capsys.readouterr().out.splitlines()[-1])
+    assert payload["status"] == "actionable"
+    assert payload["data"]["actionable_count"] > 0
+
+
+def test_source_delta_check_mode_exits_two_when_actionable(
+    tmp_path: Path, capsys
+) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    (vault / "Raw/Sources/new.md").write_text("# New", encoding="utf-8")
+
+    code = main(
+        ["source", "delta", "--check", "--vault", str(vault), "--format", "json"]
+    )
     assert code == 2
 
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
-    assert payload["actionable_count"] > 0
-    assert payload["exit_reason"] == "actionable_source_work"
+    assert payload["status"] == "actionable"
+    assert payload["data"]["actionable_count"] > 0

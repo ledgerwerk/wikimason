@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from wikimason.commands import (
+    render_command_reference_markdown,
     render_skill_markdown,
 )
 from wikimason.skills import skill_install
@@ -21,6 +22,13 @@ def test_skill_matches_generated_runbook() -> None:
     assert skill_text == render_skill_markdown()
     assert "workflow: wiki-management" in skill_text
     assert "wikimason source delta" in skill_text
+    assert "wikimason source read" in skill_text
+    assert "wikimason source coverage" in skill_text
+    assert "wikimason source lint" in skill_text
+    assert "wikimason page update" in skill_text
+    assert "wikimason note validate" in skill_text
+    assert "wikimason note normalize" in skill_text
+    assert "wikimason agents check" in skill_text
     assert "wikimason ingest finish" in skill_text
     assert "wikimason obsidian" not in skill_text
     assert "scripts/wiki_tool.py" in skill_text
@@ -39,3 +47,17 @@ def test_command_reference_includes_catalog_search() -> None:
     text = render_command_reference_markdown()
     assert "catalog search" in text
     assert "QUERY|--query QUERY" in text
+
+
+def test_command_reference_includes_public_workflow_commands() -> None:
+    text = render_command_reference_markdown()
+    for phrase in [
+        "wikimason init",
+        "source scan",
+        "source delta",
+        "ingest plan",
+        "ingest finish",
+        "note new",
+        "page update",
+    ]:
+        assert phrase in text

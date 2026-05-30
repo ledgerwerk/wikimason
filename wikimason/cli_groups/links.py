@@ -5,7 +5,7 @@ from __future__ import annotations
 import typer
 
 from ..cli_helpers import _run_row_command, _vault_from_ctx
-from ..cli_output import emit
+from ..cli_output import emit, result_payload
 from ..files import resolve_existing_path
 from ..links import (
     backlinks,
@@ -45,10 +45,16 @@ def register_links(app: typer.Typer) -> None:
     ) -> None:
         vault = _vault_from_ctx(ctx)
         findings = check_links(vault)
-        payload = render_link_findings_json(findings)
+        raw = {"findings": render_link_findings_json(findings)}
         text = "\n".join(
             f"{finding.path}:{finding.line}: unresolved {finding.link}"
             for finding in findings
+        )
+        payload = result_payload(
+            command="links.check",
+            status="clean" if not findings else "invalid",
+            data=raw,
+            exit_code=1 if findings else 0,
         )
         raise typer.Exit(
             emit(payload, text or "links clean", fmt, exit_code=1 if findings else 0)

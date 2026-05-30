@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import typer
@@ -36,11 +35,18 @@ def register_vault(app: typer.Typer) -> None:
         profile: str = typer.Option("markdown", "--profile", "--tool", help="Profile."),
         demo: bool = typer.Option(False, "--demo", help="With demo content."),
         env: str | None = typer.Option(None, "--env", help="Named env."),
+        fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         target = path or Path.cwd().resolve()
         init_vault(target, demo=demo, profile=canonical_profile_name(profile), env=env)
-        print(f"initialized {target}")
-        raise typer.Exit(0)
+        payload = {
+            "path": str(target),
+            "profile": canonical_profile_name(profile),
+            "config_path": str(target / "wikimason.toml"),
+            "env": env,
+            "demo": demo,
+        }
+        raise typer.Exit(emit(payload, f"initialized {target}", fmt))
 
     @_vault_app.command("list")
     def vault_list_cmd(
@@ -86,19 +92,12 @@ def register_vault(app: typer.Typer) -> None:
     ) -> None:
         vault = _vault_from_ctx(ctx)
         result = build_vault(vault)
-        if fmt == "json":
-            print(
-                json.dumps(
-                    {
-                        "updated_source_count": result.updated_source_count,
-                        "catalog_count": result.catalog_count,
-                    },
-                    sort_keys=True,
-                )
-            )
-        else:
-            print(f"updated_source_count={result.updated_source_count}")
-        raise typer.Exit(0)
+        payload = {
+            "updated_source_count": result.updated_source_count,
+            "catalog_count": result.catalog_count,
+        }
+        text = f"updated_source_count={result.updated_source_count}"
+        raise typer.Exit(emit(payload, text, fmt))
 
     @_vault_app.command("lint")
     def vault_lint_cmd(
@@ -106,7 +105,7 @@ def register_vault(app: typer.Typer) -> None:
         strict: bool = typer.Option(False, "--strict"),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        _run_lint(ctx, strict, fmt)
+        _run_lint(ctx, strict, fmt, command="vault.lint")
 
     @_vault_app.command("maintain")
     def vault_maintain_cmd(
@@ -117,17 +116,20 @@ def register_vault(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         doctor_payload = _doctor_payload(vault)
         if not doctor_payload["ok"]:
-            if fmt == "json":
-                print(
-                    json.dumps({"ok": False, "doctor": doctor_payload}, sort_keys=True)
-                )
-            else:
-                print(_doctor_text(doctor_payload))
-            raise typer.Exit(1)
+            payload = {"ok": False, "doctor": doctor_payload}
+            raise typer.Exit(
+                emit(payload, _doctor_text(doctor_payload), fmt, exit_code=1)
+            )
         delta_payload, delta_errors = source_delta(vault)
         if delta_errors:
-            print("\n".join(delta_errors))
-            raise typer.Exit(1)
+            raise typer.Exit(
+                emit(
+                    {"ok": False, "errors": delta_errors},
+                    "\n".join(delta_errors),
+                    fmt,
+                    exit_code=1,
+                )
+            )
         assert delta_payload is not None
         if int(str(delta_payload["actionable_count"])) > 0:
             raise typer.Exit(
@@ -137,7 +139,7 @@ def register_vault(app: typer.Typer) -> None:
                         "reason": "actionable_source_delta",
                         "delta": delta_payload,
                     },
-                    json.dumps(delta_payload, sort_keys=True),
+                    "actionable source delta",
                     fmt,
                     exit_code=2,
                 )

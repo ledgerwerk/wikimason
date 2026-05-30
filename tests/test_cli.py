@@ -129,6 +129,13 @@ def test_cli_doctor_json_shape(tmp_path: Path, capsys) -> None:
     out = capsys.readouterr().out
     assert '"ok"' in out
     assert '"checks"' in out
+    assert '"required_ok"' in out
+
+
+def test_invalid_format_rejected(tmp_path: Path) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault, demo=True)
+    assert main(["doctor", "--vault", str(vault), "--format", "jsno"]) == 2
 
 
 def test_catalog_rebuild_writes_generated_docs(tmp_path: Path) -> None:

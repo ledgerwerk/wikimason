@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 import sys
 
 import click
 import typer
 
 from .cli_app import app
+from .cli_output import result_payload
 from .errors import UsageError
 
 # ---------------------------------------------------------------------------
@@ -55,8 +57,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"wikimason {__version__}")
         return 0
     try:
-        command = typer.main.get_command(app)
-        result = command.main(
+        cli_command = typer.main.get_command(app)
+        result = cli_command.main(
             args=raw_args,
             prog_name="wikimason",
             standalone_mode=False,
@@ -67,7 +69,22 @@ def main(argv: list[str] | None = None) -> int:
     except click.exceptions.Exit as exc:
         return int(exc.exit_code)
     except UsageError as exc:
-        print(f"error: {exc}")
+        if _requested_format(raw_args) == "json":
+            command_name = _requested_command(raw_args)
+            print(
+                json.dumps(
+                    result_payload(
+                        command=command_name,
+                        status="invalid",
+                        data={},
+                        exit_code=2,
+                        errors=[str(exc)],
+                    ),
+                    sort_keys=True,
+                )
+            )
+        else:
+            print(f"error: {exc}")
         return 2
     except Exception as exc:
         # Catch Click/Typer usage errors (different class hierarchies in typer)
@@ -86,3 +103,38 @@ def main(argv: list[str] | None = None) -> int:
         if isinstance(code, int):
             return code
         return 0
+
+
+def _requested_format(argv: list[str]) -> str:
+    for i, token in enumerate(argv):
+        if token == "--format" and i + 1 < len(argv):
+            return argv[i + 1]
+    return "text"
+
+
+def _requested_command(argv: list[str]) -> str:
+    i = 0
+    while i < len(argv):
+        token = argv[i]
+        if token in _GLOBAL_FLAGS:
+            i += 2
+            continue
+        if token.startswith("-"):
+            i += 1
+            continue
+        break
+    if i >= len(argv):
+        return "cli"
+    first = argv[i]
+    second = ""
+    j = i + 1
+    while j < len(argv):
+        token = argv[j]
+        if token.startswith("-"):
+            j += 1
+            continue
+        second = token
+        break
+    if not second:
+        return first
+    return f"{first}.{second}"

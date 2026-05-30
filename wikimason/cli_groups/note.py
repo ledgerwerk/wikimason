@@ -25,7 +25,11 @@ def register_note(app: typer.Typer) -> None:
         related: list[str] = typer.Option([], "--related", help="Related paths."),
         status: str = typer.Option("seed", "--status", help="Status."),
         summary: str = typer.Option("Short summary.", "--summary", help="Summary."),
+        body: str | None = typer.Option(None, "--body", help="Body text."),
         body_file: str | None = typer.Option(None, "--body-file", help="Body file."),
+        path: str | None = typer.Option(None, "--path", help="Explicit target path."),
+        dry_run: bool = typer.Option(False, "--dry-run"),
+        print_note: bool = typer.Option(False, "--print", help="Print rendered note."),
         allow_incomplete: bool = typer.Option(False, "--allow-incomplete"),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
@@ -37,7 +41,11 @@ def register_note(app: typer.Typer) -> None:
             related=related,
             status=status,
             summary=summary,
+            body=body,
             body_file=body_file,
+            path=path,
+            dry_run=dry_run,
+            print_note=print_note,
             allow_incomplete=allow_incomplete,
             fmt=fmt,
         )
@@ -53,7 +61,12 @@ def register_note(app: typer.Typer) -> None:
         note_path = resolve_path_in_vault(vault, path)
         payload = lint_note_payload(vault, note_path, strict=strict)
         raise typer.Exit(
-            print_findings_payload(payload, success_text="note lint passed", fmt=fmt)
+            print_findings_payload(
+                payload,
+                success_text="note lint passed",
+                fmt=fmt,
+                command="note.validate",
+            )
         )
 
     @_note_app.command("normalize")

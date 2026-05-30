@@ -69,8 +69,11 @@ def test_source_resolve_typo_uses_rapidfuzz(tmp_path: Path, capsys):
     )
     assert result == 0
     payload = __import__("json").loads(capsys.readouterr().out.splitlines()[-1])
-    assert payload["matches"]
-    assert any("wikimason-demo-source" in str(m["path"]) for m in payload["matches"])
+    assert payload["data"]["matches"]
+    assert any(
+        "wikimason-demo-source" in str(m["path"])
+        for m in payload["data"]["matches"]
+    )
 
 
 def test_fuzzysearch_snippet_only_on_candidate_text():
@@ -186,3 +189,30 @@ def test_runtime_commands_match_specs(capsys):
     top_groups = sorted({s.path[0] for s in COMMAND_SPECS})
     for group in top_groups:
         assert group in help_out, f"Command group '{group}' missing from --help"
+
+
+def test_visible_typer_commands_have_command_specs() -> None:
+    import click
+    import typer
+
+    from wikimason.cli_app import app
+    from wikimason.command_specs import COMMAND_SPECS
+
+    root = typer.main.get_command(app)
+    actual: set[tuple[str, ...]] = set()
+
+    for name, command in root.commands.items():
+        if getattr(command, "hidden", False):
+            continue
+        if isinstance(command, click.Group):
+            if getattr(command, "invoke_without_command", False):
+                actual.add((name,))
+            for sub_name, sub_command in command.commands.items():
+                if not getattr(sub_command, "hidden", False):
+                    actual.add((name, sub_name))
+        else:
+            actual.add((name,))
+
+    spec_paths = {spec.path for spec in COMMAND_SPECS if not spec.hidden}
+    undocumented = actual - spec_paths
+    assert not undocumented

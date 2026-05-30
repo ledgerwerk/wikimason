@@ -7,6 +7,7 @@ from pathlib import Path
 import typer
 
 from ..cli_helpers import _delta_text, _exit_emit, _vault_from_ctx
+from ..cli_output import result_payload
 from ..frontmatter import split_frontmatter
 from ..notes import resolve_source_path
 from ..paths import rel_to_vault, source_md_files
@@ -26,6 +27,20 @@ def register_source(app: typer.Typer) -> None:
     _source_app = typer.Typer(help="Raw source management.")
     app.add_typer(_source_app, name="source")
 
+    def _source_result(
+        *,
+        command: str,
+        status: str,
+        data: object,
+        exit_code: int = 0,
+    ) -> dict[str, object]:
+        return result_payload(
+            command=command,
+            status=status,
+            data=data,
+            exit_code=exit_code,
+        )
+
     @_source_app.command("add")
     def source_add_cmd(
         ctx: typer.Context,
@@ -35,8 +50,9 @@ def register_source(app: typer.Typer) -> None:
     ) -> None:
         vault = _vault_from_ctx(ctx)
         target = source_add(vault, path, move=move)
-        payload = {"path": rel_to_vault(vault, target)}
-        _exit_emit(payload, payload["path"], fmt)
+        raw = {"path": rel_to_vault(vault, target)}
+        payload = _source_result(command="source.add", status="changed", data=raw)
+        _exit_emit(payload, str(raw["path"]), fmt)
 
     @_source_app.command("list")
     def source_list_cmd(
@@ -45,7 +61,12 @@ def register_source(app: typer.Typer) -> None:
     ) -> None:
         vault = _vault_from_ctx(ctx)
         rows = [rel_to_vault(vault, p) for p in source_md_files(vault)]
-        _exit_emit(rows, "\n".join(rows), fmt)
+        payload = _source_result(
+            command="source.list",
+            status="clean",
+            data={"items": rows, "total": len(rows)},
+        )
+        _exit_emit(payload, "\n".join(rows), fmt)
 
     @_source_app.command("show")
     def source_show_cmd(
@@ -65,26 +86,48 @@ def register_source(app: typer.Typer) -> None:
             "manifest_record": manifest.get(source_path),
             "manifest_errors": errors,
         }
-        _exit_emit(payload, source_path, fmt)
+        result = _source_result(
+            command="source.show",
+            status="clean",
+            data=payload,
+            exit_code=0 if not errors else 1,
+        )
+        _exit_emit(result, source_path, fmt, exit_code=0 if not errors else 1)
 
     @_source_app.command("verify")
     def source_verify_cmd(
         ctx: typer.Context,
         fmt: str = typer.Option("text", "--format", help="Output format."),
+        strict: bool = typer.Option(
+            False, "--strict", help="Fail on actionable drift."
+        ),
     ) -> None:
         vault = _vault_from_ctx(ctx)
         payload, errors = source_delta(vault)
         if errors:
+            result = _source_result(
+                command="source.verify",
+                status="invalid",
+                data={"errors": errors},
+                exit_code=1,
+            )
             _exit_emit(
-                {"ok": False, "errors": errors},
+                result,
                 "\n".join(errors),
                 fmt,
                 exit_code=1,
             )
         assert payload is not None
         text = _delta_text(payload["delta"])
-        exit_code = 2 if int(str(payload["actionable_count"])) > 0 else 0
-        _exit_emit(payload, text, fmt, exit_code=exit_code)
+        actionable = int(str(payload["actionable_count"])) > 0
+        exit_code = 2 if actionable and strict else 0
+        result = _source_result(
+            command="source.verify",
+            status="actionable" if actionable else "clean",
+            data=payload,
+            exit_code=exit_code,
+        )
+        _exit_emit(result, text, fmt, exit_code=exit_code)
 
     @_source_app.command("rehash")
     def source_rehash_cmd(
@@ -93,9 +136,10 @@ def register_source(app: typer.Typer) -> None:
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
-        result = source_rehash(vault, accept_covered=accept_covered)
-        text = f"Updated {result['updated']} records"
-        _exit_emit(result, text, fmt)
+        raw = source_rehash(vault, accept_covered=accept_covered)
+        text = f"Updated {raw['updated']} records"
+        payload = _source_result(command="source.rehash", status="changed", data=raw)
+        _exit_emit(payload, text, fmt)
 
     @_source_app.command("resolve")
     def source_resolve_cmd(
@@ -104,9 +148,15 @@ def register_source(app: typer.Typer) -> None:
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
-        payload = source_resolve_report(vault, query)
-        text = "\n".join(str(m["path"]) for m in payload["matches"]) or "no matches"
-        _exit_emit(payload, text, fmt)
+        raw = source_resolve_report(vault, query)
+        text = "\n".join(str(m["path"]) for m in raw["matches"]) or "no matches"
+        payload = _source_result(
+            command="source.resolve",
+            status="clean" if raw["matches"] else "not_found",
+            data=raw,
+            exit_code=0 if raw["matches"] else 1,
+        )
+        _exit_emit(payload, text, fmt, exit_code=0 if raw["matches"] else 1)
 
     @_source_app.command("scan")
     def source_scan_cmd(
@@ -120,33 +170,58 @@ def register_source(app: typer.Typer) -> None:
             vault, update=update, accept_covered=accept_covered
         )
         if errors:
+            result = _source_result(
+                command="source.scan",
+                status="invalid",
+                data={"errors": errors},
+                exit_code=1,
+            )
             _exit_emit(
-                {"ok": False, "errors": errors},
+                result,
                 "\n".join(errors),
                 fmt,
                 exit_code=1,
             )
         assert payload is not None
-        _exit_emit(payload, str(len(payload["records"])), fmt)
+        result = _source_result(
+            command="source.scan",
+            status="changed" if update else "clean",
+            data=payload,
+        )
+        _exit_emit(result, str(len(payload["records"])), fmt)
 
     @_source_app.command("delta")
     def source_delta_cmd(
         ctx: typer.Context,
+        check: bool = typer.Option(False, "--check", help="Exit 2 when actionable."),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
         payload, errors = source_delta(vault)
         if errors:
+            result = _source_result(
+                command="source.delta",
+                status="invalid",
+                data={"errors": errors},
+                exit_code=1,
+            )
             _exit_emit(
-                {"ok": False, "errors": errors},
+                result,
                 "\n".join(errors),
                 fmt,
                 exit_code=1,
             )
         assert payload is not None
         text = _delta_text(payload["delta"])
-        exit_code = 2 if int(str(payload["actionable_count"])) > 0 else 0
-        _exit_emit(payload, text, fmt, exit_code=exit_code)
+        actionable = int(str(payload["actionable_count"])) > 0
+        exit_code = 2 if check and actionable else 0
+        result = _source_result(
+            command="source.delta",
+            status="actionable" if actionable else "clean",
+            data=payload,
+            exit_code=exit_code,
+        )
+        _exit_emit(result, text, fmt, exit_code=exit_code)
 
     @_source_app.command("coverage")
     def source_coverage_cmd(
@@ -156,7 +231,8 @@ def register_source(app: typer.Typer) -> None:
     ) -> None:
         vault = _vault_from_ctx(ctx)
         report = source_coverage_report(vault, path_arg=path)
-        _exit_emit(report, f"{report['covered']}/{report['total']}", fmt)
+        payload = _source_result(command="source.coverage", status="clean", data=report)
+        _exit_emit(payload, f"{report['covered']}/{report['total']}", fmt)
 
     @_source_app.command("lint")
     def source_lint_cmd(
@@ -165,7 +241,12 @@ def register_source(app: typer.Typer) -> None:
     ) -> None:
         vault = _vault_from_ctx(ctx)
         errors = source_lint(vault)
-        payload = {"ok": not errors, "errors": errors}
+        payload = _source_result(
+            command="source.lint",
+            status="clean" if not errors else "invalid",
+            data={"errors": errors},
+            exit_code=1 if errors else 0,
+        )
         _exit_emit(
             payload,
             "\n".join(errors) if errors else "source manifest clean",
@@ -180,21 +261,48 @@ def register_source(app: typer.Typer) -> None:
         lines: int | None = typer.Option(
             None, "--lines", "-n", help="Limit output to first N lines."
         ),
+        first: bool = typer.Option(
+            False, "--first", help="Allow first fuzzy match when query is ambiguous."
+        ),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         from ..source_scan import source_resolve_report
 
         vault = _vault_from_ctx(ctx)
-        # Try exact path first, then fuzzy resolve
+        command = "source.read"
+        # Try exact path first, then fuzzy resolve.
         exact = vault / query
         if exact.exists() and exact.is_file():
             resolved_rel = rel_to_vault(vault, exact)
         else:
-            # Use fuzzy matching from source resolve
-            report = source_resolve_report(vault, query, limit=1)
+            report = source_resolve_report(vault, query, limit=5)
             matches = report.get("matches", [])
-            if matches:
+            exact_matches = [m for m in matches if m.get("match") == "exact"]
+            if len(exact_matches) == 1:
+                resolved_rel = str(exact_matches[0]["path"])
+            elif len(matches) == 1 or first:
                 resolved_rel = matches[0]["path"]
+            elif len(matches) > 1:
+                payload = _source_result(
+                    command=command,
+                    status="ambiguous",
+                    data={
+                        "query": query,
+                        "matches": matches,
+                        "message": (
+                            "source query matched multiple candidates; "
+                            "use exact path or --first"
+                        ),
+                    },
+                    exit_code=1,
+                )
+                _exit_emit(
+                    payload,
+                    "source query matched multiple candidates; "
+                    "use exact path or --first",
+                    fmt,
+                    exit_code=1,
+                )
             else:
                 resolved_rel = resolve_source_path(vault, query)
         full_path = vault / resolved_rel
@@ -202,12 +310,13 @@ def register_source(app: typer.Typer) -> None:
         metadata, body = split_frontmatter(text)
         content_lines = body.splitlines()
         preview = "\n".join(content_lines[:lines]) if lines else body
-        payload = {
+        raw = {
             "path": resolved_rel,
             "metadata": metadata,
             "content": preview,
             "total_lines": len(content_lines),
         }
+        payload = _source_result(command=command, status="clean", data=raw)
         text = (
             f"Path: {resolved_rel}\n{preview}" if preview else f"Path: {resolved_rel}"
         )

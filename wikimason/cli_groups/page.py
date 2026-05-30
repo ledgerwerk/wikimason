@@ -26,7 +26,11 @@ def register_page(app: typer.Typer) -> None:
         related: list[str] = typer.Option([], "--related", help="Related paths."),
         status: str = typer.Option("seed", "--status", help="Status."),
         summary: str = typer.Option("Short summary.", "--summary", help="Summary."),
+        body: str | None = typer.Option(None, "--body", help="Body text."),
         body_file: str | None = typer.Option(None, "--body-file", help="Body file."),
+        path: str | None = typer.Option(None, "--path", help="Explicit target path."),
+        dry_run: bool = typer.Option(False, "--dry-run"),
+        print_note: bool = typer.Option(False, "--print", help="Print rendered note."),
         allow_incomplete: bool = typer.Option(False, "--allow-incomplete"),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
@@ -38,7 +42,11 @@ def register_page(app: typer.Typer) -> None:
             related=related,
             status=status,
             summary=summary,
+            body=body,
             body_file=body_file,
+            path=path,
+            dry_run=dry_run,
+            print_note=print_note,
             allow_incomplete=allow_incomplete,
             fmt=fmt,
         )

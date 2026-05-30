@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
+from typing import Any, cast
 
 import click
 import typer
@@ -38,8 +38,8 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
     def help_command(ctx: typer.Context) -> None:
         parts = list(ctx.args)
         root = typer.main.get_command(app)
-        command = root
-        sub_ctx = click.Context(root, info_name="wikimason")
+        command: Any = root
+        sub_ctx: Any = click.Context(cast(Any, root), info_name="wikimason")
         for part in parts:
             if not hasattr(command, "get_command"):
                 raise typer.BadParameter(f"not a command group: {part}")
@@ -48,15 +48,16 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
                 raise typer.BadParameter(f"unknown help topic: {' '.join(parts)}")
             command = next_command
             sub_ctx = click.Context(command, info_name=part, parent=sub_ctx)
-        click.echo(command.get_help(sub_ctx))
+        click.echo(cast(Any, command).get_help(sub_ctx))
         raise typer.Exit(0)
 
-    @app.command(
-        "init",
-        context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
-    )
+    @app.command("init")
     def init_cmd(
         ctx: typer.Context,
+        profile_or_path: str | None = typer.Argument(
+            None, help="Profile (markdown|obsidian|logseq) or target path."
+        ),
+        path: Path | None = typer.Argument(None, help="Target path."),
         profile: str = typer.Option(
             "markdown",
             "--profile",
@@ -67,31 +68,30 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
             False, "--demo", help="Initialize with demo content."
         ),
         env: str | None = typer.Option(None, "--env", help="Named env config."),
+        fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        # Support canonical positional profile:
-        # init markdown /path, init obsidian /path, init logseq /path.
-        args = ctx.args
-        positional_profile = None
-        remaining: list[str] = []
-        for token in args:
-            if (
-                token in {"obsidian", "markdown", "logseq"}
-                and not positional_profile
-                and not remaining
-            ):
-                positional_profile = token
-            elif not token.startswith("-"):
-                remaining.append(token)
-        if positional_profile:
-            profile = positional_profile
-        target = (
-            Path(remaining[0]).expanduser().resolve()
-            if remaining
-            else Path.cwd().resolve()
+        profile_name = profile
+        target = Path.cwd().resolve()
+        if profile_or_path in {"markdown", "obsidian", "logseq"}:
+            profile_name = str(profile_or_path)
+            target = path.expanduser().resolve() if path else Path.cwd().resolve()
+        else:
+            if profile_or_path:
+                target = Path(profile_or_path).expanduser().resolve()
+            elif path is not None:
+                target = path.expanduser().resolve()
+
+        init_vault(
+            target, demo=demo, profile=canonical_profile_name(profile_name), env=env
         )
-        init_vault(target, demo=demo, profile=canonical_profile_name(profile), env=env)
-        print(f"initialized {target}")
-        raise typer.Exit(0)
+        payload = {
+            "path": str(target),
+            "profile": canonical_profile_name(profile_name),
+            "config_path": str(target / "wikimason.toml"),
+            "env": env,
+            "demo": demo,
+        }
+        raise typer.Exit(emit(payload, f"initialized {target}", fmt))
 
     @app.command("query")
     def query_cmd(
@@ -102,12 +102,8 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
     ) -> None:
         vault = _vault_from_ctx(ctx)
         rows = search_catalog(vault, query=query or "", tag=tag, limit=10)
-        if fmt == "json":
-            print(json.dumps(rows, sort_keys=True))
-        else:
-            for row in rows:
-                print(f"{row['title']}\t{row['path']}")
-        raise typer.Exit(0)
+        text = "\n".join(f"{row['title']}\t{row['path']}" for row in rows)
+        raise typer.Exit(emit(rows, text, fmt))
 
     @app.command("lint")
     def lint_cmd(
@@ -115,7 +111,7 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
         strict: bool = typer.Option(False, "--strict"),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        _run_lint(ctx, strict, fmt)
+        _run_lint(ctx, strict, fmt, command="lint")
 
     @app.command("status")
     def status_cmd(
@@ -140,11 +136,12 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
         ctx: typer.Context,
         title: str = typer.Option(..., "--title", help="Log title."),
         details: str = typer.Option(..., "--details", help="Log details."),
+        fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
         path = append_log(vault, title, details)
-        print(path.relative_to(vault).as_posix())
-        raise typer.Exit(0)
+        rel = path.relative_to(vault).as_posix()
+        raise typer.Exit(emit({"path": rel}, rel, fmt))
 
     @app.command("audit")
     def audit_cmd(
@@ -153,10 +150,13 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
     ) -> None:
         vault = _vault_from_ctx(ctx)
         findings = audit_vault(vault)
-        if fmt == "json":
-            print(
-                json.dumps({"ok": not findings, "findings": findings}, sort_keys=True)
+        payload = {"ok": not findings, "findings": findings}
+        text = "\n".join(findings)
+        raise typer.Exit(
+            emit(
+                payload,
+                text or "audit clean",
+                fmt,
+                exit_code=0 if not findings else 1,
             )
-        else:
-            print("\n".join(findings))
-        raise typer.Exit(0 if not findings else 1)
+        )

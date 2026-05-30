@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -10,7 +9,7 @@ from typing import Any, NoReturn
 
 import typer
 
-from .cli_output import emit
+from .cli_output import emit, result_payload
 from .cli_state import resolve_vault
 from .notes import new_note, parse_path_values
 from .paths import rel_to_vault
@@ -85,7 +84,25 @@ def _doctor_payload(vault: Path) -> dict[str, Any]:
         if row["label"] == "Python runtime":
             row["detail"] = sys.version.split()[0]
         checks.append(row)
-    return {"ok": payload["ok"], "checks": checks}
+    required_ok = all(
+        bool(check["ok"]) for check in checks if bool(check.get("required", False))
+    )
+    maintenance_ok = all(
+        bool(check["ok"]) for check in checks if not bool(check.get("required", False))
+    )
+    if not required_ok:
+        status = "invalid"
+    elif not maintenance_ok:
+        status = "degraded"
+    else:
+        status = "clean"
+    return {
+        "ok": payload["ok"],
+        "required_ok": required_ok,
+        "maintenance_ok": maintenance_ok,
+        "status": status,
+        "checks": checks,
+    }
 
 
 def _doctor_text(payload: dict[str, Any]) -> str:
@@ -148,15 +165,18 @@ def _exit_rows(rows: Sequence[str], fmt: str, *, total: bool = False) -> None:
 def _run_doctor(ctx: typer.Context, fmt: str) -> None:
     """Shared body for ``vault doctor`` and top-level ``doctor``."""
     vault = _vault_from_ctx(ctx)
-    payload = _doctor_payload(vault)
-    if fmt == "json":
-        print(json.dumps(payload, sort_keys=True))
-    else:
-        print(_doctor_text(payload))
-    raise typer.Exit(0 if payload["ok"] else 1)
+    raw = _doctor_payload(vault)
+    exit_code = 0 if raw["ok"] else 1
+    payload = result_payload(
+        command="doctor",
+        status=str(raw["status"]),
+        data=raw,
+        exit_code=exit_code,
+    )
+    raise typer.Exit(emit(payload, _doctor_text(raw), fmt, exit_code=exit_code))
 
 
-def _run_lint(ctx: typer.Context, strict: bool, fmt: str) -> None:
+def _run_lint(ctx: typer.Context, strict: bool, fmt: str, *, command: str) -> None:
     """Shared body for ``vault lint`` and top-level ``lint``."""
     from .cli_output import print_findings_payload
     from .lint import lint_payload
@@ -164,7 +184,9 @@ def _run_lint(ctx: typer.Context, strict: bool, fmt: str) -> None:
     vault = _vault_from_ctx(ctx)
     payload = lint_payload(vault, strict=strict)
     raise typer.Exit(
-        print_findings_payload(payload, success_text="lint passed", fmt=fmt)
+        print_findings_payload(
+            payload, success_text="lint passed", fmt=fmt, command=command
+        )
     )
 
 
@@ -190,7 +212,11 @@ def _run_note_create(
     related: list[str],
     status: str,
     summary: str,
+    body: str | None,
     body_file: str | None,
+    path: str | None,
+    dry_run: bool,
+    print_note: bool,
     allow_incomplete: bool,
     fmt: str,
 ) -> None:
@@ -204,11 +230,17 @@ def _run_note_create(
         related=parse_path_values(related),
         status=status,
         summary=summary,
+        body=body,
         body_file=body_file,
+        path=path,
+        dry_run=dry_run,
         allow_incomplete=allow_incomplete,
     )
     payload = _note_create_payload(vault, scaffold)
-    _exit_emit(payload, payload["path"], fmt)
+    if dry_run:
+        payload["content"] = scaffold.content
+    text = scaffold.content if print_note else str(payload["path"])
+    _exit_emit(payload, text, fmt)
 
 
 def _run_row_command(ctx: typer.Context, get_rows: Any, fmt: str) -> None:

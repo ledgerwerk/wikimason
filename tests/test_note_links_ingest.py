@@ -170,7 +170,7 @@ def test_lint_json_suggestions(
 
     assert main(["vault", "lint", "--vault", str(vault), "--format", "json"]) == 1
 
-    payload = read_json(capsys)
+    payload = read_json(capsys)["data"]
     finding = next(
         item for item in payload["findings"] if item["code"] == "unresolved_body_link"
     )
@@ -187,9 +187,10 @@ def test_ingest_status_reports_actionable_missing_coverage(
     assert main(["ingest", "status", "--vault", str(vault), "--format", "json"]) == 0
 
     payload = read_json(capsys)
-    assert payload["next_action"] == "compile_missing_sources"
-    assert payload["sources"]["total"] == 1
-    assert payload["sources"]["covered"] == 0
+    data = payload["data"]
+    assert data["next_action"] == "compile_missing_sources"
+    assert data["sources"]["total"] == 1
+    assert data["sources"]["covered"] == 0
 
 
 def test_ingest_plan_returns_note_targets_for_source(tmp_path: Path, capsys) -> None:
@@ -213,11 +214,13 @@ def test_ingest_plan_returns_note_targets_for_source(tmp_path: Path, capsys) -> 
     )
 
     payload = read_json(capsys)
-    assert payload["source_title"] == "LLMs Core Setup"
+    data = payload["data"]
+    assert data["source_title"] == "LLMs Core Setup"
     assert (
-        payload["recommended_notes"][0]["path_hint"] == "Wiki/Topics/llms-core-setup.md"
+        data["recommended_notes"][0]["path_hint"] == "Wiki/Topics/llms-core-setup.md"
     )
-    assert payload["recommended_notes"][-1]["path_hint"].startswith("Wiki/Logs/")
+    assert data["recommended_notes"][-1]["path_hint"].startswith("Wiki/Logs/")
+    assert data["commands"]
 
 
 def test_ingest_finish_exit_2_when_delta_still_actionable(
@@ -261,9 +264,10 @@ def test_ingest_finish_exit_2_when_delta_still_actionable(
 
     payload = read_json(capsys)
     assert code == 2
-    assert payload["actionable_count"] == 1
-    assert payload["coverage"]["total"] == 2
-    assert payload["coverage"]["covered"] == 1
+    data = payload["data"]
+    assert data["actionable_count"] == 1
+    assert data["coverage"]["total"] == 2
+    assert data["coverage"]["covered"] == 1
 
 
 def test_source_scan_has_no_weak_sources_for_resolved_path_input(
@@ -320,7 +324,7 @@ def test_source_scan_has_no_weak_sources_for_resolved_path_input(
     )
 
     payload = read_json(capsys)
-    assert payload["weak_sources"] == []
+    assert payload["data"]["weak_sources"] == []
 
 
 def test_first_run_acceptance_scenario(tmp_path: Path, capsys) -> None:
@@ -356,7 +360,9 @@ def test_first_run_acceptance_scenario(tmp_path: Path, capsys) -> None:
         assert main(argv) == 0
 
     assert main(["links", "check", "--vault", str(vault), "--format", "json"]) == 0
-    assert read_json(capsys) == []
+    links_payload = read_json(capsys)
+    assert links_payload["ok"] is True
+    assert links_payload["data"]["findings"] == []
 
     assert (
         main(
@@ -373,7 +379,7 @@ def test_first_run_acceptance_scenario(tmp_path: Path, capsys) -> None:
         == 0
     )
     finish_payload = read_json(capsys)
-    assert finish_payload["coverage"]["coverage_percent"] == 100.0
+    assert finish_payload["data"]["coverage"]["coverage_percent"] == 100.0
 
     assert main(["source", "lint", "--vault", str(vault)]) == 0
     assert main(["vault", "lint", "--vault", str(vault)]) == 0

@@ -37,6 +37,7 @@ from .text import parse_json_list_or_none, parse_list_or_json
 @dataclass(frozen=True)
 class NoteScaffold:
     path: Path
+    content: str
     kind: str
     title: str
     status: str
@@ -53,7 +54,10 @@ def new_note(
     related: list[str] | None = None,
     status: str = "seed",
     summary: str = "Short summary.",
+    body: str | None = None,
     body_file: str | None = None,
+    path: str | None = None,
+    dry_run: bool = False,
     allow_incomplete: bool = False,
 ) -> NoteScaffold:
     schema = load_vault_schema(vault)
@@ -62,9 +66,7 @@ def new_note(
     related_list = related or []
     if not related_list and not allow_incomplete:
         raise UsageError("note new requires --related or --allow-incomplete")
-    slug = slugify_title(title)
-    logical_ref = f"{kind_to_folder(kind, schema=schema)}/{slug}"
-    target = vault / logical_ref_to_relpath(logical_ref, config=config)
+    target = _note_target_path(vault, kind=kind, title=title, path=path, config=config)
     target.parent.mkdir(parents=True, exist_ok=True)
     note_path = rel_to_vault(vault, target)
     today = date.today().isoformat()
@@ -82,14 +84,17 @@ def new_note(
         status=status,
         sources=list(normalized_sources),
         related=list(normalized_related),
+        body=body,
         body_file=body_file,
         allow_incomplete=allow_incomplete,
         template_name=kind_config.template,
         note_path=note_path,
     )
-    target.write_text(content, encoding="utf-8")
+    if not dry_run:
+        target.write_text(content, encoding="utf-8")
     return NoteScaffold(
         path=target,
+        content=content,
         kind=kind,
         title=title,
         status=status,
@@ -110,6 +115,7 @@ def render_note_content(
     status: str,
     sources: list[str],
     related: list[str],
+    body: str | None,
     body_file: str | None,
     allow_incomplete: bool,
     template_name: str | None = None,
@@ -128,6 +134,14 @@ def render_note_content(
         "source_count": len(sources),
         "aliases": [],
     }
+    if body and body_file:
+        raise UsageError("use only one of --body or --body-file")
+    if body is not None:
+        return _finalize_rendered_note(
+            body.rstrip() + "\n",
+            default_data,
+            config=config,
+        )
     if body_file:
         return _finalize_rendered_note(
             Path(body_file).read_text(encoding="utf-8").rstrip() + "\n",
@@ -153,6 +167,32 @@ def render_note_content(
     )
     rendered = render_template(template_text, context)
     return _finalize_rendered_note(rendered, default_data, config=config)
+
+
+def _note_target_path(
+    vault: Path,
+    *,
+    kind: str,
+    title: str,
+    path: str | None,
+    config: Any,
+) -> Path:
+    schema = load_vault_schema(vault)
+    expected_folder = kind_to_folder(kind, schema=schema).rstrip("/")
+    if path is None:
+        slug = slugify_title(title)
+        logical_ref = f"{expected_folder}/{slug}"
+        return vault / logical_ref_to_relpath(logical_ref, config=config)
+
+    requested = normalize_internal_link_target(path) or path
+    rel = requested.replace("\\", "/")
+    if not rel.endswith(".md"):
+        rel = f"{rel}.md"
+    if not rel.startswith(f"{expected_folder}/"):
+        raise UsageError(
+            f"note kind '{kind}' requires path under {expected_folder}/"
+        )
+    return resolve_path_in_vault(vault, rel)
 
 
 def _load_note_template(vault: Path, name: str, kind: str) -> str:
