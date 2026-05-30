@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import click
@@ -69,19 +68,17 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
         ),
         env: str | None = typer.Option(None, "--env", help="Named env config."),
     ) -> None:
-        # Support legacy positional profile: init markdown /path, init logseq /path
+        # Support canonical positional profile: init markdown /path, init obsidian /path, init logseq /path.
         args = ctx.args
         positional_profile = None
         remaining: list[str] = []
         for token in args:
             if (
-                token in {"obsidian", "markdown", "logseq", "generic"}
+                token in {"obsidian", "markdown", "logseq"}
                 and not positional_profile
                 and not remaining
             ):
                 positional_profile = token
-                if token == "generic":
-                    print("Deprecated: use `wikimason init markdown`.", file=sys.stderr)
             elif not token.startswith("-"):
                 remaining.append(token)
         if positional_profile:

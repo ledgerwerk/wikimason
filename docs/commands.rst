@@ -106,14 +106,3 @@ File utilities
    wikimason file rename <old> <new>
    wikimason file delete <path>
 
-Aliases (hidden, deprecated)
-----------------------------
-
-For backward compatibility, some commands have hidden aliases:
-
-- ``wikimason init`` → ``wikimason vault init``
-- ``wikimason lint`` → ``wikimason vault lint``
-- ``wikimason build`` → ``wikimason vault build``
-- ``wikimason doctor`` → ``wikimason vault doctor``
-- ``wikimason source-scan``, ``source-delta``, ``source-coverage`` (old
-  hyphenated forms)

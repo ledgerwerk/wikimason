@@ -36,7 +36,7 @@ def test_cli_doctor_build_lint(tmp_path: Path):
     vault = tmp_path / "vault"
     init_vault(vault, demo=True)
     assert main(["doctor", "--vault", str(vault)]) in {0, 1}
-    assert main(["build", "--vault", str(vault)]) == 0
+    assert main(["index", "build", "--vault", str(vault)]) == 0
     assert main(["lint", "--vault", str(vault)]) == 0
 
 
@@ -44,7 +44,7 @@ def test_cli_global_context_options_precede_command(tmp_path: Path) -> None:
     vault = tmp_path / "vault"
     init_vault(vault, demo=False, tool="markdown")
 
-    assert main(["--config", str(vault / "wikimason.toml"), "build"]) == 0
+    assert main(["--config", str(vault / "wikimason.toml"), "index", "build"]) == 0
     assert main(["--vault", str(vault), "vault", "doctor"]) in {0, 1}
 
 

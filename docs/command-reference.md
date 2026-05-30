@@ -59,7 +59,7 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 ### `source migrate-frontmatter`
 
 - Usage: `wikimason source migrate-frontmatter [--vault PATH] [--format text|json]`
-- Summary: Migrate legacy raw-source frontmatter into the current source metadata shape.
+- Summary: Normalize raw-source frontmatter into the current source metadata shape.
 - JSON output: yes
 
 ### `source rehash`

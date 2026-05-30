@@ -41,7 +41,7 @@ def test_typer_help_nested(capsys):
     assert "--format" in out
 
 
-def test_legacy_help_topic(capsys):
+def test_help_topic_for_nested_command(capsys):
     assert main(["help", "source", "verify"]) == 0
     assert "verify" in _strip_ansi(capsys.readouterr().out)
 

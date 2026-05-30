@@ -16,5 +16,5 @@ Use canonical top-level WikiMason commands for wiki workflows. The product is fi
 ## Hard rules
 
 - Do not run upstream `obsidian` or `obsidian-cli`.
-- Do not run legacy starter scripts from older starter kits; translate old instructions into `wikimason` commands.
+- Use only the WikiMason CLI commands listed in this reference; do not run upstream starter scripts such as `scripts/wiki_tool.py`.
 - Do not hand-edit generated catalog, index, or source-manifest files.

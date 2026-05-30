@@ -9,24 +9,17 @@ from .cli_app import app
 from .errors import UsageError
 
 # ---------------------------------------------------------------------------
-# Legacy alias expansion
+# Global option handling
 # ---------------------------------------------------------------------------
-
-ALIASES: dict[tuple[str, ...], tuple[str, ...]] = {
-    ("source-scan",): ("source", "scan"),
-    ("source-delta",): ("source", "delta"),
-    ("source-coverage",): ("source", "coverage"),
-    ("build",): ("index", "build"),
-}
 
 _GLOBAL_FLAGS = {"--config", "--env", "--vault"}
 
 
 def _hoist_global_options(argv: list[str]) -> list[str]:
-    """Move --config/--env/--vault from anywhere in argv to the front.
+    """Move global context options to the front before handing off to Typer.
 
-    This preserves backward compatibility with the old CLI which allowed
-    global options after the command name (e.g. wikimason doctor --vault PATH).
+    This lets CLI examples place `--config`, `--env`, and `--vault` near the
+    command that needs context while still using Typer's global-option model.
     """
     globals_part: list[str] = []
     rest: list[str] = []
@@ -45,22 +38,6 @@ def _hoist_global_options(argv: list[str]) -> list[str]:
     return globals_part + rest
 
 
-def _expand_legacy_alias(argv: list[str]) -> list[str]:
-    if not argv:
-        return argv
-    # Skip global option pairs to find the command
-    i = 0
-    while i < len(argv) and argv[i] in _GLOBAL_FLAGS:
-        i += 2  # skip flag and value
-    if i >= len(argv):
-        return argv
-    head = (argv[i],)
-    replacement = ALIASES.get(head)
-    if replacement is None:
-        return argv
-    return [*argv[:i], *replacement, *argv[i + 1 :]]
-
-
 # ---------------------------------------------------------------------------
 # Thin entrypoint
 # ---------------------------------------------------------------------------
@@ -68,7 +45,7 @@ def _expand_legacy_alias(argv: list[str]) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     raw_args = list(argv if argv is not None else sys.argv[1:])
-    raw_args = _expand_legacy_alias(_hoist_global_options(raw_args))
+    raw_args = _hoist_global_options(raw_args)
 
     # Handle --version / -v before Typer, to preserve the old behavior
     # of just printing the version string.

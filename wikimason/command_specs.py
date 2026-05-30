@@ -19,7 +19,6 @@ class CommandSpec:
     usage: str
     summary: str
     aliases: tuple[tuple[str, ...], ...] = ()
-    legacy_aliases: tuple[tuple[str, ...], ...] = ()
     json_output: bool = False
     agent_safe: bool = True
     hidden: bool = False
@@ -86,7 +85,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         path=("source", "migrate-frontmatter"),
         usage="wikimason source migrate-frontmatter"
         " [--vault PATH] [--format text|json]",
-        summary="Migrate legacy raw-source frontmatter into"
+        summary="Normalize raw-source frontmatter into"
         " the current source metadata shape.",
         json_output=True,
     ),
@@ -115,21 +114,18 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--accept-covered] [--format text|json]",
         summary="Scan raw sources and update manifest.",
         json_output=True,
-        legacy_aliases=(("source-scan",),),
     ),
     CommandSpec(
         path=("source", "delta"),
         usage="wikimason source delta [--format text|json]",
         summary="Show delta between manifest and files.",
         json_output=True,
-        legacy_aliases=(("source-delta",),),
     ),
     CommandSpec(
         path=("source", "coverage"),
         usage="wikimason source coverage [PATH] [--format text|json]",
         summary="Show source coverage report.",
         json_output=True,
-        legacy_aliases=(("source-coverage",),),
     ),
     CommandSpec(
         path=("source", "lint"),
@@ -394,7 +390,6 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason index build [--vault PATH] [--format text|json]",
         summary="Rebuild derived index pages from the current catalog entries.",
         json_output=True,
-        legacy_aliases=(("build",),),
     ),
     CommandSpec(
         path=("index", "check"),

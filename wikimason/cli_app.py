@@ -43,7 +43,7 @@ def main_callback(
     ),
     env: str | None = typer.Option(None, "--env", help="Select a named env config."),
     vault: str | None = typer.Option(
-        None, "--vault", help="Compatibility root override."
+        None, "--vault", help="Wiki root override."
     ),
 ) -> None:
     """Global callback: initialises CliState on the context."""

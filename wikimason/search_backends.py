@@ -171,17 +171,16 @@ class CommandBackend:
     def candidates(self, query: str, *, limit: int = 200) -> list[SearchCandidate]:
         from .command_registry import COMMAND_REGISTRY
 
-        results: list[SearchCandidate] = []
+        rows: list[SearchCandidate] = []
         for info in COMMAND_REGISTRY:
-            if info.legacy_aliases:
-                continue
             path_str = " ".join(info.path)
-            results.append(
+            rows.append(
                 SearchCandidate(
                     key=path_str,
                     kind="command",
-                    label=path_str,
+                    label=f"wikimason {path_str}",
+                    path=path_str,
                     fields={"summary": info.summary},
                 )
             )
-        return results[:limit]
+        return rows[:limit]

@@ -26,11 +26,10 @@ wikimason ingest finish --accept-covered --format json
 wikimason agents compile --check --format json
 ```
 
-Legacy top-level commands such as `wikimason doctor`, `wikimason build`, `wikimason lint`, `wikimason source-scan`, and `wikimason source-delta` remain available as aliases, but the canonical noun/verb grammar above is the preferred agent workflow.
 
 ## Migration note
 
-Old starter-kit material may mention `scripts/wiki_tool.py`, but that file is not part of WikiMason. Translate any such instructions into `wikimason ...` commands instead of trying to run the legacy script.
+Older starter-kit material may mention `scripts/wiki_tool.py`; that file is not part of WikiMason. Use the WikiMason commands in this README instead.
 
 ## Key design constraints
 

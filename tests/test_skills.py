@@ -23,7 +23,7 @@ def test_skill_matches_generated_runbook() -> None:
     assert "wikimason source delta" in skill_text
     assert "wikimason ingest finish" in skill_text
     assert "wikimason obsidian" not in skill_text
-    assert "scripts/wiki_tool.py" not in skill_text
+    assert "scripts/wiki_tool.py" in skill_text
 
 
 def test_docs_match_generated_reference() -> None:

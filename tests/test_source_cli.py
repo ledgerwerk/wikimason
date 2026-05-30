@@ -22,43 +22,33 @@ def test_source_cli_commands(tmp_path: Path, capsys) -> None:
     assert "total" in payload
 
 
-def test_source_nested_aliases_match_legacy(tmp_path: Path, capsys) -> None:
-    vault = tmp_path / "vault"
-    init_vault(vault, demo=True)
-
-    assert main(["source", "delta", "--vault", str(vault), "--format", "json"]) in {
-        0,
-        2,
-    }
-    nested = json.loads(capsys.readouterr().out.splitlines()[-1])
-
-    assert main(["source-delta", "--vault", str(vault), "--format", "json"]) in {0, 2}
-    legacy = json.loads(capsys.readouterr().out.splitlines()[-1])
-
-    # Ignore timestamps which differ between runs
-    def _strip_ts(obj):
-        if isinstance(obj, dict):
-            return {
-                k: _strip_ts(v)
-                for k, v in obj.items()
-                if k not in ("last_scanned_at", "first_seen_at")
-            }
-        if isinstance(obj, list):
-            return [_strip_ts(v) for v in obj]
-        return obj
-
-    assert _strip_ts(nested) == _strip_ts(legacy)
 
 
 def test_source_delta_json_output(tmp_path: Path, capsys) -> None:
     vault = tmp_path / "vault"
     init_vault(vault, demo=True)
-    main(["source-scan", "--vault", str(vault), "--update", "--accept-covered"])
-    code = main(["source-delta", "--vault", str(vault), "--format", "json"])
+    main(["source", "scan", "--vault", str(vault), "--update", "--accept-covered"])
+    code = main(["source", "delta", "--vault", str(vault), "--format", "json"])
     assert code in {0, 2}
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
     assert "delta" in payload
     assert "actionable_count" in payload
+
+
+def test_removed_legacy_source_commands_are_invalid(tmp_path: Path, capsys) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault, demo=True)
+
+    assert main(["source-scan", "--vault", str(vault)]) == 2
+    assert main(["source-delta", "--vault", str(vault)]) == 2
+    assert main(["source-coverage", "--vault", str(vault)]) == 2
+
+
+def test_removed_legacy_build_command_is_invalid(tmp_path: Path, capsys) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault, demo=True)
+
+    assert main(["build", "--vault", str(vault)]) == 2
 
 
 def test_source_resolve_json_output(tmp_path: Path, capsys) -> None:

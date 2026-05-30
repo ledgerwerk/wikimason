@@ -93,13 +93,14 @@ def test_source_path_and_filename_backends_are_deterministic(tmp_path: Path) -> 
     assert name_keys == sorted(name_keys)
 
 
-def test_command_backend_excludes_legacy_aliases() -> None:
-    expected = [
-        " ".join(info.path) for info in COMMAND_REGISTRY if not info.legacy_aliases
-    ]
+def test_command_backend_matches_public_command_registry() -> None:
+    expected = [" ".join(info.path) for info in COMMAND_REGISTRY]
     actual = [row.key for row in CommandBackend().candidates("", limit=500)]
     assert actual == expected[:500]
-
+    assert "source-scan" not in actual
+    assert "source-delta" not in actual
+    assert "source-coverage" not in actual
+    assert "build" not in actual
 
 def test_query_cli_json_shape(tmp_path: Path, capsys) -> None:
     vault = tmp_path / "vault"
