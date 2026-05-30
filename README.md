@@ -1,3 +1,8 @@
+[![PyPI - Version](https://img.shields.io/pypi/v/wikimason)](https://pypi.org/project/wikimason/)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/wikimason)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/wikimason)
+[![codecov](https://codecov.io/gh/holgern/wikimason/graph/badge.svg?token=mbFq4CJ9Uj)](https://codecov.io/gh/holgern/wikimason)
+
 # WikiMason
 
 Filesystem-backed CLI toolkit for building and maintaining an LLM wiki with
