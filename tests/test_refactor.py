@@ -1,5 +1,9 @@
-import re
+import builtins
+import importlib
+import sys
 from pathlib import Path
+
+import pytest
 
 try:
     import tomllib
@@ -7,11 +11,10 @@ except ImportError:
     import tomli as tomllib
 
 from wikimason.cli import main
+from conftest import _strip_ansi
 from wikimason.scaffold import init_vault
 
 
-def _strip_ansi(text: str) -> str:
-    return re.sub(r"\x1b\[[0-9;]*m", "", text)
 
 
 def test_runtime_dependencies_declared():
@@ -79,6 +82,35 @@ def test_fuzzysearch_snippet_only_on_candidate_text():
     assert rows
     assert rows[0][2] <= 2
 
+
+def test_search_module_imports_without_fuzzysearch(monkeypatch):
+    real_import = builtins.__import__
+
+    def guarded_import(name, globals=None, locals=None, fromlist=(), level=0):
+        if name == "fuzzysearch" or name.startswith("fuzzysearch."):
+            raise ModuleNotFoundError("No module named 'fuzzysearch'")
+        return real_import(name, globals, locals, fromlist, level)
+
+    monkeypatch.setattr(builtins, "__import__", guarded_import)
+    sys.modules.pop("fuzzysearch", None)
+    sys.modules.pop("wikimason.search", None)
+    sys.modules.pop("wikimason.cli_app", None)
+    sys.modules.pop("wikimason.cli", None)
+
+    cli_module = importlib.import_module("wikimason.cli")
+    assert hasattr(cli_module, "main")
+
+    search = importlib.import_module("wikimason.search")
+    from wikimason.errors import UsageError
+
+    with pytest.raises(
+        UsageError,
+        match="fuzzy snippet search requires the fuzzysearch package",
+    ):
+        search.approximate_snippets(
+            "wikimason init obsdian",
+            "Run wikimason init obsidian before ingest.",
+        )
 
 def test_frontmatter_yaml_preserves_dates_as_strings():
     from wikimason.frontmatter import split_frontmatter

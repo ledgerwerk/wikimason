@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 
@@ -48,3 +49,6 @@ def write_source_rel(vault: Path, name: str, title: str | None = None) -> str:
 def read_json(capsys):
     """Parse the last line of captured stdout as JSON."""
     return json.loads(capsys.readouterr().out.splitlines()[-1])
+
+def _strip_ansi(text: str) -> str:
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)

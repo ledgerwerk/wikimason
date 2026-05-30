@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-import json
-
 import typer
 
-from ..cli_helpers import _vault_from_ctx
-from ..cli_output import emit
+from ..cli_helpers import _exit_emit, _vault_from_ctx
 from ..review import (
     ReviewItem,
     add_review_item,
@@ -15,6 +12,21 @@ from ..review import (
     load_review_queue,
     resolve_review_item,
 )
+
+
+def _review_item_text(item: ReviewItem) -> str:
+    return "\n".join(
+        [
+            f"review_id: {item.review_id}",
+            f"created_at: {item.created_at}",
+            f"kind: {item.kind}",
+            f"source_id: {item.source_id}",
+            f"title: {item.title}",
+            f"detail: {item.detail}",
+            f"suggested_actions: {item.suggested_actions}",
+            f"status: {item.status}",
+        ]
+    )
 
 
 def register_review(app: typer.Typer) -> None:
@@ -28,14 +40,9 @@ def register_review(app: typer.Typer) -> None:
     ) -> None:
         vault = _vault_from_ctx(ctx)
         items = load_review_queue(vault)
-        if fmt == "json":
-            payload = [item.__dict__ for item in items]
-            raise typer.Exit(emit(payload, json.dumps(payload, sort_keys=True), fmt))
-        if not items:
-            print("(no review items)")
-            raise typer.Exit(0)
-        for item in items:
-            print(f"{item.review_id} [{item.status}] {item.title}")
+        payload = [item.__dict__ for item in items]
+        text = "\n".join(f"{item.review_id} [{item.status}] {item.title}" for item in items)
+        _exit_emit(payload, text or "(no review items)", fmt)
 
     @_review_app.command("show")
     def review_show_cmd(
@@ -46,19 +53,13 @@ def register_review(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         item = find_review_item(vault, review_id)
         if item is None:
-            print(f"review item not found: {review_id}")
-            raise typer.Exit(1)
-        payload = item.__dict__
-        if fmt == "json":
-            raise typer.Exit(emit(payload, json.dumps(payload, sort_keys=True), fmt))
-        print(f"review_id: {item.review_id}")
-        print(f"created_at: {item.created_at}")
-        print(f"kind: {item.kind}")
-        print(f"source_id: {item.source_id}")
-        print(f"title: {item.title}")
-        print(f"detail: {item.detail}")
-        print(f"suggested_actions: {item.suggested_actions}")
-        print(f"status: {item.status}")
+            _exit_emit(
+                {"ok": False, "review_id": review_id, "error": "review item not found"},
+                f"review item not found: {review_id}",
+                fmt,
+                exit_code=1,
+            )
+        _exit_emit(item.__dict__, _review_item_text(item), fmt)
 
     @_review_app.command("resolve")
     def review_resolve_cmd(
@@ -74,12 +75,13 @@ def register_review(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         updated = resolve_review_item(vault, review_id, status)
         if updated is None:
-            print(f"review item not found: {review_id}")
-            raise typer.Exit(1)
-        payload = updated.__dict__
-        if fmt == "json":
-            raise typer.Exit(emit(payload, json.dumps(payload, sort_keys=True), fmt))
-        print(f"resolved {review_id} -> {status}")
+            _exit_emit(
+                {"ok": False, "review_id": review_id, "error": "review item not found"},
+                f"review item not found: {review_id}",
+                fmt,
+                exit_code=1,
+            )
+        _exit_emit(updated.__dict__, f"resolved {review_id} -> {status}", fmt)
 
     @_review_app.command("add")
     def review_add_cmd(
@@ -102,7 +104,4 @@ def register_review(app: typer.Typer) -> None:
             detail=detail,
         )
         add_review_item(vault, item)
-        payload = item.__dict__
-        if fmt == "json":
-            raise typer.Exit(emit(payload, json.dumps(payload, sort_keys=True), fmt))
-        print(f"added {item.review_id}")
+        _exit_emit(item.__dict__, f"added {item.review_id}", fmt)

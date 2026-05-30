@@ -6,8 +6,7 @@ from pathlib import Path
 
 import typer
 
-from ..cli_helpers import _delta_text, _vault_from_ctx
-from ..cli_output import emit
+from ..cli_helpers import _delta_text, _exit_emit, _vault_from_ctx
 from ..frontmatter import split_frontmatter
 from ..notes import resolve_source_path
 from ..paths import rel_to_vault, source_md_files
@@ -38,7 +37,7 @@ def register_source(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         target = source_add(vault, path, move=move)
         payload = {"path": rel_to_vault(vault, target)}
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        _exit_emit(payload, payload["path"], fmt)
 
     @_source_app.command("list")
     def source_list_cmd(
@@ -47,7 +46,7 @@ def register_source(app: typer.Typer) -> None:
     ) -> None:
         vault = _vault_from_ctx(ctx)
         rows = [rel_to_vault(vault, p) for p in source_md_files(vault)]
-        raise typer.Exit(emit(rows, "\n".join(rows), fmt))
+        _exit_emit(rows, "\n".join(rows), fmt)
 
     @_source_app.command("show")
     def source_show_cmd(
@@ -67,7 +66,7 @@ def register_source(app: typer.Typer) -> None:
             "manifest_record": manifest.get(source_path),
             "manifest_errors": errors,
         }
-        raise typer.Exit(emit(payload, source_path, fmt))
+        _exit_emit(payload, source_path, fmt)
 
     @_source_app.command("verify")
     def source_verify_cmd(
@@ -77,12 +76,16 @@ def register_source(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         payload, errors = source_delta(vault)
         if errors:
-            print("\n".join(errors))
-            raise typer.Exit(1)
+            _exit_emit(
+                {"ok": False, "errors": errors},
+                "\n".join(errors),
+                fmt,
+                exit_code=1,
+            )
         assert payload is not None
         text = _delta_text(payload["delta"])
         exit_code = 2 if int(str(payload["actionable_count"])) > 0 else 0
-        raise typer.Exit(emit(payload, text, fmt, exit_code=exit_code))
+        _exit_emit(payload, text, fmt, exit_code=exit_code)
 
     @_source_app.command("migrate-frontmatter")
     def source_migrate_frontmatter_cmd(
@@ -96,7 +99,7 @@ def register_source(app: typer.Typer) -> None:
             if result["count"]
             else "No sources needed migration"
         )
-        raise typer.Exit(emit(result, text, fmt))
+        _exit_emit(result, text, fmt)
 
     @_source_app.command("rehash")
     def source_rehash_cmd(
@@ -107,7 +110,7 @@ def register_source(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         result = source_rehash(vault, accept_covered=accept_covered)
         text = f"Updated {result['updated']} records"
-        raise typer.Exit(emit(result, text, fmt))
+        _exit_emit(result, text, fmt)
 
     @_source_app.command("resolve")
     def source_resolve_cmd(
@@ -118,7 +121,7 @@ def register_source(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         payload = source_resolve_report(vault, query)
         text = "\n".join(str(m["path"]) for m in payload["matches"]) or "no matches"
-        raise typer.Exit(emit(payload, text, fmt))
+        _exit_emit(payload, text, fmt)
 
     @_source_app.command("scan")
     def source_scan_cmd(
@@ -132,10 +135,14 @@ def register_source(app: typer.Typer) -> None:
             vault, update=update, accept_covered=accept_covered
         )
         if errors:
-            print("\n".join(errors))
-            raise typer.Exit(1)
+            _exit_emit(
+                {"ok": False, "errors": errors},
+                "\n".join(errors),
+                fmt,
+                exit_code=1,
+            )
         assert payload is not None
-        raise typer.Exit(emit(payload, str(len(payload["records"])), fmt))
+        _exit_emit(payload, str(len(payload["records"])), fmt)
 
     @_source_app.command("delta")
     def source_delta_cmd(
@@ -145,12 +152,16 @@ def register_source(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         payload, errors = source_delta(vault)
         if errors:
-            print("\n".join(errors))
-            raise typer.Exit(1)
+            _exit_emit(
+                {"ok": False, "errors": errors},
+                "\n".join(errors),
+                fmt,
+                exit_code=1,
+            )
         assert payload is not None
         text = _delta_text(payload["delta"])
         exit_code = 2 if int(str(payload["actionable_count"])) > 0 else 0
-        raise typer.Exit(emit(payload, text, fmt, exit_code=exit_code))
+        _exit_emit(payload, text, fmt, exit_code=exit_code)
 
     @_source_app.command("coverage")
     def source_coverage_cmd(
@@ -160,7 +171,7 @@ def register_source(app: typer.Typer) -> None:
     ) -> None:
         vault = _vault_from_ctx(ctx)
         report = source_coverage_report(vault, path_arg=path)
-        raise typer.Exit(emit(report, f"{report['covered']}/{report['total']}", fmt))
+        _exit_emit(report, f"{report['covered']}/{report['total']}", fmt)
 
     @_source_app.command("lint")
     def source_lint_cmd(
@@ -170,13 +181,11 @@ def register_source(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         errors = source_lint(vault)
         payload = {"ok": not errors, "errors": errors}
-        raise typer.Exit(
-            emit(
-                payload,
-                "\n".join(errors) if errors else "source manifest clean",
-                fmt,
-                exit_code=1 if errors else 0,
-            )
+        _exit_emit(
+            payload,
+            "\n".join(errors) if errors else "source manifest clean",
+            fmt,
+            exit_code=1 if errors else 0,
         )
 
     @_source_app.command("read")
@@ -214,11 +223,5 @@ def register_source(app: typer.Typer) -> None:
             "content": preview,
             "total_lines": len(content_lines),
         }
-        if fmt == "json":
-            import json
-
-            print(json.dumps(payload, sort_keys=True))
-        else:
-            print(f"Path: {resolved_rel}")
-            print(preview)
-        raise typer.Exit(0)
+        text = f"Path: {resolved_rel}\n{preview}" if preview else f"Path: {resolved_rel}"
+        _exit_emit(payload, text, fmt)

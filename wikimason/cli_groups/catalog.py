@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import json
 
 import typer
 
 from ..build import build_vault
 from ..catalog import catalog_status, iter_catalog_entries, write_catalog
-from ..cli_helpers import _vault_from_ctx
-from ..cli_output import emit
+from ..cli_helpers import _exit_emit, _vault_from_ctx
 from ..errors import UsageError
 from ..search import search_catalog
 
@@ -33,12 +31,8 @@ def register_catalog(app: typer.Typer) -> None:
         if not actual_query:
             raise UsageError("catalog search requires QUERY or --query")
         rows = search_catalog(vault, query=actual_query, tag=tag, limit=10)
-        if fmt == "json":
-            print(json.dumps(rows, sort_keys=True))
-        else:
-            for row in rows:
-                print(f"{row['title']}\t{row['path']}")
-        raise typer.Exit(0)
+        text = "\n".join(f"{row['title']}\t{row['path']}" for row in rows)
+        _exit_emit(rows, text, fmt)
 
     @_catalog_app.command("build")
     def catalog_build_cmd(
@@ -49,7 +43,7 @@ def register_catalog(app: typer.Typer) -> None:
         entries = list(iter_catalog_entries(vault))
         write_catalog(vault, entries)
         payload = {"ok": True, "count": len(entries), "path": "Wiki/catalog.jsonl"}
-        raise typer.Exit(emit(payload, str(len(entries)), fmt))
+        _exit_emit(payload, str(len(entries)), fmt)
 
     @_catalog_app.command("check")
     def catalog_check_cmd(
@@ -59,7 +53,7 @@ def register_catalog(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         payload = catalog_status(vault)
         text = "catalog up to date" if payload["ok"] else "catalog is stale"
-        raise typer.Exit(emit(payload, text, fmt, exit_code=0 if payload["ok"] else 1))
+        _exit_emit(payload, text, fmt, exit_code=0 if payload["ok"] else 1)
 
     @_catalog_app.command("rebuild")
     def catalog_rebuild_cmd(
@@ -72,6 +66,4 @@ def register_catalog(app: typer.Typer) -> None:
             "updated_source_count": result.updated_source_count,
             "catalog_count": result.catalog_count,
         }
-        raise typer.Exit(
-            emit(payload, f"updated_source_count={result.updated_source_count}", fmt)
-        )
+        _exit_emit(payload, f"updated_source_count={result.updated_source_count}", fmt)

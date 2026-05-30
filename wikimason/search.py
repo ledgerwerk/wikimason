@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal, Protocol
 
-from fuzzysearch import find_near_matches
 from rapidfuzz import fuzz, process, utils
 
 SearchKind = Literal[
@@ -121,6 +120,15 @@ def approximate_snippets(
     query: str, text: str, *, limit: int = 3
 ) -> list[tuple[int, int, int, str]]:
     max_dist = 1 if len(query) < 8 else 2
+    try:
+        from fuzzysearch import find_near_matches
+    except ModuleNotFoundError as exc:
+        from .errors import UsageError
+
+        raise UsageError(
+            "fuzzy snippet search requires the fuzzysearch package. "
+            "Install wikimason with runtime dependencies."
+        ) from exc
     matches = find_near_matches(query, text, max_l_dist=max_dist)
     rows: list[tuple[int, int, int, str]] = []
     for match in matches[:limit]:

@@ -1,42 +1,15 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
 
+from conftest import read_json, write_source
 from wikimason.build import build_vault
 from wikimason.cli import main
 from wikimason.scaffold import init_vault
 
 
-def write_source(vault: Path, name: str, title: str | None = None) -> Path:
-    target = vault / "Raw/Sources" / f"{name}.md"
-    rendered_title = title or name.replace("-", " ").title()
-    target.write_text(
-        f"""---
-Title: "{rendered_title}"
-Author: ""
-Reference: ""
-ContentType:
-  - note
-Created: 2026-05-28
-Processed: false
-tags:
-  - source
----
-
-# {rendered_title}
-
-Short source summary.
-""",
-        encoding="utf-8",
-    )
-    return target
-
-
-def read_json(capsys):
-    return json.loads(capsys.readouterr().out.splitlines()[-1])
 
 
 @pytest.mark.parametrize("tool", ["obsidian", "markdown"])

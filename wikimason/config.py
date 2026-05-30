@@ -20,7 +20,7 @@ from .constants import (
 )
 from .errors import UsageError
 from .profiles import profile_defaults
-
+from .toml_tools import toml_string, toml_value
 
 @dataclass(frozen=True)
 class PathConfig:
@@ -297,14 +297,14 @@ def write_config_file(
         f"config_version = {config.config_version}",
         "",
         "[wiki]",
-        f"name = {_toml_string(config.name or config.root.name)}",
-        f"root = {_toml_string(resolved_root_value)}",
-        f"profile = {_toml_string(config.profile)}",
+        f"name = {toml_string(config.name or config.root.name)}",
+        f"root = {toml_string(resolved_root_value)}",
+        f"profile = {toml_string(config.profile)}",
         "",
         "[paths]",
     ]
     for key, value in config.paths.as_dict().items():
-        lines.append(f"{key} = {_toml_string(value)}")
+        lines.append(f"{key} = {toml_string(value)}")
     lines.extend(
         [
             "",
@@ -312,7 +312,7 @@ def write_config_file(
         ]
     )
     for key, value in config.links.as_dict().items():
-        lines.append(f"{key} = {_toml_string(value)}")
+        lines.append(f"{key} = {toml_string(value)}")
     lines.extend(
         [
             "",
@@ -474,26 +474,8 @@ def _load_profile_overrides(
     return _profile_table(overrides, table_name=f"tool_settings.{profile}")
 
 
-def _toml_string(value: str) -> str:
-    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
-    return f'"{escaped}"'
-
-
-def _toml_bool(value: bool) -> str:
-    return "true" if value else "false"
-
-
-def _toml_string_array(values: list[str] | tuple[str, ...]) -> str:
-    return "[" + ", ".join(_toml_string(value) for value in values) + "]"
-
-
 def _toml_value(value: Any) -> str:
-    if isinstance(value, bool):
-        return _toml_bool(value)
-    if isinstance(value, str):
-        return _toml_string(value)
-    if isinstance(value, (list, tuple)) and all(
-        isinstance(item, str) for item in value
-    ):
-        return _toml_string_array(list(value))
-    raise UsageError(f"unsupported TOML value: {value!r}")
+    try:
+        return toml_value(value)
+    except ValueError as exc:
+        raise UsageError(str(exc)) from exc
