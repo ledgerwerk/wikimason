@@ -66,7 +66,7 @@ def new_note(
     logical_ref = f"{kind_to_folder(kind, schema=schema)}/{slug}"
     target = vault / logical_ref_to_relpath(logical_ref, config=config)
     target.parent.mkdir(parents=True, exist_ok=True)
-    note_path = target.relative_to(vault).as_posix()
+    note_path = rel_to_vault(vault, target)
     today = date.today().isoformat()
     normalized_sources = tuple(resolve_source_path(vault, source) for source in sources)
     normalized_related = tuple(
@@ -207,7 +207,7 @@ def normalize_note(vault: Path, note_path: str, fix: bool = False) -> dict[str, 
             update_page_text(text, updates, config=config), encoding="utf-8"
         )
     return {
-        "path": path.relative_to(vault).as_posix(),
+        "path": rel_to_vault(vault, path),
         "changed": changed,
         "applied": changed and fix,
         "updates": updates,
@@ -308,7 +308,7 @@ def normalize_related_path(vault: Path, value: str) -> str:
         return rel
     candidate = resolve_path_in_vault(vault, cleaned)
     if candidate.exists():
-        return candidate.relative_to(vault).as_posix()
+        return rel_to_vault(vault, candidate)
     if cleaned.endswith(".md"):
         return cleaned
     return f"{cleaned}.md"

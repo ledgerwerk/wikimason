@@ -7,7 +7,7 @@ from typing import Any
 
 from .constants import SOURCE_MANIFEST, SOURCE_SCHEMA_VERSION
 from .frontmatter import split_frontmatter
-from .paths import source_md_files
+from .paths import rel_to_vault, source_md_files
 from .source_manifest import load_source_manifest
 from .source_metadata import (
     _build_wm_fields,
@@ -25,7 +25,7 @@ def source_verify(vault: Path) -> dict[str, Any]:
     """Verify raw-source state against manifest."""
     manifest, load_errors = load_source_manifest(vault)
     coverage_map, weak_sources = build_source_coverage_map(vault)
-    existing = {p.relative_to(vault).as_posix(): p for p in source_md_files(vault)}
+    existing = {rel_to_vault(vault, p): p for p in source_md_files(vault)}
     findings: list[dict[str, Any]] = []
     status = "valid"
     exit_code = 0
@@ -172,9 +172,9 @@ def source_migrate_frontmatter(vault: Path) -> dict[str, Any]:
                 current_filename=path.name,
             )
             path.write_text(embed_wikimason_metadata(text, wb), encoding="utf-8")
-            migrated.append(path.relative_to(vault).as_posix())
+            migrated.append(rel_to_vault(vault, path))
         except Exception as exc:
-            errors.append(f"{path.relative_to(vault).as_posix()}: {exc}")
+            errors.append(f"{rel_to_vault(vault, path)}: {exc}")
 
     return {"migrated": migrated, "errors": errors, "count": len(migrated)}
 
@@ -182,7 +182,7 @@ def source_migrate_frontmatter(vault: Path) -> dict[str, Any]:
 def source_lint(vault: Path) -> list[str]:
     records, errors = load_source_manifest(vault)
     coverage_map, weak_sources = build_source_coverage_map(vault)
-    existing_raw = {p.relative_to(vault).as_posix(): p for p in source_md_files(vault)}
+    existing_raw = {rel_to_vault(vault, p): p for p in source_md_files(vault)}
 
     for weak in weak_sources:
         errors.append(

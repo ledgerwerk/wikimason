@@ -46,7 +46,7 @@ def register_source(app: typer.Typer) -> None:
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
-        rows = [p.relative_to(vault).as_posix() for p in source_md_files(vault)]
+        rows = [rel_to_vault(vault, p) for p in source_md_files(vault)]
         raise typer.Exit(emit(rows, "\n".join(rows), fmt))
 
     @_source_app.command("show")

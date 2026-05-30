@@ -104,7 +104,24 @@ def rel_to_vault(vault: Path, path: Path) -> str:
     try:
         return path.relative_to(vault).as_posix()
     except ValueError:
+        pass
+    try:
         return path.resolve().relative_to(vault.resolve()).as_posix()
+    except ValueError:
+        pass
+    # String-based fallback: strip the vault prefix from the string path.
+    # This handles edge cases on Windows where Path.resolve() normalizes
+    # the vault differently (UNC prefix, case differences, junction targets).
+    vault_str = vault.resolve().as_posix().rstrip("/")
+    path_str = path.resolve().as_posix()
+    if path_str.startswith(vault_str + "/"):
+        return path_str[len(vault_str) + 1 :]
+    # Last resort: try case-insensitive match on Windows
+    vault_lower = vault_str.casefold()
+    path_lower = path_str.casefold()
+    if path_lower.startswith(vault_lower + "/"):
+        return path_str[len(vault_str) + 1 :]
+    raise ValueError(f"{path!s} is not relative to {vault!s}")
 
 
 def resolve_path_in_vault(vault: Path, rel: str) -> Path:
@@ -152,7 +169,7 @@ def compiled_md_files(vault: Path, schema: VaultSchema | None = None) -> Iterato
     hub_filename = config.profile_config.hub_filename
     prefixes = schema_compiled_prefixes(schema or load_vault_schema(vault))
     for path in wiki_md_files(vault):
-        rel = path.relative_to(vault).as_posix()
+        rel = rel_to_vault(vault, path)
         logical_ref = relpath_to_logical_ref(rel, config=config) or rel.removesuffix(
             ".md"
         )
@@ -190,7 +207,7 @@ def build_link_targets(vault: Path) -> set[str]:
     config = load_runtime_config(vault)
     targets: set[str] = set()
     for path in sorted(vault.rglob("*.md")):
-        rel = path.relative_to(vault).as_posix()
+        rel = rel_to_vault(vault, path)
         no_ext = rel.removesuffix(".md")
         targets.add(rel)
         targets.add(no_ext)

@@ -11,7 +11,7 @@ from typing import Any
 from .constants import SOURCE_SCHEMA_VERSION
 from .frontmatter import split_frontmatter, update_frontmatter
 from .link_format import normalize_internal_link_target
-from .paths import source_md_files
+from .paths import rel_to_vault, source_md_files
 from .schema import compiled_prefixes, load_vault_schema
 from .source_manifest import load_source_manifest, write_source_manifest
 from .source_metadata import (
@@ -41,7 +41,7 @@ def raw_record(
     """Build a manifest record for a source file."""
     from .frontmatter import canonical_json
 
-    rel = path.relative_to(vault).as_posix()
+    rel = rel_to_vault(vault, path)
     coverage = sorted(set(coverage_map.get(rel, [])))
     coverage_status = "covered" if coverage else "missing"
     now = timestamp or now_iso()
@@ -148,14 +148,14 @@ def raw_record(
 def build_source_coverage_map(
     vault: Path,
 ) -> tuple[dict[str, list[str]], list[dict[str, str]]]:
-    from .paths import decode_unicode_escape_literals
+    from .paths import decode_unicode_escape_literals, rel_to_vault
 
     prefixes = compiled_prefixes(load_vault_schema(vault))
-    existing_raw = {p.relative_to(vault).as_posix() for p in source_md_files(vault)}
+    existing_raw = {rel_to_vault(vault, p) for p in source_md_files(vault)}
     coverage_map: dict[str, list[str]] = {}
     weak_sources: list[dict[str, str]] = []
     for note in sorted((vault / "Wiki").rglob("*.md")):
-        rel_note = note.relative_to(vault).as_posix()
+        rel_note = rel_to_vault(vault, note)
         if note.name == "index.md" or rel_note == "Wiki/log.md":
             continue
         if not any(rel_note.startswith(prefix) for prefix in prefixes):
@@ -207,7 +207,7 @@ def source_scan_payload(
         old_by_path[key] = row
 
     for path in sorted((vault / "Raw/Sources").rglob("*.md")):
-        rel = path.relative_to(vault).as_posix()
+        rel = rel_to_vault(vault, path)
         old_row = old_by_path.get(rel)
         if old_row is None:
             try:
