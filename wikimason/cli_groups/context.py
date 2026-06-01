@@ -46,6 +46,15 @@ def register_context(app: typer.Typer) -> None:
             False, "--rebuild-index", help="Rebuild FTS index before selection."
         ),
         fmt: str = typer.Option("text", "--format", help="Output format."),
+        source_closure: bool = typer.Option(
+            True, "--source-closure", help="Check declared source closure."
+        ),
+        purpose: str = typer.Option(
+            "chat", "--purpose", help="Export purpose: chat, search, audit."
+        ),
+        show_omitted: int = typer.Option(
+            20, "--show-omitted", help="Max omitted candidates to show."
+        ),
     ) -> None:
         vault = _vault_from_ctx(ctx)
         plan = plan_context(
@@ -61,7 +70,19 @@ def register_context(app: typer.Typer) -> None:
             include_binary=include_binary,
             min_score=min_score,
             rebuild_index=rebuild_index,
+            purpose=purpose,
+            source_closure=source_closure,
+            show_omitted=show_omitted,
         )
+        if fmt == "json":
+            payload = plan_to_json(plan)
+            text = (
+                f"{plan.selected_count} files selected, ~{plan.estimated_tokens} tokens"
+            )
+            _exit_emit(payload, text, fmt)
+        else:
+            md = render_context_markdown(vault, plan, show_omitted=show_omitted)
+            _exit_emit({"plan": plan_to_json(plan)}, md, fmt)
         if fmt == "json":
             payload = plan_to_json(plan)
             text = (
@@ -109,6 +130,15 @@ def register_context(app: typer.Typer) -> None:
             help="Proceed even if potential secrets found.",
         ),
         fmt: str = typer.Option("text", "--format", help="Output format."),
+        source_closure: bool = typer.Option(
+            True, "--source-closure", help="Check declared source closure."
+        ),
+        purpose: str = typer.Option(
+            "chat", "--purpose", help="Export purpose: chat, search, audit."
+        ),
+        show_omitted: int = typer.Option(
+            20, "--show-omitted", help="Max omitted candidates to show."
+        ),
     ) -> None:
         vault = _vault_from_ctx(ctx)
 
@@ -123,6 +153,9 @@ def register_context(app: typer.Typer) -> None:
             "include_binary": include_binary,
             "min_score": min_score,
             "rebuild_index": rebuild_index,
+            "purpose": purpose,
+            "source_closure": source_closure,
+            "show_omitted": show_omitted,
         }
 
         plan = export_context(
@@ -132,7 +165,7 @@ def register_context(app: typer.Typer) -> None:
             allow_sensitive=allow_sensitive,
             **options,
         )
-        md_text = render_context_markdown(vault, plan)
+        md_text = render_context_markdown(vault, plan, show_omitted=show_omitted)
 
         if print_out:
             import sys

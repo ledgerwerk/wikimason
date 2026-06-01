@@ -203,6 +203,26 @@ wikimason log add --action ingest.finish --title "Reviewed ingest" --details "Co
 wikimason log tail -n 10 --format json
 wikimason log check --format json
 ```
+```
+
+### 7. Export context for LLM chat
+
+```bash
+# Preview which files would be selected for a topic
+wikimason context plan "retrieval pipeline" --format json
+
+# Export to stdout with source closure checking
+wikimason context export "retrieval pipeline" --print --source-closure
+
+# Export to file for chat use
+wikimason context export "retrieval pipeline" -o context.md --purpose chat
+```
+
+Context export selects relevant wiki pages and declared sources for a topic query,
+ranks them by relevance with tiered priority (seed matches, declared sources, graph
+expansion), applies token and byte budgets, and renders a deterministic Markdown file
+with a selection manifest, omitted candidates report, and source closure gaps.
+
 
 ## Configuration
 
@@ -289,6 +309,7 @@ The Logseq profile stores pages flat under `pages/`, renders metadata as `proper
 | `daily`, `task`, `tag`, `property`  | Daily notes and Markdown metadata utilities.                                   |
 | `catalog`, `index`, `agents`        | Build generated catalog, index pages, and `AGENTS.md`.                         |
 | `doctor`, `status`, `lint`, `audit` | Health, validation, and audit commands.                                        |
+| `context`                           | Select, plan, and export wiki context for LLM chat or search.                  |
 | `vault`                             | Vault initialization, registry, build, lint, doctor, and maintenance commands. |
 | `skill`                             | Locate or install the packaged WikiMason agent skill.                          |
 

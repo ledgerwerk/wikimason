@@ -9,9 +9,10 @@ from __future__ import annotations
 import hashlib
 import re
 import sqlite3
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Protocol
+from typing import Collection, Literal, Protocol
 
 # ---------------------------------------------------------------------------
 # Schema DDL
@@ -53,6 +54,23 @@ CREATE TABLE IF NOT EXISTS search_meta (
 """
 
 DEFAULT_INDEX_PATH = ".wikimason/search.sqlite3"
+FTSMode = Literal["strict", "balanced", "broad"]
+CONTEXT_EXPORT_STOPWORDS = frozenset({"wiki", "wikimason"})
+_BM25_PROFILES: dict[str, tuple[float, ...]] = {
+    "broad": (2.0, 4.0, 3.0, 2.0, 2.5, 1.0, 1.0),
+    "context": (0.25, 4.0, 3.0, 2.0, 2.5, 1.5, 1.5),
+}
+
+
+@dataclass(frozen=True)
+class FTSQueryPlan:
+    cleaned: str
+    query: str
+    mode: FTSMode
+    terms: tuple[str, ...]
+    effective_terms: tuple[str, ...]
+    removed_stopwords: tuple[str, ...] = ()
+    used_stopword_fallback: bool = False
 
 # ---------------------------------------------------------------------------
 # Protocol
@@ -64,7 +82,15 @@ class SearchIndex(Protocol):
 
     def rebuild(self, vault: Path) -> dict[str, object]: ...
 
-    def query(self, query_text: str, *, limit: int = 20) -> list[dict[str, object]]: ...
+    def query(
+        self,
+        query_text: str,
+        *,
+        limit: int = 20,
+        mode: FTSMode = "broad",
+        stopwords: Collection[str] | None = None,
+        weight_profile: str = "broad",
+    ) -> list[dict[str, object]]: ...
 
     def status(self) -> dict[str, object]: ...
 
@@ -241,17 +267,49 @@ class SQLiteSearchIndex:
 
     # -- querying --
 
-    def query(self, query_text: str, *, limit: int = 20) -> list[dict[str, object]]:
+    def query(
+        self,
+        query_text: str,
+        *,
+        limit: int = 20,
+        mode: FTSMode = "broad",
+        stopwords: Collection[str] | None = None,
+        weight_profile: str = "broad",
+    ) -> list[dict[str, object]]:
         """Run an FTS5 query and return ranked results."""
+        query_plan = build_fts_query_plan(query_text, mode=mode, stopwords=stopwords)
+        return self.query_prepared(
+            query_plan.query,
+            limit=limit,
+            weight_profile=weight_profile,
+        )
+
+    def query_prepared(
+        self,
+        fts_query: str,
+        *,
+        limit: int = 20,
+        weight_profile: str = "broad",
+    ) -> list[dict[str, object]]:
+        """Run a pre-built FTS5 query and return ranked results."""
         conn = self._connect()
-        fts_query = to_safe_fts_query(query_text)
         if not fts_query:
             return []
+        weights = _BM25_PROFILES.get(weight_profile, _BM25_PROFILES["broad"])
         try:
             rows = conn.execute(
-                """
+                f"""
                 SELECT d.path, d.kind, d.title, d.tags, d.summary,
-                       bm25(search_fts, 2.0, 4.0, 3.0, 2.0, 2.5, 1.0, 1.0) AS rank
+                       bm25(
+                           search_fts,
+                           {weights[0]},
+                           {weights[1]},
+                           {weights[2]},
+                           {weights[3]},
+                           {weights[4]},
+                           {weights[5]},
+                           {weights[6]}
+                       ) AS rank
                 FROM search_fts
                 JOIN search_docs d ON d.docid = search_fts.rowid
                 WHERE search_fts MATCH ?
@@ -318,7 +376,15 @@ class StubSearchIndex:
     def rebuild(self, vault: Path) -> dict[str, object]:
         return {"ok": False, "reason": "FTS5 index not yet implemented"}
 
-    def query(self, query_text: str, *, limit: int = 20) -> list[dict[str, object]]:
+    def query(
+        self,
+        query_text: str,
+        *,
+        limit: int = 20,
+        mode: FTSMode = "broad",
+        stopwords: Collection[str] | None = None,
+        weight_profile: str = "broad",
+    ) -> list[dict[str, object]]:
         return []
 
     def status(self) -> dict[str, object]:
@@ -347,27 +413,82 @@ def index_status(vault: Path) -> dict[str, object]:
     return idx.status()
 
 
-def to_safe_fts_query(query_text: str) -> str:
+def to_safe_fts_query(
+    query_text: str,
+    *,
+    mode: FTSMode = "broad",
+    stopwords: Collection[str] | None = None,
+) -> str:
     """Convert a user query into a safe FTS5 expression.
 
     For ``llm wiki`` this generates ``"llm" OR "wiki" OR "llm wiki"``.
     Special FTS syntax characters are stripped from individual terms.
     """
-    # Strip FTS special characters
+    return build_fts_query_plan(
+        query_text,
+        mode=mode,
+        stopwords=stopwords,
+    ).query
+
+
+def build_fts_query_plan(
+    query_text: str,
+    *,
+    mode: FTSMode = "broad",
+    stopwords: Collection[str] | None = None,
+) -> FTSQueryPlan:
+    """Build a normalized, safe FTS query plan for a user query."""
     cleaned = re.sub(r'[{}()"*:^|!~+-]', " ", query_text).strip()
-    if not cleaned:
-        return ""
-    terms = cleaned.split()
+    terms = tuple(term for term in cleaned.split() if term)
+    if not terms:
+        return FTSQueryPlan(
+            cleaned=cleaned,
+            query="",
+            mode=mode,
+            terms=(),
+            effective_terms=(),
+        )
+
+    removed_stopwords: tuple[str, ...] = ()
+    effective_terms = terms
+    used_stopword_fallback = False
+    if stopwords:
+        lowered = {word.casefold() for word in stopwords}
+        effective_terms = tuple(term for term in terms if term.casefold() not in lowered)
+        removed_stopwords = tuple(term for term in terms if term.casefold() in lowered)
+        if not effective_terms:
+            effective_terms = terms
+            removed_stopwords = ()
+            used_stopword_fallback = True
+
+    return FTSQueryPlan(
+        cleaned=cleaned,
+        query=_compose_fts_query(effective_terms, mode=mode),
+        mode=mode,
+        terms=terms,
+        effective_terms=effective_terms,
+        removed_stopwords=removed_stopwords,
+        used_stopword_fallback=used_stopword_fallback,
+    )
+
+
+def _compose_fts_query(terms: tuple[str, ...], *, mode: FTSMode) -> str:
     if not terms:
         return ""
-    parts: list[str] = []
-    # Individual terms
-    for term in terms:
-        if term:
-            parts.append(f'"{term}"')
-    # Full phrase
+    if mode == "strict":
+        if len(terms) == 1:
+            return f'"{terms[0]}"'
+        return f'"{" ".join(terms)}"'
+    if mode == "balanced":
+        if len(terms) == 1:
+            return f'"{terms[0]}"'
+        joined = " AND ".join(f'"{term}"' for term in terms)
+        phrase = f'"{" ".join(terms)}"'
+        return f"({joined}) OR {phrase}"
+
+    parts = [f'"{term}"' for term in terms]
     if len(terms) > 1:
-        parts.append(f'"{cleaned}"')
+        parts.append(f'"{" ".join(terms)}"')
     return " OR ".join(parts)
 
 

@@ -22,6 +22,7 @@ Group          Purpose
 ``daily``      Daily notes and Markdown metadata utilities.
 ``catalog``    Build generated catalog, index pages, and ``AGENTS.md``.
 ``doctor``     Health, validation, and audit commands.
+``context``    Select, plan, and export wiki context for LLM chat or search.
 ``vault``      Vault initialization, registry, build, lint, doctor, and maintenance.
 ``skill``      Locate or install the packaged WikiMason agent skill.
 =============  ===================================================================
@@ -66,6 +67,14 @@ Maintain:
    wikimason vault maintain --format json
    wikimason log tail -n 5 --format json
    wikimason log check --format json
+
+Context export for LLM chat:
+
+.. code-block:: bash
+
+   wikimason context plan "retrieval pipeline" --format json
+   wikimason context export "retrieval pipeline" --print --source-closure
+   wikimason context export "retrieval pipeline" -o context.md --purpose chat
 
 For the full command reference with every flag and usage string, see
 :doc:`command-reference`.

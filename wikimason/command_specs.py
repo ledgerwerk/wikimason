@@ -812,7 +812,9 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason context plan QUERY [--format text|json]"
         " [--max-files N] [--max-bytes N] [--max-tokens N]"
         " [--depth N] [--include wiki|sources|both]"
-        " [--include-indexes] [--min-score FLOAT] [--rebuild-index]",
+        " [--include-indexes] [--include-generated] [--include-binary]"
+        " [--source-closure] [--purpose chat|search|audit]"
+        " [--show-omitted N] [--min-score FLOAT] [--rebuild-index]",
         summary="Preview which files would be selected for a topic query.",
         json_output=True,
     ),
@@ -821,7 +823,9 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason context export QUERY --output PATH"
         " [--print] [--copy] [--max-files N] [--max-bytes N] [--max-tokens N]"
         " [--depth N] [--include wiki|sources|both]"
-        " [--include-indexes] [--allow-sensitive] [--rebuild-index]",
+        " [--include-indexes] [--include-generated] [--include-binary]"
+        " [--source-closure] [--purpose chat|search|audit]"
+        " [--show-omitted N] [--allow-sensitive] [--rebuild-index]",
         summary="Export relevant wiki files into a single Markdown context file.",
         json_output=True,
     ),
