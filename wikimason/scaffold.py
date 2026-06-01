@@ -98,7 +98,7 @@ CORE_KEEP_FILES = [
 CORE_EMPTY_FILES = {
     "Schema/source-manifest.jsonl": "",
     "Wiki/catalog.jsonl": "",
-    "Wiki/log.md": "# Wiki Log\n",
+    "Wiki/log.md": "# Wiki Log\n\n",
 }
 
 SECTION_INDEX_PLACEHOLDERS = {

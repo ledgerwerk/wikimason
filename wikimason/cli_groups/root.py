@@ -1,4 +1,4 @@
-"""Top-level root commands (version, help, init, query, lint, status, doctor, log, audit)."""  # noqa: E501
+"""Top-level root commands (version, help, init, query, lint, status, doctor, audit)."""
 
 from __future__ import annotations
 
@@ -11,13 +11,16 @@ import typer
 from .. import __version__
 from ..audit import audit_vault
 from ..cli_helpers import (
+    CommandOutcome,
+    _finish_command,
     _run_doctor,
     _run_lint,
     _vault_from_ctx,
 )
 from ..cli_output import emit
 from ..ingest import doctor_status, ingest_status
-from ..logs import append_log
+from ..log_events import audit_event, change_event, lint_event
+from ..logs import append_log_event
 from ..profiles import canonical_profile_name
 from ..scaffold import init_vault
 from ..search import search_catalog
@@ -91,7 +94,22 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
             "env": env,
             "demo": demo,
         }
-        raise typer.Exit(emit(payload, f"initialized {target}", fmt))
+        append_log_event(
+            target,
+            change_event(
+                "init",
+                "Initialized vault",
+                summary=f"initialized {target}",
+                paths=("Wiki/log.md",),
+                metadata={
+                    "profile": canonical_profile_name(profile_name),
+                    "demo": str(demo).lower(),
+                },
+            ),
+        )
+        raise typer.Exit(
+            emit(payload, f"initialized {target}", fmt, command="init", status="changed")
+        )
 
     @app.command("query")
     def query_cmd(
@@ -103,6 +121,16 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
         vault = _vault_from_ctx(ctx)
         rows = search_catalog(vault, query=query or "", tag=tag, limit=10)
         text = "\n".join(f"{row['title']}\t{row['path']}" for row in rows)
+        append_log_event(
+            vault,
+            audit_event(
+                "query",
+                "Searched catalog",
+                summary=f"Query: {query or ''}",
+                counts={"rows": len(rows)},
+                metadata={"tag": tag or ""},
+            ),
+        )
         raise typer.Exit(emit(rows, text, fmt))
 
     @app.command("lint")
@@ -111,7 +139,14 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
         strict: bool = typer.Option(False, "--strict"),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        _run_lint(ctx, strict, fmt, command="lint")
+        outcome = _run_lint(ctx, strict, command="lint")
+        payload = outcome.payload["data"] if isinstance(outcome.payload, dict) else {}
+        _finish_command(
+            ctx,
+            outcome,
+            fmt,
+            log_event=lint_event("lint", payload, strict=strict),
+        )
 
     @app.command("status")
     def status_cmd(
@@ -122,13 +157,20 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
         payload = ingest_status(vault)
         payload["doctor"] = doctor_status(vault)
         text = str(payload["next_action"])
-        raise typer.Exit(
-            emit(
-                payload,
-                text,
-                fmt,
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=text,
                 command="status",
                 status=payload.get("next_action", "clean"),
+            ),
+            fmt,
+            log_event=audit_event(
+                "status",
+                "Checked vault status",
+                summary=text,
+                status=str(payload.get("next_action", "clean")),
             )
         )
 
@@ -137,19 +179,22 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
         ctx: typer.Context,
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        _run_doctor(ctx, fmt)
-
-    @app.command("log")
-    def log_cmd(
-        ctx: typer.Context,
-        title: str = typer.Option(..., "--title", help="Log title."),
-        details: str = typer.Option(..., "--details", help="Log details."),
-        fmt: str = typer.Option("text", "--format", help="Output format."),
-    ) -> None:
-        vault = _vault_from_ctx(ctx)
-        path = append_log(vault, title, details)
-        rel = path.relative_to(vault).as_posix()
-        raise typer.Exit(emit({"path": rel}, rel, fmt))
+        outcome = _run_doctor(ctx, command="doctor")
+        payload = outcome.payload["data"] if isinstance(outcome.payload, dict) else {}
+        checks = payload.get("checks", []) if isinstance(payload, dict) else []
+        _finish_command(
+            ctx,
+            outcome,
+            fmt,
+            log_event=audit_event(
+                "doctor",
+                "Ran doctor checks",
+                summary=outcome.text,
+                counts={"checks": len(checks)},
+                status=outcome.status,
+                exit_code=outcome.exit_code,
+            ),
+        )
 
     @app.command("audit")
     def audit_cmd(
@@ -158,13 +203,36 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
     ) -> None:
         vault = _vault_from_ctx(ctx)
         findings = audit_vault(vault)
-        payload = {"ok": not findings, "findings": findings}
+        raw_payload = {"ok": not findings, "findings": findings}
         text = "\n".join(findings)
-        raise typer.Exit(
-            emit(
-                payload,
-                text or "audit clean",
-                fmt,
+        payload = {
+            "schema_version": 1,
+            "ok": not findings,
+            "command": "audit",
+            "status": "clean" if not findings else "invalid",
+            "exit_code": 0 if not findings else 1,
+            "data": raw_payload,
+            "warnings": [],
+            "errors": [],
+            "next_action": None,
+            **raw_payload,
+        }
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=text or "audit clean",
+                command="audit",
+                status="clean" if not findings else "invalid",
+                exit_code=0 if not findings else 1,
+            ),
+            fmt,
+            log_event=audit_event(
+                "audit",
+                "Audited vault",
+                summary=text or "Audit clean.",
+                counts={"findings": len(findings)},
+                status="clean" if not findings else "invalid",
                 exit_code=0 if not findings else 1,
             )
         )

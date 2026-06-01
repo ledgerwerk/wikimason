@@ -290,8 +290,28 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 
 ### `vault maintain`
 
-- Usage: `wikimason vault maintain [--log TEXT] [--format text|json]`
+- Usage: `wikimason vault maintain [--log TEXT] [--accept-covered] [--format text|json]`
 - Summary: Full vault maintenance.
+- JSON output: yes
+
+## Log
+
+### `log add`
+
+- Usage: `wikimason log add --action ACTION --title TITLE [--details TEXT] [--path PATH ...] [--format text|json]`
+- Summary: Append a structured operational log entry.
+- JSON output: yes
+
+### `log tail`
+
+- Usage: `wikimason log tail [-n N] [--action ACTION] [--command COMMAND] [--format text|json]`
+- Summary: Show recent operational log entries.
+- JSON output: yes
+
+### `log check`
+
+- Usage: `wikimason log check [--strict] [--format text|json]`
+- Summary: Validate operational log format.
 - JSON output: yes
 
 ## Query
@@ -328,6 +348,12 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 
 - Usage: `wikimason catalog check [--format text|json]`
 - Summary: Check catalog freshness.
+- JSON output: yes
+
+### `catalog rebuild`
+
+- Usage: `wikimason catalog rebuild [--format text|json]`
+- Summary: Rebuild catalog and indexes.
 - JSON output: yes
 
 ### `catalog search`

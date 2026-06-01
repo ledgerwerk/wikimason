@@ -67,6 +67,7 @@ from .cli_groups.folder import register_folder
 from .cli_groups.index import register_index
 from .cli_groups.ingest import register_ingest
 from .cli_groups.links import register_links
+from .cli_groups.log import register_log
 from .cli_groups.note import register_note
 from .cli_groups.page import register_page
 from .cli_groups.property import register_property
@@ -91,6 +92,7 @@ register_folder(app)
 register_index(app)
 register_ingest(app)
 register_links(app)
+register_log(app)
 register_note(app)
 register_page(app)
 register_property(app)

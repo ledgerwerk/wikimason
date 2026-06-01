@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import typer
 
-from ..cli_helpers import _exit_emit, _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _exit_emit, _finish_command, _vault_from_ctx
+from ..cli_output import result_payload
+from ..log_events import change_event
 from ..review import (
     ReviewItem,
     add_review_item,
@@ -83,7 +85,22 @@ def register_review(app: typer.Typer) -> None:
                 fmt,
                 exit_code=1,
             )
-        _exit_emit(updated.__dict__, f"resolved {review_id} -> {status}", fmt)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload={**result_payload(command="review.resolve", status="changed", data=updated.__dict__), **updated.__dict__},
+                text=f"resolved {review_id} -> {status}",
+                command="review.resolve",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "review.resolve",
+                "Resolved review item",
+                summary=f"{review_id} -> {status}",
+                metadata={"review_id": review_id, "status": status},
+            ),
+        )
 
     @_review_app.command("add")
     def review_add_cmd(
@@ -106,4 +123,19 @@ def register_review(app: typer.Typer) -> None:
             detail=detail,
         )
         add_review_item(vault, item)
-        _exit_emit(item.__dict__, f"added {item.review_id}", fmt)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload={**result_payload(command="review.add", status="changed", data=item.__dict__), **item.__dict__},
+                text=f"added {item.review_id}",
+                command="review.add",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "review.add",
+                "Added review item",
+                summary=f"{item.review_id}: {title}",
+                metadata={"review_id": item.review_id, "kind": kind, "source_id": source_id},
+            ),
+        )

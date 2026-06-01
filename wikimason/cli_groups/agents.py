@@ -5,8 +5,9 @@ from __future__ import annotations
 import typer
 
 from ..agents import compile_agents_md, compute_input_hashes, write_agents_md
-from ..cli_helpers import _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _finish_command, _vault_from_ctx
 from ..cli_output import emit
+from ..log_events import change_event
 from ..paths import rel_to_vault
 
 
@@ -36,7 +37,22 @@ def register_agents(app: typer.Typer) -> None:
             raise typer.Exit(emit(payload, text, fmt, exit_code=0 if ok else 1))
         out = write_agents_md(vault, force=True)
         payload = {"ok": True, "path": rel_to_vault(vault, out), "check": False}
-        raise typer.Exit(emit(payload, str(payload["path"]), fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=str(payload["path"]),
+                command="agents.compile",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "agents.compile",
+                "Compiled AGENTS.md",
+                summary=str(payload["path"]),
+                paths=(str(payload["path"]),),
+            ),
+        )
 
     @_agents_app.command("check")
     def agents_check_cmd(

@@ -6,9 +6,10 @@ from pathlib import Path
 
 import typer
 
-from ..cli_helpers import _delta_text, _exit_emit, _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _delta_text, _exit_emit, _finish_command, _vault_from_ctx
 from ..cli_output import result_payload
 from ..frontmatter import split_frontmatter
+from ..log_events import audit_event, change_event, lint_event, source_event
 from ..notes import resolve_source_path
 from ..paths import rel_to_vault, source_md_files
 from ..sources import (
@@ -144,7 +145,24 @@ def register_source(app: typer.Typer) -> None:
         target = source_add(vault, path, move=move)
         raw = {"path": rel_to_vault(vault, target)}
         payload = _source_result(command="source.add", status="changed", data=raw)
-        _exit_emit(payload, str(raw["path"]), fmt)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=str(raw["path"]),
+                command="source.add",
+                status="changed",
+            ),
+            fmt,
+            log_event=source_event(
+                "source.add",
+                "changed",
+                str(raw["path"]),
+                title="Added raw source",
+                summary="Moved source into the vault." if move else "Copied source into the vault.",
+                metadata={"move": str(move).lower()},
+            ),
+        )
 
     @_source_app.command("list")
     def source_list_cmd(
@@ -209,7 +227,25 @@ def register_source(app: typer.Typer) -> None:
             data=payload,
             exit_code=exit_code,
         )
-        _exit_emit(result, text, fmt, exit_code=exit_code)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=result,
+                text=text,
+                command="source.verify",
+                status="actionable" if actionable else "clean",
+                exit_code=exit_code,
+            ),
+            fmt,
+            log_event=audit_event(
+                "source.verify",
+                "Verified source coverage",
+                summary=text,
+                counts={"actionable": int(str(payload["actionable_count"]))},
+                status="actionable" if actionable else "clean",
+                exit_code=exit_code,
+            ),
+        )
 
     @_source_app.command("rehash")
     def source_rehash_cmd(
@@ -221,7 +257,23 @@ def register_source(app: typer.Typer) -> None:
         raw = source_rehash(vault, accept_covered=accept_covered)
         text = f"Updated {raw['updated']} records"
         payload = _source_result(command="source.rehash", status="changed", data=raw)
-        _exit_emit(payload, text, fmt)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=text,
+                command="source.rehash",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "source.rehash",
+                "Rehashed source manifest",
+                summary=text,
+                counts={"updated": raw["updated"]},
+                metadata={"accept_covered": str(accept_covered).lower()},
+            ),
+        )
 
     @_source_app.command("resolve")
     def source_resolve_cmd(
@@ -272,7 +324,29 @@ def register_source(app: typer.Typer) -> None:
             status="changed" if update else "clean",
             data=data,
         )
-        _exit_emit(result, str(len(payload["records"])), fmt)
+        event = None
+        if update:
+            event = change_event(
+                "source.scan",
+                "Scanned sources",
+                summary="Updated source coverage during scan.",
+                counts={
+                    "total": len(payload["records"]),
+                    "covered": sum(1 for r in payload.get("records", []) if r.get("coverage")),
+                },
+                metadata={"accept_covered": str(accept_covered).lower()},
+            )
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=result,
+                text=str(len(payload["records"])),
+                command="source.scan",
+                status="changed" if update else "clean",
+            ),
+            fmt,
+            log_event=event,
+        )
 
     @_source_app.command("delta")
     def source_delta_cmd(
@@ -302,7 +376,25 @@ def register_source(app: typer.Typer) -> None:
             data=data,
             exit_code=exit_code,
         )
-        _exit_emit(result, text, fmt, exit_code=exit_code)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=result,
+                text=text,
+                command="source.delta",
+                status="actionable" if actionable else "clean",
+                exit_code=exit_code,
+            ),
+            fmt,
+            log_event=audit_event(
+                "source.delta",
+                "Computed source delta",
+                summary=text,
+                counts={"actionable": int(str(payload["actionable_count"]))},
+                status="actionable" if actionable else "clean",
+                exit_code=exit_code,
+            ),
+        )
 
     @_source_app.command("coverage")
     def source_coverage_cmd(
@@ -329,7 +421,26 @@ def register_source(app: typer.Typer) -> None:
                 "missing_sources": missing,
             }
         payload = _source_result(command="source.coverage", status="clean", data=data)
-        _exit_emit(payload, f"{report['covered']}/{report['total']}", fmt)
+        text = f"{report['covered']}/{report['total']}"
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=text,
+                command="source.coverage",
+                status="clean",
+            ),
+            fmt,
+            log_event=audit_event(
+                "source.coverage",
+                "Checked source coverage",
+                summary=f"Covered {report['covered']} of {report['total']} sources.",
+                counts={
+                    "covered": report["covered"],
+                    "total": report["total"],
+                },
+            ),
+        )
 
     @_source_app.command("lint")
     def source_lint_cmd(
@@ -344,11 +455,21 @@ def register_source(app: typer.Typer) -> None:
             data={"errors": errors},
             exit_code=1 if errors else 0,
         )
-        _exit_emit(
-            payload,
-            "\n".join(errors) if errors else "source manifest clean",
+        text = "\n".join(errors) if errors else "source manifest clean"
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=text,
+                command="source.lint",
+                status="clean" if not errors else "invalid",
+                exit_code=1 if errors else 0,
+            ),
             fmt,
-            exit_code=1 if errors else 0,
+            log_event=lint_event(
+                "source.lint",
+                {"ok": not errors, "findings": errors, "exit_code": 1 if errors else 0},
+            ),
         )
 
     @_source_app.command("read")

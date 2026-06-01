@@ -6,10 +6,11 @@ from datetime import date
 
 import typer
 
-from ..cli_helpers import _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _finish_command, _vault_from_ctx
 from ..cli_output import emit
 from ..daily import append_daily, daily_note_path, prepend_daily, read_daily
 from ..errors import UsageError
+from ..log_events import change_event
 from ..paths import rel_to_vault
 
 
@@ -62,7 +63,22 @@ def register_daily(app: typer.Typer) -> None:
         d = _parse_date(day)
         path = append_daily(vault, content, d)
         payload = {"path": rel_to_vault(vault, path)}
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=payload["path"],
+                command="daily.append",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "daily.append",
+                "Appended daily note",
+                summary=payload["path"],
+                paths=(payload["path"],),
+            ),
+        )
 
     @_daily_app.command("prepend")
     def daily_prepend_cmd(
@@ -75,4 +91,19 @@ def register_daily(app: typer.Typer) -> None:
         d = _parse_date(day)
         path = prepend_daily(vault, content, d)
         payload = {"path": rel_to_vault(vault, path)}
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=payload["path"],
+                command="daily.prepend",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "daily.prepend",
+                "Prepended daily note",
+                summary=payload["path"],
+                paths=(payload["path"],),
+            ),
+        )

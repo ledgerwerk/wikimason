@@ -6,10 +6,11 @@ from pathlib import Path
 
 import typer
 
-from ..cli_helpers import _run_note_create, _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _finish_command, _run_note_create, _vault_from_ctx
 from ..cli_output import emit
 from ..errors import UsageError
 from ..files import delete_file, move_file, read_file, write_file
+from ..log_events import change_event
 from ..paths import rel_to_vault
 
 
@@ -34,8 +35,9 @@ def register_page(app: typer.Typer) -> None:
         allow_incomplete: bool = typer.Option(False, "--allow-incomplete"),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        _run_note_create(
+        outcome = _run_note_create(
             ctx,
+            command="page.create",
             kind=kind,
             title=title,
             source=source,
@@ -48,7 +50,20 @@ def register_page(app: typer.Typer) -> None:
             dry_run=dry_run,
             print_note=print_note,
             allow_incomplete=allow_incomplete,
-            fmt=fmt,
+        )
+        data = outcome.payload["data"] if isinstance(outcome.payload, dict) else {}
+        _finish_command(
+            ctx,
+            outcome,
+            fmt,
+            log_event=change_event(
+                "page.create",
+                "Created page",
+                summary=f"{title} ({kind})",
+                paths=(str(data.get("path", "")),),
+                metadata={"kind": kind, "dry_run": str(dry_run).lower()},
+                status="clean" if dry_run else "changed",
+            ),
         )
 
     @_page_app.command("show")
@@ -123,7 +138,22 @@ def register_page(app: typer.Typer) -> None:
             }
         else:
             raise UsageError("page update requires --content, --body-file, or --body")
-        raise typer.Exit(emit(payload, str(payload["path"]), fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=str(payload["path"]),
+                command="page.update",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "page.update",
+                "Updated page",
+                summary="Updated page content while preserving page structure.",
+                paths=(str(payload["path"]),),
+            ),
+        )
 
     @_page_app.command("move")
     def page_move_cmd(
@@ -135,7 +165,22 @@ def register_page(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         target = move_file(vault, old, new)
         payload = {"path": rel_to_vault(vault, target)}
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=payload["path"],
+                command="page.move",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "page.move",
+                "Moved page",
+                summary=f"{old} -> {new}",
+                paths=(payload["path"],),
+            ),
+        )
 
     @_page_app.command("delete")
     def page_delete_cmd(
@@ -147,4 +192,20 @@ def register_page(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         result = delete_file(vault, path, permanent=permanent)
         payload = {"result": result}
-        raise typer.Exit(emit(payload, result, fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=result,
+                command="page.delete",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "page.delete",
+                "Deleted page",
+                summary=result,
+                paths=(path,),
+                metadata={"permanent": str(permanent).lower()},
+            ),
+        )

@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import typer
 
-from ..cli_helpers import _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _finish_command, _vault_from_ctx
 from ..cli_output import emit
 from ..daily import daily_note_path
 from ..files import resolve_existing_path
+from ..log_events import change_event
 from ..tasks import list_task_lines, list_tasks, set_task_status, write_task_status
 
 
@@ -54,7 +55,24 @@ def register_task(app: typer.Typer) -> None:
         )  # noqa: E501
         next_status = "x" if current == " " else " "
         write_task_status(target, line, next_status)
-        raise typer.Exit(emit({"ok": True}, "ok", fmt))
+        rel_path = str(target.relative_to(vault))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload={"ok": True, "path": rel_path, "line": line, "status": next_status},
+                text="ok",
+                command="task.toggle",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "task.toggle",
+                "Toggled task item",
+                summary=f"{rel_path}:{line}",
+                paths=(rel_path,),
+                metadata={"line": line, "status": next_status},
+            ),
+        )
 
     @_task_app.command("set")
     def task_set_cmd(
@@ -68,4 +86,21 @@ def register_task(app: typer.Typer) -> None:
         target = resolve_existing_path(vault, path)
         text = target.read_text(encoding="utf-8")
         target.write_text(set_task_status(text, line, status), encoding="utf-8")
-        raise typer.Exit(emit({"ok": True}, "ok", fmt))
+        rel_path = str(target.relative_to(vault))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload={"ok": True, "path": rel_path, "line": line, "status": status},
+                text="ok",
+                command="task.set",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "task.set",
+                "Set task item status",
+                summary=f"{rel_path}:{line}",
+                paths=(rel_path,),
+                metadata={"line": line, "status": status},
+            ),
+        )

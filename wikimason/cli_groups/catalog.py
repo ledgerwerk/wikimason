@@ -6,8 +6,9 @@ import typer
 
 from ..build import build_vault
 from ..catalog import catalog_status, iter_catalog_entries, write_catalog
-from ..cli_helpers import _exit_emit, _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _exit_emit, _finish_command, _vault_from_ctx
 from ..errors import UsageError
+from ..log_events import change_event
 from ..search import search_catalog
 
 
@@ -42,7 +43,23 @@ def register_catalog(app: typer.Typer) -> None:
         entries = list(iter_catalog_entries(vault))
         write_catalog(vault, entries)
         payload = {"ok": True, "count": len(entries), "path": "Wiki/catalog.jsonl"}
-        _exit_emit(payload, str(len(entries)), fmt)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=str(len(entries)),
+                command="catalog.build",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "catalog.build",
+                "Built catalog",
+                summary=f"Wrote {len(entries)} catalog entries.",
+                paths=("Wiki/catalog.jsonl",),
+                counts={"count": len(entries)},
+            ),
+        )
 
     @_catalog_app.command("check")
     def catalog_check_cmd(
@@ -65,4 +82,23 @@ def register_catalog(app: typer.Typer) -> None:
             "updated_source_count": result.updated_source_count,
             "catalog_count": result.catalog_count,
         }
-        _exit_emit(payload, f"updated_source_count={result.updated_source_count}", fmt)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=f"updated_source_count={result.updated_source_count}",
+                command="catalog.rebuild",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "catalog.rebuild",
+                "Rebuilt catalog",
+                summary=f"updated_source_count={result.updated_source_count}",
+                paths=("Wiki/catalog.jsonl",),
+                counts={
+                    "updated_source_count": result.updated_source_count,
+                    "catalog_count": result.catalog_count,
+                },
+            ),
+        )

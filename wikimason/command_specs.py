@@ -9,6 +9,10 @@ module.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
+
+
+LogPolicy = Literal["none", "manual", "audit", "change"]
 
 
 @dataclass(frozen=True)
@@ -22,6 +26,7 @@ class CommandSpec:
     json_output: bool = False
     agent_safe: bool = True
     hidden: bool = False
+    log_policy: LogPolicy = "none"
 
 
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
@@ -32,6 +37,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--profile PROFILE] [--demo] [--env NAME] [--format text|json]",
         summary="Initialize a new wiki vault.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("config",),
@@ -67,6 +73,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason source add PATH [--move] [--format text|json]",
         summary="Add a raw source file.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("source", "list"),
@@ -86,6 +93,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         summary="Verify raw-source state against the current"
         " manifest and coverage delta.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("source", "rehash"),
@@ -93,6 +101,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--accept-covered] [--format text|json]",
         summary="Rewrite manifest hashes from the current raw-source files.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("source", "resolve"),
@@ -112,24 +121,28 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--accept-covered] [--details] [--format text|json]",
         summary="Scan raw sources and update manifest.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("source", "delta"),
         usage="wikimason source delta [--check] [--details] [--format text|json]",
         summary="Show delta between manifest and files.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("source", "coverage"),
         usage="wikimason source coverage [PATH] [--details] [--format text|json]",
         summary="Show source coverage report.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("source", "lint"),
         usage="wikimason source lint [--format text|json]",
         summary="Lint source manifest.",
         json_output=True,
+        log_policy="audit",
     ),
     # -- file --
     CommandSpec(
@@ -156,6 +169,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--format text|json]",
         summary="Write a file.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("file", "append"),
@@ -163,30 +177,35 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--inline] [--format text|json]",
         summary="Append to a file.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("file", "prepend"),
         usage="wikimason file prepend PATH --content TEXT [--format text|json]",
         summary="Prepend to a file.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("file", "move"),
         usage="wikimason file move OLD NEW [--format text|json]",
         summary="Move a file.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("file", "rename"),
         usage="wikimason file rename OLD NEW [--format text|json]",
         summary="Rename a file.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("file", "delete"),
         usage="wikimason file delete PATH [--permanent] [--format text|json]",
         summary="Delete a file.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("file", "open"),
@@ -243,12 +262,14 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason daily append --content TEXT [DATE] [--format text|json]",
         summary="Append to daily note.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("daily", "prepend"),
         usage="wikimason daily prepend --content TEXT [DATE] [--format text|json]",
         summary="Prepend to daily note.",
         json_output=True,
+        log_policy="change",
     ),
     # -- property --
     CommandSpec(
@@ -274,12 +295,14 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--type TYPE] [--format text|json]",
         summary="Set a property value.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("property", "remove"),
         usage="wikimason property remove PATH KEY [--format text|json]",
         summary="Remove a property.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("property", "aliases"),
@@ -288,6 +311,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--format text|json]",
         summary="Update aliases.",
         json_output=True,
+        log_policy="change",
     ),
     # -- tag --
     CommandSpec(
@@ -325,12 +349,14 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason task toggle PATH LINE [--format text|json]",
         summary="Toggle task status.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("task", "set"),
         usage="wikimason task set PATH LINE --status STATUS [--format text|json]",
         summary="Set task status.",
         json_output=True,
+        log_policy="change",
     ),
     # -- template --
     CommandSpec(
@@ -385,6 +411,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason vault init [PATH] [--profile PROFILE] [--demo] [--env NAME] [--format text|json]",  # noqa: E501
         summary="Initialize a vault.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("vault", "list"),
@@ -397,30 +424,35 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason vault register NAME PATH [--format text|json]",
         summary="Register a vault.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("vault", "doctor"),
         usage="wikimason vault doctor [--format text|json]",
         summary="Run vault doctor checks.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("vault", "build"),
         usage="wikimason vault build [--format text|json]",
         summary="Build vault indexes and catalog.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("vault", "lint"),
         usage="wikimason vault lint [--strict] [--format text|json]",
         summary="Lint vault.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("vault", "maintain"),
-        usage="wikimason vault maintain [--log TEXT] [--format text|json]",
+        usage="wikimason vault maintain [--log TEXT] [--accept-covered] [--format text|json]",
         summary="Full vault maintenance.",
         json_output=True,
+        log_policy="change",
     ),
     # -- query --
     CommandSpec(
@@ -428,6 +460,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason query QUERY [--tag TAG] [--vault PATH] [--format text|json]",
         summary="Query the built catalog with a neutral top-level search command.",
         json_output=True,
+        log_policy="audit",
     ),
     # -- page --
     CommandSpec(
@@ -444,6 +477,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--vault PATH] [--format text|json]",
         summary="Create a compiled wiki page using the neutral page command surface.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("page", "show"),
@@ -456,18 +490,21 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason page update PATH [--content TEXT|--body TEXT|--body-file PATH] [--format text|json]",  # noqa: E501
         summary="Overwrite a compiled wiki page body or full content deterministically.",  # noqa: E501
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("page", "move"),
         usage="wikimason page move OLD NEW [--format text|json]",
         summary="Move a compiled wiki page within the active root.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("page", "delete"),
         usage="wikimason page delete PATH [--permanent] [--format text|json]",
         summary="Delete a compiled wiki page permanently or via .trash.",
         json_output=True,
+        log_policy="change",
     ),
     # -- index --
     CommandSpec(
@@ -480,6 +517,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason index build [--vault PATH] [--format text|json]",
         summary="Rebuild derived index pages from the current catalog entries.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("index", "check"),
@@ -502,6 +540,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         " [--format text|json]",
         summary="Create a new note.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("note", "validate"),
@@ -514,6 +553,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason note normalize PATH [--fix] [--format text|json]",
         summary="Normalize a note.",
         json_output=True,
+        log_policy="change",
     ),
     # -- catalog --
     CommandSpec(
@@ -533,6 +573,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason catalog build [--format text|json]",
         summary="Build the catalog.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("catalog", "check"),
@@ -545,6 +586,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason catalog rebuild [--format text|json]",
         summary="Rebuild catalog and indexes.",
         json_output=True,
+        log_policy="change",
     ),
     # -- links --
     CommandSpec(
@@ -563,12 +605,14 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason links check [--format text|json]",
         summary="Check for broken links.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("links", "normalize"),
         usage="wikimason links normalize PATH [--fix] [--format text|json]",
         summary="Normalize links.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("links", "outgoing"),
@@ -587,18 +631,21 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason links unresolved [--format text|json]",
         summary="List unresolved links.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("links", "orphans"),
         usage="wikimason links orphans [--format text|json]",
         summary="List orphan notes.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("links", "deadends"),
         usage="wikimason links deadends [--format text|json]",
         summary="List dead-end notes.",
         json_output=True,
+        log_policy="audit",
     ),
     # -- ingest --
     CommandSpec(
@@ -606,24 +653,28 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason ingest [--format text|json]",
         summary="Summarize ingest readiness and the next required wiki action.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("ingest", "status"),
         usage="wikimason ingest status [--format text|json]",
         summary="Show ingest status.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("ingest", "plan"),
         usage="wikimason ingest plan [SOURCE ...] [--format text|json]",
         summary="Plan ingest.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("ingest", "finish"),
         usage="wikimason ingest finish [--accept-covered] [--scope changed|all] [--source PATH] [--format text|json]",  # noqa: E501
         summary="Finish ingest.",
         json_output=True,
+        log_policy="change",
     ),
     # -- top-level convenience --
     CommandSpec(
@@ -631,30 +682,54 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason lint [--strict] [--format text|json]",
         summary="Lint compiled pages.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("status",),
         usage="wikimason status [--format text|json]",
         summary="Summarize vault readiness.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("doctor",),
         usage="wikimason doctor [--format text|json]",
         summary="Run vault doctor checks.",
         json_output=True,
+        log_policy="audit",
     ),
     CommandSpec(
         path=("log",),
-        usage="wikimason log --title TITLE --details DETAILS [--format text|json]",
-        summary="Append a log entry.",
+        usage="wikimason log [COMMAND] [--help]",
+        summary="Operational log commands.",
+    ),
+    CommandSpec(
+        path=("log", "add"),
+        usage="wikimason log add --action ACTION --title TITLE [--details TEXT] [--path PATH ...] [--format text|json]",  # noqa: E501
+        summary="Append a structured operational log entry.",
         json_output=True,
+        log_policy="manual",
+    ),
+    CommandSpec(
+        path=("log", "tail"),
+        usage="wikimason log tail [-n N] [--action ACTION] [--command COMMAND] [--format text|json]",  # noqa: E501
+        summary="Show recent operational log entries.",
+        json_output=True,
+        log_policy="none",
+    ),
+    CommandSpec(
+        path=("log", "check"),
+        usage="wikimason log check [--strict] [--format text|json]",
+        summary="Validate operational log format.",
+        json_output=True,
+        log_policy="none",
     ),
     CommandSpec(
         path=("audit",),
         usage="wikimason audit [--format text|json]",
         summary="Audit vault.",
         json_output=True,
+        log_policy="audit",
     ),
     # -- agents --
     CommandSpec(
@@ -667,6 +742,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason agents compile [--check] [--format text|json]",
         summary="Compile AGENTS.md.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("agents", "check"),
@@ -716,12 +792,14 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         usage="wikimason review resolve ID --status accepted|skipped|done [--format text|json]",  # noqa: E501
         summary="Mark a review queue item resolved.",
         json_output=True,
+        log_policy="change",
     ),
     CommandSpec(
         path=("review", "add"),
         usage="wikimason review add --kind KIND --title TEXT [--detail TEXT] [--source-id ID] [--format text|json]",  # noqa: E501
         summary="Add a review queue item.",
         json_output=True,
+        log_policy="change",
     ),
     # -- context --
     CommandSpec(

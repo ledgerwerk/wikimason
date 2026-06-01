@@ -12,6 +12,7 @@ Group          Purpose
 =============  ===================================================================
 ``init``       Initialize a new wiki vault.
 ``config``     Show, edit, and validate TOML configuration.
+``log``        Append, inspect, and validate the operational timeline in ``Wiki/log.md``.
 ``source``     Import, scan, verify, resolve, read, rehash, and lint raw sources.
 ``ingest``     Plan and finish raw-source-to-note workflows.
 ``note``       Create, validate, and normalize semantic notes.
@@ -63,6 +64,8 @@ Maintain:
 .. code-block:: bash
 
    wikimason vault maintain --format json
+   wikimason log tail -n 5 --format json
+   wikimason log check --format json
 
 For the full command reference with every flag and usage string, see
 :doc:`command-reference`.

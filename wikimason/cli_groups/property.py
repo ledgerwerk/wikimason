@@ -6,11 +6,12 @@ import json
 
 import typer
 
-from ..cli_helpers import _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _finish_command, _vault_from_ctx
 from ..cli_output import emit
 from ..config import load_runtime_config
 from ..files import resolve_existing_path
 from ..paths import rel_to_vault
+from ..log_events import change_event
 from ..properties import (
     list_property_names,
     read_property,
@@ -70,7 +71,24 @@ def register_property(app: typer.Typer) -> None:
         text = target.read_text(encoding="utf-8")
         updated = set_property(text, key, value, type_hint, config=config, path=target)
         target.write_text(updated, encoding="utf-8")
-        raise typer.Exit(emit({"ok": True}, "ok", fmt))
+        rel_path = rel_to_vault(vault, target)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload={"ok": True, "path": rel_path, "key": key},
+                text="ok",
+                command="property.set",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "property.set",
+                "Updated property",
+                summary=f"{rel_path}: {key}",
+                paths=(rel_path,),
+                metadata={"key": key, "type": type_hint or ""},
+            ),
+        )
 
     @_property_app.command("remove")
     def property_remove_cmd(
@@ -86,7 +104,24 @@ def register_property(app: typer.Typer) -> None:
         target.write_text(
             remove_property(text, key, config=config, path=target), encoding="utf-8"
         )
-        raise typer.Exit(emit({"ok": True}, "ok", fmt))
+        rel_path = rel_to_vault(vault, target)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload={"ok": True, "path": rel_path, "key": key},
+                text="ok",
+                command="property.remove",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "property.remove",
+                "Removed property",
+                summary=f"{rel_path}: {key}",
+                paths=(rel_path,),
+                metadata={"key": key},
+            ),
+        )
 
     @_property_app.command("aliases")
     def property_aliases_cmd(
@@ -107,4 +142,23 @@ def register_property(app: typer.Typer) -> None:
         aliases = read_property(updated, "aliases", config=config, path=target)
         payload = {"path": rel_to_vault(vault, target), "aliases": aliases}
         rendered = json.dumps(aliases) if isinstance(aliases, list) else str(aliases)
-        raise typer.Exit(emit(payload, rendered, fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=rendered,
+                command="property.aliases",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "property.aliases",
+                "Updated aliases",
+                summary=payload["path"],
+                paths=(payload["path"],),
+                metadata={
+                    "added": ",".join(add),
+                    "removed": ",".join(remove),
+                },
+            ),
+        )

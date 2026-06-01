@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import typer
 
-from ..cli_helpers import _exit_rows, _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _exit_rows, _finish_command, _vault_from_ctx
 from ..cli_output import emit
 from ..config import load_runtime_config
 from ..files import (
@@ -20,6 +20,7 @@ from ..files import (
     search_files,
     write_file,
 )
+from ..log_events import change_event
 from ..paths import rel_to_vault
 
 
@@ -69,7 +70,27 @@ def register_file(app: typer.Typer) -> None:
             title=title,
         )
         payload = {"path": rel_to_vault(vault, target)}
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=payload["path"],
+                command="file.write",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "file.write",
+                "Wrote file",
+                summary=payload["path"],
+                paths=(payload["path"],),
+                metadata={
+                    "overwrite": str(overwrite).lower(),
+                    "template": template or "",
+                    "title": title or "",
+                },
+            ),
+        )
 
     @_file_app.command("append")
     def file_append_cmd(
@@ -82,7 +103,23 @@ def register_file(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         target = append_file(vault, path, content, inline=inline)
         payload = {"path": rel_to_vault(vault, target)}
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=payload["path"],
+                command="file.append",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "file.append",
+                "Appended file",
+                summary=payload["path"],
+                paths=(payload["path"],),
+                metadata={"inline": str(inline).lower()},
+            ),
+        )
 
     @_file_app.command("prepend")
     def file_prepend_cmd(
@@ -94,7 +131,22 @@ def register_file(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         target = prepend_file(vault, path, content)
         payload = {"path": rel_to_vault(vault, target)}
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=payload["path"],
+                command="file.prepend",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "file.prepend",
+                "Prepended file",
+                summary=payload["path"],
+                paths=(payload["path"],),
+            ),
+        )
 
     @_file_app.command("move")
     def file_move_cmd(
@@ -106,7 +158,22 @@ def register_file(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         target = move_file(vault, old, new)
         payload = {"path": rel_to_vault(vault, target)}
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=payload["path"],
+                command="file.move",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "file.move",
+                "Moved file",
+                summary=f"{old} -> {new}",
+                paths=(payload["path"],),
+            ),
+        )
 
     @_file_app.command("rename")
     def file_rename_cmd(
@@ -118,7 +185,22 @@ def register_file(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         target = rename_file(vault, old, new)
         payload = {"path": rel_to_vault(vault, target)}
-        raise typer.Exit(emit(payload, payload["path"], fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=payload["path"],
+                command="file.rename",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "file.rename",
+                "Renamed file",
+                summary=f"{old} -> {new}",
+                paths=(payload["path"],),
+            ),
+        )
 
     @_file_app.command("delete")
     def file_delete_cmd(
@@ -130,7 +212,23 @@ def register_file(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         result = delete_file(vault, path, permanent=permanent)
         payload = {"result": result}
-        raise typer.Exit(emit(payload, result, fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=result,
+                command="file.delete",
+                status="changed",
+            ),
+            fmt,
+            log_event=change_event(
+                "file.delete",
+                "Deleted file",
+                summary=result,
+                paths=(path,),
+                metadata={"permanent": str(permanent).lower()},
+            ),
+        )
 
     @_file_app.command("open")
     def file_open_cmd(

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import typer
 
-from ..cli_helpers import _run_row_command, _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _finish_command, _run_row_command, _vault_from_ctx
 from ..cli_output import emit, result_payload
 from ..files import resolve_existing_path
 from ..links import (
@@ -20,6 +20,8 @@ from ..links import (
     resolve_link_matches,
     unresolved_links,
 )
+from ..log_events import audit_event, change_event
+from ..logs import append_log_event
 
 
 def register_links(app: typer.Typer) -> None:
@@ -56,8 +58,24 @@ def register_links(app: typer.Typer) -> None:
             data=raw,
             exit_code=1 if findings else 0,
         )
-        raise typer.Exit(
-            emit(payload, text or "links clean", fmt, exit_code=1 if findings else 0)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=text or "links clean",
+                command="links.check",
+                status="clean" if not findings else "invalid",
+                exit_code=1 if findings else 0,
+            ),
+            fmt,
+            log_event=audit_event(
+                "links.check",
+                "Checked wiki links",
+                summary=text or "Links clean.",
+                counts={"findings": len(findings)},
+                status="clean" if not findings else "invalid",
+                exit_code=1 if findings else 0,
+            ),
         )
 
     @_links_app.command("normalize")
@@ -71,7 +89,25 @@ def register_links(app: typer.Typer) -> None:
         result = normalize_links(vault, path, fix=fix)
         payload = render_link_normalization_json(result)
         text = f"{result.path}: {'changed' if result.changed else 'clean'}"
-        raise typer.Exit(emit(payload, text, fmt))
+        event = None
+        if fix:
+            event = change_event(
+                "links.normalize",
+                "Normalized links",
+                summary=text,
+                paths=(str(result.path),),
+            )
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=text,
+                command="links.normalize",
+                status="changed" if fix and result.changed else "clean",
+            ),
+            fmt,
+            log_event=event,
+        )
 
     @_links_app.command("outgoing")
     def links_outgoing_cmd(
@@ -104,18 +140,57 @@ def register_links(app: typer.Typer) -> None:
         ctx: typer.Context,
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        _run_row_command(ctx, unresolved_links, fmt)
+        outcome = _run_row_command(ctx, unresolved_links, command="links.unresolved")
+        data = outcome.payload["data"] if isinstance(outcome.payload, dict) else {}
+        items = data.get("items", []) if isinstance(data, dict) else []
+        append_log_event(
+            _vault_from_ctx(ctx),
+            audit_event(
+                "links.unresolved",
+                "Listed unresolved links",
+                summary=f"Found {len(items)} unresolved links.",
+                counts={"items": len(items)},
+                status=outcome.status,
+            ),
+        )
+        raise typer.Exit(emit(items, outcome.text, fmt))
 
     @_links_app.command("orphans")
     def links_orphans_cmd(
         ctx: typer.Context,
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        _run_row_command(ctx, orphan_notes, fmt)
+        outcome = _run_row_command(ctx, orphan_notes, command="links.orphans")
+        data = outcome.payload["data"] if isinstance(outcome.payload, dict) else {}
+        items = data.get("items", []) if isinstance(data, dict) else []
+        append_log_event(
+            _vault_from_ctx(ctx),
+            audit_event(
+                "links.orphans",
+                "Listed orphan notes",
+                summary=f"Found {len(items)} orphan notes.",
+                counts={"items": len(items)},
+                status=outcome.status,
+            ),
+        )
+        raise typer.Exit(emit(items, outcome.text, fmt))
 
     @_links_app.command("deadends")
     def links_deadends_cmd(
         ctx: typer.Context,
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        _run_row_command(ctx, deadend_notes, fmt)
+        outcome = _run_row_command(ctx, deadend_notes, command="links.deadends")
+        data = outcome.payload["data"] if isinstance(outcome.payload, dict) else {}
+        items = data.get("items", []) if isinstance(data, dict) else []
+        append_log_event(
+            _vault_from_ctx(ctx),
+            audit_event(
+                "links.deadends",
+                "Listed dead-end notes",
+                summary=f"Found {len(items)} dead-end notes.",
+                counts={"items": len(items)},
+                status=outcome.status,
+            ),
+        )
+        raise typer.Exit(emit(items, outcome.text, fmt))

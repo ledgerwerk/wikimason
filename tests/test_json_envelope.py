@@ -118,17 +118,7 @@ def test_note_new_json_has_envelope(tmp_path: Path, capsys) -> None:
         == 0
     )
     payload = read_json(capsys)
-    # note new returns via _exit_emit which uses raw payload.
-    # After envelope fix, it should have envelope keys.
-    # For backward compat, accept either envelope or raw payload
-    # since note new uses _exit_emit(payload, text, fmt) without command=.
-    # The source commands go through _source_result which uses result_payload.
-    # We verify that result_payload now includes schema_version.
-    if "schema_version" in payload:
-        _assert_envelope(payload)
-    else:
-        # note new raw payload - verify via source commands instead
-        assert "path" in payload
+    _assert_envelope(payload)
 
 
 def test_doctor_json_has_envelope(tmp_path: Path, capsys) -> None:
@@ -158,10 +148,7 @@ def test_vault_maintain_json_has_envelope(tmp_path: Path, capsys) -> None:
         == 0
     )
     payload = read_json(capsys)
-    # vault maintain currently uses emit() with raw payload
-    # Accept both envelope and raw for now
-    if "schema_version" in payload:
-        _assert_envelope(payload)
+    _assert_envelope(payload)
 
 
 def test_ingest_finish_json_has_envelope(tmp_path: Path, capsys) -> None:
@@ -183,9 +170,4 @@ def test_ingest_finish_json_has_envelope(tmp_path: Path, capsys) -> None:
         == 0
     )
     payload = read_json(capsys)
-    if "schema_version" in payload:
-        _assert_envelope(payload)
-    else:
-        # ingest finish returns via render_ingest_finish_json (asdict)
-        # which doesn't have envelope keys yet
-        assert "ok" in payload
+    _assert_envelope(payload)

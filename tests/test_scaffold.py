@@ -53,7 +53,7 @@ def test_init_writes_starter_shape_placeholders(
 
     assert (vault / "Schema/source-manifest.jsonl").read_text(encoding="utf-8") == ""
     assert (vault / "Wiki/catalog.jsonl").read_text(encoding="utf-8") == ""
-    assert (vault / "Wiki/log.md").read_text(encoding="utf-8") == "# Wiki Log\n"
+    assert (vault / "Wiki/log.md").read_text(encoding="utf-8") == "# Wiki Log\n\n"
     assert not (vault / "Schema/wikimason.json").exists()
 
     top_index = (vault / "Wiki/index.md").read_text(encoding="utf-8")

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import typer
 
-from ..cli_helpers import _vault_from_ctx
+from ..cli_helpers import CommandOutcome, _finish_command, _vault_from_ctx
 from ..cli_output import emit, result_payload
 from ..errors import UsageError
 from ..ingest import (
@@ -13,6 +13,7 @@ from ..ingest import (
     ingest_status,
     render_ingest_finish_json,
 )
+from ..log_events import audit_event, change_event
 
 
 def register_ingest(app: typer.Typer) -> None:
@@ -37,7 +38,30 @@ def register_ingest(app: typer.Typer) -> None:
             ),
             data=raw,
         )
-        raise typer.Exit(emit(payload, str(raw["next_action"]), fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=str(raw["next_action"]),
+                command="ingest",
+                status=(
+                    "actionable"
+                    if raw["next_action"] != "maintain_clean_vault"
+                    else "clean"
+                ),
+            ),
+            fmt,
+            log_event=audit_event(
+                "ingest",
+                "Checked ingest readiness",
+                summary=str(raw["next_action"]),
+                status=(
+                    "actionable"
+                    if raw["next_action"] != "maintain_clean_vault"
+                    else "clean"
+                ),
+            ),
+        )
 
     @_ingest_app.command("status")
     def ingest_status_cmd(
@@ -52,7 +76,22 @@ def register_ingest(app: typer.Typer) -> None:
             status="actionable" if text != "maintain_clean_vault" else "clean",
             data=raw,
         )
-        raise typer.Exit(emit(payload, str(text), fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=str(text),
+                command="ingest.status",
+                status="actionable" if text != "maintain_clean_vault" else "clean",
+            ),
+            fmt,
+            log_event=audit_event(
+                "ingest.status",
+                "Checked ingest status",
+                summary=str(text),
+                status="actionable" if text != "maintain_clean_vault" else "clean",
+            ),
+        )
 
     @_ingest_app.command("plan")
     def ingest_plan_cmd(
@@ -68,7 +107,22 @@ def register_ingest(app: typer.Typer) -> None:
             else "multiple sources"
         )
         payload = result_payload(command="ingest.plan", status="clean", data=raw)
-        raise typer.Exit(emit(payload, text, fmt))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=text,
+                command="ingest.plan",
+                status="clean",
+            ),
+            fmt,
+            log_event=audit_event(
+                "ingest.plan",
+                "Planned ingest",
+                summary=text,
+                counts={"sources": len(sources or [])},
+            ),
+        )
 
     @_ingest_app.command("finish")
     def ingest_finish_cmd(
@@ -105,4 +159,27 @@ def register_ingest(app: typer.Typer) -> None:
             exit_code=result.exit_code,
         )
         text = "ingest finish clean" if result.exit_code == 0 else result.next_action
-        raise typer.Exit(emit(payload, text, fmt, exit_code=result.exit_code))
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=payload,
+                text=text,
+                command="ingest.finish",
+                status=status,
+                exit_code=result.exit_code,
+            ),
+            fmt,
+            log_event=change_event(
+                "ingest.finish",
+                "Finished ingest",
+                summary=text,
+                counts={"exit_code": result.exit_code},
+                metadata={
+                    "scope": scope,
+                    "accept_covered": str(accept_covered).lower(),
+                    "source": source or "",
+                },
+                status=status,
+                exit_code=result.exit_code,
+            ),
+        )

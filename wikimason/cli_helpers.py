@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Sequence
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, NoReturn
 
 import typer
 
-from .cli_output import emit, result_payload
+from .cli_output import OutputFormat, emit, normalize_format, result_payload
 from .cli_state import resolve_vault
+from .logs import LogEvent, append_log_event
 from .notes import new_note, parse_path_values
 from .paths import rel_to_vault
 
@@ -145,9 +147,54 @@ def _collect_tags(vault: Path) -> dict[str, int]:
 # ---------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
+class CommandOutcome:
+    payload: object
+    text: str
+    command: str
+    status: str
+    exit_code: int = 0
+    warnings: tuple[str, ...] = field(default_factory=tuple)
+    errors: tuple[str, ...] = field(default_factory=tuple)
+    next_action: str | None = None
+
+
 def _exit_emit(payload: object, text: str, fmt: str, *, exit_code: int = 0) -> NoReturn:
     """Emit *payload*/*text* via :func:`emit` and raise ``typer.Exit``."""
     raise typer.Exit(emit(payload, text, fmt, exit_code=exit_code))
+
+
+def _finish_command(
+    ctx: typer.Context,
+    outcome: CommandOutcome,
+    fmt: str,
+    *,
+    log_event: LogEvent | None = None,
+) -> NoReturn:
+    """Emit one command outcome and optionally append a structured log event."""
+    text = outcome.text
+    warnings = list(outcome.warnings)
+    if log_event is not None:
+        try:
+            append_log_event(_vault_from_ctx(ctx), log_event)
+        except OSError as exc:
+            message = f"log write failed: {exc}"
+            warnings.append(message)
+            if normalize_format(fmt) is not OutputFormat.json:
+                text = f"{text}\nwarning: {message}" if text else f"warning: {message}"
+    raise typer.Exit(
+        emit(
+            outcome.payload,
+            text,
+            fmt,
+            exit_code=outcome.exit_code,
+            command=outcome.command,
+            status=outcome.status,
+            warnings=warnings,
+            errors=list(outcome.errors),
+            next_action=outcome.next_action,
+        )
+    )
 
 
 def _exit_rows(rows: Sequence[str], fmt: str, *, total: bool = False) -> None:
@@ -162,31 +209,63 @@ def _exit_rows(rows: Sequence[str], fmt: str, *, total: bool = False) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _run_doctor(ctx: typer.Context, fmt: str) -> None:
-    """Shared body for ``vault doctor`` and top-level ``doctor``."""
+def _findings_text(payload: dict[str, Any], *, success_text: str) -> str:
+    findings = payload["findings"]
+    if not findings:
+        return success_text
+    lines: list[str] = []
+    for finding in findings:
+        prefix = (
+            f"{finding['path']}:{finding['line']}"
+            if finding["line"]
+            else finding["path"]
+        )
+        line = f"{prefix}: {finding['message']}"
+        if finding["suggestion"]:
+            line += f" (suggestion: {finding['suggestion']})"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def _run_doctor(ctx: typer.Context, *, command: str) -> CommandOutcome:
+    """Build the shared result for ``vault doctor`` and top-level ``doctor``."""
     vault = _vault_from_ctx(ctx)
     raw = _doctor_payload(vault)
     exit_code = 0 if raw["ok"] else 1
-    payload = result_payload(
-        command="doctor",
-        status=str(raw["status"]),
-        data=raw,
+    status = str(raw["status"])
+    return CommandOutcome(
+        payload=result_payload(
+            command=command,
+            status=status,
+            data=raw,
+            exit_code=exit_code,
+        ),
+        text=_doctor_text(raw),
+        command=command,
+        status=status,
         exit_code=exit_code,
     )
-    raise typer.Exit(emit(payload, _doctor_text(raw), fmt, exit_code=exit_code))
 
 
-def _run_lint(ctx: typer.Context, strict: bool, fmt: str, *, command: str) -> None:
-    """Shared body for ``vault lint`` and top-level ``lint``."""
-    from .cli_output import print_findings_payload
+def _run_lint(ctx: typer.Context, strict: bool, *, command: str) -> CommandOutcome:
+    """Build the shared result for ``vault lint`` and top-level ``lint``."""
     from .lint import lint_payload
 
     vault = _vault_from_ctx(ctx)
     payload = lint_payload(vault, strict=strict)
-    raise typer.Exit(
-        print_findings_payload(
-            payload, success_text="lint passed", fmt=fmt, command=command
-        )
+    exit_code = 0 if payload["ok"] else 1
+    status = "clean" if exit_code == 0 else "invalid"
+    return CommandOutcome(
+        payload=result_payload(
+            command=command,
+            status=status,
+            data=payload,
+            exit_code=exit_code,
+        ),
+        text=_findings_text(payload, success_text="lint passed"),
+        command=command,
+        status=status,
+        exit_code=exit_code,
     )
 
 
@@ -206,6 +285,7 @@ def _note_create_payload(vault: Path, scaffold: Any) -> dict[str, Any]:
 def _run_note_create(
     ctx: typer.Context,
     *,
+    command: str,
     kind: str,
     title: str,
     source: list[str],
@@ -218,9 +298,8 @@ def _run_note_create(
     dry_run: bool,
     print_note: bool,
     allow_incomplete: bool,
-    fmt: str,
-) -> None:
-    """Shared body for ``page create`` and ``note new``."""
+) -> CommandOutcome:
+    """Build the shared result for ``page create`` and ``note new``."""
     vault = _vault_from_ctx(ctx)
     scaffold = new_note(
         vault,
@@ -240,11 +319,33 @@ def _run_note_create(
     if dry_run:
         payload["content"] = scaffold.content
     text = scaffold.content if print_note else str(payload["path"])
-    _exit_emit(payload, text, fmt)
+    outcome_status = "clean" if dry_run else "changed"
+    wrapped = result_payload(command=command, status=outcome_status, data=payload)
+    wrapped.update(payload)
+    return CommandOutcome(
+        payload=wrapped,
+        text=text,
+        command=command,
+        status=outcome_status,
+    )
 
 
-def _run_row_command(ctx: typer.Context, get_rows: Any, fmt: str) -> None:
-    """Shared body for ``links unresolved``, ``links orphans``, ``links deadends``."""
+def _run_row_command(
+    ctx: typer.Context, get_rows: Any, *, command: str
+) -> CommandOutcome:
+    """Build the shared result for ``links unresolved``, ``links orphans``, ``links deadends``."""  # noqa: E501
     vault = _vault_from_ctx(ctx)
     rows = get_rows(vault)
-    _exit_emit(rows, "\n".join(rows), fmt)
+    status = "actionable" if rows else "clean"
+    wrapped = result_payload(
+        command=command,
+        status=status,
+        data={"items": rows, "total": len(rows)},
+    )
+    wrapped.update({"items": rows, "total": len(rows)})
+    return CommandOutcome(
+        payload=wrapped,
+        text="\n".join(rows),
+        command=command,
+        status=status,
+    )

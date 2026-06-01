@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import typer
 
-from ..cli_helpers import _run_note_create, _vault_from_ctx
-from ..cli_output import emit, print_findings_payload
+from ..cli_helpers import CommandOutcome, _finish_command, _run_note_create, _vault_from_ctx
+from ..cli_output import print_findings_payload, result_payload
 from ..links import normalize_links, render_link_normalization_json
 from ..lint import lint_note_payload
+from ..log_events import change_event
 from ..notes import normalize_note
 from ..paths import resolve_path_in_vault
 
@@ -33,8 +34,9 @@ def register_note(app: typer.Typer) -> None:
         allow_incomplete: bool = typer.Option(False, "--allow-incomplete"),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
-        _run_note_create(
+        outcome = _run_note_create(
             ctx,
+            command="note.new",
             kind=kind,
             title=title,
             source=source,
@@ -47,7 +49,20 @@ def register_note(app: typer.Typer) -> None:
             dry_run=dry_run,
             print_note=print_note,
             allow_incomplete=allow_incomplete,
-            fmt=fmt,
+        )
+        data = outcome.payload["data"] if isinstance(outcome.payload, dict) else {}
+        _finish_command(
+            ctx,
+            outcome,
+            fmt,
+            log_event=change_event(
+                "note.new",
+                "Created note",
+                summary=f"{title} ({kind})",
+                paths=(str(data.get("path", "")),),
+                metadata={"kind": kind, "dry_run": str(dry_run).lower()},
+                status="clean" if dry_run else "changed",
+            ),
         )
 
     @_note_app.command("validate")
@@ -88,4 +103,29 @@ def register_note(app: typer.Typer) -> None:
             if note_result["changed"] or link_result.changed
             else f"{note_result['path']}: clean"
         )
-        raise typer.Exit(emit(payload, text, fmt))
+        event = None
+        if fix:
+            event = change_event(
+                "note.normalize",
+                "Normalized note",
+                summary=text,
+                paths=(str(note_result["path"]),),
+                metadata={"links_changed": str(link_result.changed).lower()},
+            )
+        wrapped = result_payload(
+            command="note.normalize",
+            status="changed" if fix and (note_result["changed"] or link_result.changed) else "clean",
+            data=payload,
+        )
+        wrapped.update(payload)
+        _finish_command(
+            ctx,
+            CommandOutcome(
+                payload=wrapped,
+                text=text,
+                command="note.normalize",
+                status="changed" if fix and (note_result["changed"] or link_result.changed) else "clean",
+            ),
+            fmt,
+            log_event=event,
+        )
