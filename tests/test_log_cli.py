@@ -49,7 +49,9 @@ def test_cli_log_add_and_tail_json(tmp_path: Path, capsys) -> None:
     assert payload["data"]["path"] == "Wiki/log.md"
     assert payload["data"]["paths"] == ["Raw/brief.md"]
 
-    assert main(["log", "tail", "--vault", str(vault), "-n", "1", "--format", "json"]) == 0
+    assert (
+        main(["log", "tail", "--vault", str(vault), "-n", "1", "--format", "json"]) == 0
+    )
     payload = json.loads(capsys.readouterr().out)
     assert payload["command"] == "log.tail"
     assert payload["data"]["total"] == 1

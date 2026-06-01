@@ -125,7 +125,7 @@ class ContextPlan:
 # ---------------------------------------------------------------------------
 
 
-def plan_context(
+def plan_context(  # noqa: C901
     vault: Path,
     query: str,
     *,
@@ -185,6 +185,7 @@ def plan_context(
     generated_paths: set[str] = set()
     if include_generated:
         from .schema import load_vault_schema, schema_generated_paths
+
         schema = load_vault_schema(vault)
         generated_paths = schema_generated_paths(schema)
     warnings: list[str] = []
@@ -220,7 +221,9 @@ def plan_context(
                     rank=index,
                     omitted_reason="max-files",
                 )
-                for index, remaining in enumerate(final_candidates[rank - 1 :], start=rank)
+                for index, remaining in enumerate(
+                    final_candidates[rank - 1 :], start=rank
+                )
             )
             break
 
@@ -243,6 +246,7 @@ def plan_context(
                 sha256 = ""
                 try:
                     import hashlib as _hl
+
                     sha256 = _hl.sha256(file_path.read_bytes()).hexdigest()
                 except OSError:
                     pass
@@ -429,7 +433,9 @@ def render_context_markdown(
         if plan.query_diagnostics.removed_stopwords:
             lines.append(
                 "- Removed stopwords: "
-                + ", ".join(f"`{term}`" for term in plan.query_diagnostics.removed_stopwords)
+                + ", ".join(
+                    f"`{term}`" for term in plan.query_diagnostics.removed_stopwords
+                )
             )
     lines.append("")
 
@@ -460,7 +466,8 @@ def render_context_markdown(
         lines.append("| ---: | ----: | ---- | ---- | -------------- |")
         for item in plan.omitted[:show_omitted]:
             lines.append(
-                f"| {item.rank or '-'} | {item.score:.1f} | {item.kind} | {item.path} | "
+                f"| {item.rank or '-'} | {item.score:.1f} | {item.kind} | "
+                f"{item.path} | {item.omitted_reason or ''} |"
                 f"{item.omitted_reason or ''} |"
             )
         lines.append("")
@@ -480,7 +487,9 @@ def render_context_markdown(
         lines.append("")
         lines.append(
             f'<!-- wikimason:begin-file path="{item.path}" kind="{item.kind}" '
-            f'sha256="{item.sha256_short or item.sha256[:12]}" score="{item.score:.1f}" -->'
+            f'<!-- wikimason:begin-file path="{item.path}" kind="{item.kind}" '
+            f'sha256="{item.sha256_short or item.sha256[:12]}" '
+            f'score="{item.score:.1f}" -->'
         )
         lines.append("")
 
@@ -494,7 +503,10 @@ def render_context_markdown(
             content = f"(file not found: {item.path})"
 
         if item.include == "metadata":
-            content = f"(binary/metadata-only: {item.path}, sha256={item.sha256_short or item.sha256[:12]})"
+            content = (
+                f"(binary/metadata-only: {item.path}, "
+                f"sha256={item.sha256_short or item.sha256[:12]})"
+            )
         elif item.include == "summary":
             summary = _extract_summary(vault, item.path)
             content = summary or content
@@ -952,7 +964,6 @@ def _estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
 
-
 def _check_source_closure(
     vault: Path,
     selected: list[ContextItem],
@@ -984,27 +995,36 @@ def _check_source_closure(
             # Normalize the source path
             normalized = _normalize_declared_source(vault, src_str)
             if normalized is None:
-                gaps.append(SourceClosureGap(
-                    source_path=src_str,
-                    required_by=(item.path,),
-                    reason="invalid-path",
-                ))
+                gaps.append(
+                    SourceClosureGap(
+                        source_path=src_str,
+                        required_by=(item.path,),
+                        reason="invalid-path",
+                    )
+                )
                 continue
             if normalized in selected_paths:
                 continue
             if normalized in omitted_paths:
                 omitted_item = next(o for o in omitted if o.path == normalized)
-                gaps.append(SourceClosureGap(
-                    source_path=normalized,
-                    required_by=(item.path,),
-                    reason=f"budget-excluded:{omitted_item.omitted_reason or 'unknown'}",
-                ))
+                gaps.append(
+                    SourceClosureGap(
+                        source_path=normalized,
+                        required_by=(item.path,),
+                        reason=(
+                            "budget-excluded:"
+                            f"{omitted_item.omitted_reason or 'unknown'}"
+                        ),
+                    )
+                )
             else:
-                gaps.append(SourceClosureGap(
-                    source_path=normalized,
-                    required_by=(item.path,),
-                    reason="not-in-candidates",
-                ))
+                gaps.append(
+                    SourceClosureGap(
+                        source_path=normalized,
+                        required_by=(item.path,),
+                        reason="not-in-candidates",
+                    )
+                )
 
     return tuple(gaps)
 
@@ -1026,6 +1046,7 @@ def _normalize_declared_source(vault: Path, src_path: str) -> str | None:
         return None
     return cleaned
 
+
 def _build_query_diagnostics(
     query: str,
     *,
@@ -1036,7 +1057,8 @@ def _build_query_diagnostics(
         return QueryDiagnostics(original=query, normalized=cleaned or query.strip())
 
     normalized = " ".join(
-        getattr(fts_query_plan, "effective_terms", ()) or getattr(fts_query_plan, "terms", ())
+        getattr(fts_query_plan, "effective_terms", ())
+        or getattr(fts_query_plan, "terms", ())
     )
     return QueryDiagnostics(
         original=query,

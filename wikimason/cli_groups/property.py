@@ -10,8 +10,8 @@ from ..cli_helpers import CommandOutcome, _finish_command, _vault_from_ctx
 from ..cli_output import emit
 from ..config import load_runtime_config
 from ..files import resolve_existing_path
-from ..paths import rel_to_vault
 from ..log_events import change_event
+from ..paths import rel_to_vault
 from ..properties import (
     list_property_names,
     read_property,

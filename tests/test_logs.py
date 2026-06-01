@@ -125,14 +125,18 @@ def test_log_check_flags_bad_heading(tmp_path: Path) -> None:
     result = check_log(vault)
 
     assert result["ok"] is False
-    assert any(finding["code"] == "log_heading_format" for finding in result["findings"])
+    assert any(
+        finding["code"] == "log_heading_format" for finding in result["findings"]
+    )
 
 
 def test_log_check_flags_missing_status_or_command(tmp_path: Path) -> None:
     vault = tmp_path / "vault"
     log_file = ensure_log_file(vault)
     log_file.write_text(
-        "# Wiki Log\n\n## [2026-06-01T13:04:55Z] source.add | Added raw source\n\n- summary: Added raw source to the vault.\n",
+        "# Wiki Log\n\n"
+        "## [2026-06-01T13:04:55Z] source.add | Added raw source\n\n"
+        "- summary: Added raw source to the vault.\n",
         encoding="utf-8",
     )
 

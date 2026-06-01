@@ -9,10 +9,11 @@ from __future__ import annotations
 import hashlib
 import re
 import sqlite3
+from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Collection, Literal, Protocol
+from typing import Literal, Protocol
 
 # ---------------------------------------------------------------------------
 # Schema DDL
@@ -71,6 +72,7 @@ class FTSQueryPlan:
     effective_terms: tuple[str, ...]
     removed_stopwords: tuple[str, ...] = ()
     used_stopword_fallback: bool = False
+
 
 # ---------------------------------------------------------------------------
 # Protocol
@@ -454,7 +456,9 @@ def build_fts_query_plan(
     used_stopword_fallback = False
     if stopwords:
         lowered = {word.casefold() for word in stopwords}
-        effective_terms = tuple(term for term in terms if term.casefold() not in lowered)
+        effective_terms = tuple(
+            term for term in terms if term.casefold() not in lowered
+        )
         removed_stopwords = tuple(term for term in terms if term.casefold() in lowered)
         if not effective_terms:
             effective_terms = terms

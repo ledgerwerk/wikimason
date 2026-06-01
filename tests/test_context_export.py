@@ -65,7 +65,10 @@ class TestSQLiteSearchIndex:
             to_safe_fts_query("llm wiki", mode="balanced")
             == '("llm" AND "wiki") OR "llm wiki"'
         )
-        assert to_safe_fts_query("llm wiki", mode="balanced", stopwords={"wiki"}) == '"llm"'
+        assert (
+            to_safe_fts_query("llm wiki", mode="balanced", stopwords={"wiki"})
+            == '"llm"'
+        )
         assert to_safe_fts_query("test") == '"test"'
         assert to_safe_fts_query("") == ""
         # Special FTS characters should be stripped
@@ -78,7 +81,9 @@ class TestSQLiteSearchIndex:
         from wikimason.search_index import build_fts_query_plan
 
         # All terms are stopwords -> fallback to original terms
-        plan = build_fts_query_plan("wiki wikimason", mode="strict", stopwords={"wiki", "wikimason"})
+        plan = build_fts_query_plan(
+            "wiki wikimason", mode="strict", stopwords={"wiki", "wikimason"}
+        )
         assert plan.used_stopword_fallback is True
         assert plan.effective_terms == ("wiki", "wikimason")
         assert plan.removed_stopwords == ()
@@ -89,7 +94,7 @@ class TestSQLiteSearchIndex:
         from wikimason.search_index import build_fts_query_plan
 
         plan = build_fts_query_plan("demo", mode="strict")
-        assert plan.query == '\"demo\"'
+        assert plan.query == '"demo"'
         assert plan.effective_terms == ("demo",)
 
     def test_fts_query_plan_empty_input(self) -> None:
@@ -191,8 +196,7 @@ class TestContextPlan:
                 "title: Wiki Directory\n"
                 "kind: topic\n"
                 "---\n"
-                "# Wiki Directory\n\n"
-                + ("wiki " * 80)
+                "# Wiki Directory\n\n" + ("wiki " * 80)
             ),
             encoding="utf-8",
         )
@@ -223,12 +227,14 @@ class TestContextPlan:
 
         # Page and source both match well; page should rank first
         (topics_dir / "ranking.md").write_text(
-            "---\ntitle: Ranking\nkind: topic\nsources:\n  - Raw/Sources/ranking-data.md\n---\n"
+            "---\ntitle: Ranking\nkind: topic\nsources:\n"
+            "  - Raw/Sources/ranking-data.md\n---\n"
             "# Ranking\n\nContent about ranking.\n",
             encoding="utf-8",
         )
         (src_dir / "ranking-data.md").write_text(
-            "---\nsource_id: src-002\n---\n# Ranking Data\n\nContent about ranking data.\n",
+            "---\nsource_id: src-002\n---\n"
+            "# Ranking Data\n\nContent about ranking data.\n",
             encoding="utf-8",
         )
 
@@ -238,7 +244,9 @@ class TestContextPlan:
         paths = [item.path for item in plan.items]
         page_idx = next(i for i, p in enumerate(paths) if "Wiki/Topics/ranking" in p)
         src_idx = next(i for i, p in enumerate(paths) if "ranking-data" in p)
-        assert page_idx < src_idx, f"Page at {page_idx} should precede source at {src_idx}"
+        assert page_idx < src_idx, (
+            f"Page at {page_idx} should precede source at {src_idx}"
+        )
 
     def test_declared_source_has_tier_1(self, tmp_path: Path) -> None:
         from wikimason.build import build_vault
@@ -253,7 +261,8 @@ class TestContextPlan:
         src_dir.mkdir(parents=True, exist_ok=True)
 
         (topics_dir / "closure.md").write_text(
-            "---\ntitle: Closure\nkind: topic\nsources:\n  - Raw/Sources/closure-src.md\n---\n"
+            "---\ntitle: Closure\nkind: topic\nsources:\n"
+            "  - Raw/Sources/closure-src.md\n---\n"
             "# Closure\n\nContent about closure.\n",
             encoding="utf-8",
         )
@@ -271,7 +280,9 @@ class TestContextPlan:
         # No closure gaps since source is included
         assert not any(g.reason == "budget-excluded" for g in plan.source_closure_gaps)
 
-    def test_source_closure_gap_when_budget_excludes_source(self, tmp_path: Path) -> None:
+    def test_source_closure_gap_when_budget_excludes_source(
+        self, tmp_path: Path
+    ) -> None:
         from wikimason.build import build_vault
         from wikimason.context_export import plan_context
 
@@ -285,7 +296,8 @@ class TestContextPlan:
 
         # Page with source, but very tight budget
         (topics_dir / "gappy.md").write_text(
-            "---\ntitle: Gappy\nkind: topic\nsources:\n  - Raw/Sources/gappy-src.md\n---\n"
+            "---\ntitle: Gappy\nkind: topic\nsources:\n"
+            "  - Raw/Sources/gappy-src.md\n---\n"
             "# Gappy\n\nContent.\n",
             encoding="utf-8",
         )
@@ -310,7 +322,9 @@ class TestContextPlan:
                 "gappy-src" in gap.source_path for gap in plan.source_closure_gaps
             )
 
-    def test_invalid_declared_source_path_creates_closure_gap(self, tmp_path: Path) -> None:
+    def test_invalid_declared_source_path_creates_closure_gap(
+        self, tmp_path: Path
+    ) -> None:
         from wikimason.build import build_vault
         from wikimason.context_export import plan_context
 
@@ -321,7 +335,8 @@ class TestContextPlan:
         topics_dir.mkdir(parents=True, exist_ok=True)
 
         (topics_dir / "bad-source.md").write_text(
-            "---\ntitle: Bad Source\nkind: topic\nsources:\n  - ../../../etc/passwd\n---\n"
+            "---\ntitle: Bad Source\nkind: topic\nsources:\n"
+            "  - ../../../etc/passwd\n---\n"
             "# Bad Source\n\nContent.\n",
             encoding="utf-8",
         )
@@ -362,7 +377,8 @@ class TestContextPlan:
             encoding="utf-8",
         )
         (concepts_dir / "unrelated-linked.md").write_text(
-            "---\ntitle: Unrelated Linked\nkind: concept\n---\n# Unrelated Linked\n\nLinked content.\n",
+            "---\ntitle: Unrelated Linked\nkind: concept\n---\n"
+            "# Unrelated Linked\n\nLinked content.\n",
             encoding="utf-8",
         )
 
@@ -371,14 +387,14 @@ class TestContextPlan:
 
         paths = [item.path for item in plan.items]
         src_idx = next((i for i, p in enumerate(paths) if "tiered-src" in p), None)
-        link_idx = next((i for i, p in enumerate(paths) if "unrelated-linked" in p), None)
+        link_idx = next(
+            (i for i, p in enumerate(paths) if "unrelated-linked" in p), None
+        )
         # Declared source (tier 1) should precede graph-only outlink (tier 2)
         if src_idx is not None and link_idx is not None:
             assert src_idx < link_idx, (
                 f"Declared source at {src_idx} should precede outlink at {link_idx}"
             )
-
-
 
     def test_graph_expansion(self, tmp_path: Path) -> None:
         from wikimason.build import build_vault
@@ -476,8 +492,7 @@ class TestContextPlan:
                 "kind: topic\n"
                 "summary: Budget focus summary.\n"
                 "---\n"
-                "# Budget Focus Heavy\n\n"
-                + ("budget focus " * 200)
+                "# Budget Focus Heavy\n\n" + ("budget focus " * 200)
             ),
             encoding="utf-8",
         )
@@ -488,8 +503,7 @@ class TestContextPlan:
                     f"title: {name}\n"
                     "kind: topic\n"
                     "---\n"
-                    "# Budget Note\n\n"
-                    + ("budget focus note " * 5)
+                    "# Budget Note\n\n" + ("budget focus note " * 5)
                 ),
                 encoding="utf-8",
             )
@@ -518,8 +532,7 @@ class TestContextPlan:
                 "kind: topic\n"
                 "summary: Bytes focus summary.\n"
                 "---\n"
-                "# Bytes Focus Heavy\n\n"
-                + ("bytes focus " * 200)
+                "# Bytes Focus Heavy\n\n" + ("bytes focus " * 200)
             ),
             encoding="utf-8",
         )
@@ -530,8 +543,7 @@ class TestContextPlan:
                     f"title: {name}\n"
                     "kind: topic\n"
                     "---\n"
-                    "# Bytes Note\n\n"
-                    + ("bytes focus note " * 5)
+                    "# Bytes Note\n\n" + ("bytes focus note " * 5)
                 ),
                 encoding="utf-8",
             )
@@ -650,7 +662,8 @@ class TestExportFormat:
         topics_dir = vault / "Wiki/Topics"
         topics_dir.mkdir(parents=True, exist_ok=True)
         (topics_dir / "gap-page.md").write_text(
-            "---\ntitle: Gap Page\nkind: topic\nsources:\n  - ../../../etc/shadow\n---\n"
+            "---\ntitle: Gap Page\nkind: topic\nsources:\n"
+            "  - ../../../etc/shadow\n---\n"
             "# Gap Page\n\nContent.\n",
             encoding="utf-8",
         )
@@ -737,8 +750,12 @@ class TestEscapingAudit:
         md = render_context_markdown(vault, plan)
         # Table pipes should not break Markdown structure
         lines = md.splitlines()
-        manifest_start = next(i for i, l in enumerate(lines) if "Selection Manifest" in l)
-        table_lines = [l for l in lines[manifest_start + 2:] if l.startswith("|")]
+        manifest_start = next(
+            i for i, line in enumerate(lines) if "Selection Manifest" in line
+        )
+        table_lines = [
+            line for line in lines[manifest_start + 2 :] if line.startswith("|")
+        ]
         for tl in table_lines:
             # Each row should have consistent pipe count
             assert tl.count("|") >= 7
@@ -759,9 +776,16 @@ class TestEscapingAudit:
         # Stats should have expected keys
         stats = data["stats"]
         expected_keys = {
-            "total_candidates", "selected_count", "omitted_count",
-            "warning_count", "selected_full", "selected_summary",
-            "selected_metadata", "selected_pages", "selected_sources", "selected_files",
+            "total_candidates",
+            "selected_count",
+            "omitted_count",
+            "warning_count",
+            "selected_full",
+            "selected_summary",
+            "selected_metadata",
+            "selected_pages",
+            "selected_sources",
+            "selected_files",
         }
         assert expected_keys.issubset(set(stats.keys()))
 
@@ -795,6 +819,7 @@ class TestEscapingAudit:
             assert "source_path" in gap
             assert "required_by" in gap
             assert "reason" in gap
+
 
 # Credential safety tests
 # ---------------------------------------------------------------------------

@@ -108,7 +108,9 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
             ),
         )
         raise typer.Exit(
-            emit(payload, f"initialized {target}", fmt, command="init", status="changed")
+            emit(
+                payload, f"initialized {target}", fmt, command="init", status="changed"
+            )
         )
 
     @app.command("query")
@@ -171,7 +173,7 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
                 "Checked vault status",
                 summary=text,
                 status=str(payload.get("next_action", "clean")),
-            )
+            ),
         )
 
     @app.command("doctor")
@@ -234,5 +236,5 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
                 counts={"findings": len(findings)},
                 status="clean" if not findings else "invalid",
                 exit_code=0 if not findings else 1,
-            )
+            ),
         )

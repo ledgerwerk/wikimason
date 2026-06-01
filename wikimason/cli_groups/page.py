@@ -6,7 +6,12 @@ from pathlib import Path
 
 import typer
 
-from ..cli_helpers import CommandOutcome, _finish_command, _run_note_create, _vault_from_ctx
+from ..cli_helpers import (
+    CommandOutcome,
+    _finish_command,
+    _run_note_create,
+    _vault_from_ctx,
+)
 from ..cli_output import emit
 from ..errors import UsageError
 from ..files import delete_file, move_file, read_file, write_file

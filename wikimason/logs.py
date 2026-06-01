@@ -90,10 +90,13 @@ def render_log_event(event: LogEvent) -> str:
         f"- level: {_sanitize_scalar(event.level)}",
     ]
     if event.paths:
-        lines.append("- paths: " + ", ".join(_sanitize_scalar(path) for path in event.paths))
+        lines.append(
+            "- paths: " + ", ".join(_sanitize_scalar(path) for path in event.paths)
+        )
     if event.sources:
         lines.append(
-            "- sources: " + ", ".join(_sanitize_scalar(source) for source in event.sources)
+            "- sources: "
+            + ", ".join(_sanitize_scalar(source) for source in event.sources)
         )
     if event.summary.strip():
         lines.append(f"- summary: {_sanitize_scalar(event.summary.strip())}")
@@ -266,7 +269,11 @@ def check_log(vault: Path, strict: bool = False) -> dict[str, Any]:
     target = ensure_log_file(vault)
     text = target.read_text(encoding="utf-8")
     findings: list[dict[str, Any]] = []
-    non_empty = [(index, line.strip()) for index, line in enumerate(text.splitlines(), 1) if line.strip()]
+    non_empty = [
+        (index, line.strip())
+        for index, line in enumerate(text.splitlines(), 1)
+        if line.strip()
+    ]
     if non_empty and non_empty[0][1] != "# Wiki Log":
         findings.append(
             _finding(
@@ -287,7 +294,9 @@ def check_log(vault: Path, strict: bool = False) -> dict[str, Any]:
                 _finding(
                     line=line_number,
                     code="log_heading_format",
-                    message="log entry heading must match ## [timestamp] action | title",
+                    message=(
+                        "log entry heading must match ## [timestamp] action | title"
+                    ),
                     suggestion="Use wikimason log add or rerender this entry.",
                 )
             )
@@ -301,7 +310,10 @@ def check_log(vault: Path, strict: bool = False) -> dict[str, Any]:
                 _finding(
                     line=line_number,
                     code="log_timestamp_invalid",
-                    message="timestamp must be a valid UTC ISO timestamp with second precision",
+                    message=(
+                        "timestamp must be a valid UTC ISO timestamp "
+                        "with second precision"
+                    ),
                     suggestion="Use UTC timestamps like 2026-06-01T13:04:55Z.",
                 )
             )
@@ -311,7 +323,9 @@ def check_log(vault: Path, strict: bool = False) -> dict[str, Any]:
                     line=line_number,
                     code="log_timestamp_order",
                     message="log entry timestamps should be monotonic non-decreasing",
-                    suggestion="Reorder or rerender entries so timestamps do not go backwards.",
+                    suggestion=(
+                        "Reorder or rerender entries so timestamps do not go backwards."
+                    ),
                     severity="error" if strict else "warning",
                 )
             )
@@ -333,7 +347,10 @@ def check_log(vault: Path, strict: bool = False) -> dict[str, Any]:
                     line=line_number,
                     code="log_status_invalid",
                     message="log status must be one of the known operational statuses",
-                    suggestion="Use a known status such as clean, changed, invalid, or actionable.",
+                    suggestion=(
+                        "Use a known status such as clean, changed, "
+                        "invalid, or actionable."
+                    ),
                 )
             )
 
@@ -353,7 +370,9 @@ def check_log(vault: Path, strict: bool = False) -> dict[str, Any]:
                     line=line_number,
                     code="log_entry_too_large",
                     message="log entry body should stay below 8 KiB",
-                    suggestion="Move large details elsewhere and keep the log entry compact.",
+                    suggestion=(
+                        "Move large details elsewhere and keep the log entry compact."
+                    ),
                     severity="warning",
                 )
             )

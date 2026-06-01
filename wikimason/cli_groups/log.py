@@ -13,7 +13,8 @@ def _tail_text(entries: list[dict[str, object]]) -> str:
     if not entries:
         return "log empty"
     return "\n".join(
-        f"{entry['timestamp']} {entry['action']} | {entry['title']}" for entry in entries
+        f"{entry['timestamp']} {entry['action']} | {entry['title']}"
+        for entry in entries
     )
 
 
@@ -44,9 +45,7 @@ def register_log(app: typer.Typer) -> None:
         )
         rel = target.relative_to(vault).as_posix()
         payload = {"path": rel, "action": action, "title": title, "paths": path}
-        raise typer.Exit(
-            emit(payload, rel, fmt, command="log.add", status="changed")
-        )
+        raise typer.Exit(emit(payload, rel, fmt, command="log.add", status="changed"))
 
     @_log_app.command("tail")
     def log_tail_cmd(

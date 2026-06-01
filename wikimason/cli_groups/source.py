@@ -6,7 +6,13 @@ from pathlib import Path
 
 import typer
 
-from ..cli_helpers import CommandOutcome, _delta_text, _exit_emit, _finish_command, _vault_from_ctx
+from ..cli_helpers import (
+    CommandOutcome,
+    _delta_text,
+    _exit_emit,
+    _finish_command,
+    _vault_from_ctx,
+)
 from ..cli_output import result_payload
 from ..frontmatter import split_frontmatter
 from ..log_events import audit_event, change_event, lint_event, source_event
@@ -159,7 +165,9 @@ def register_source(app: typer.Typer) -> None:
                 "changed",
                 str(raw["path"]),
                 title="Added raw source",
-                summary="Moved source into the vault." if move else "Copied source into the vault.",
+                summary="Moved source into the vault."
+                if move
+                else "Copied source into the vault.",
                 metadata={"move": str(move).lower()},
             ),
         )
@@ -332,7 +340,9 @@ def register_source(app: typer.Typer) -> None:
                 summary="Updated source coverage during scan.",
                 counts={
                     "total": len(payload["records"]),
-                    "covered": sum(1 for r in payload.get("records", []) if r.get("coverage")),
+                    "covered": sum(
+                        1 for r in payload.get("records", []) if r.get("coverage")
+                    ),
                 },
                 metadata={"accept_covered": str(accept_covered).lower()},
             )

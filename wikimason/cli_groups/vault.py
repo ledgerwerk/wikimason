@@ -10,9 +10,9 @@ from ..audit import audit_vault
 from ..build import build_vault
 from ..cli_helpers import (
     CommandOutcome,
-    _finish_command,
     _doctor_payload,
     _doctor_text,
+    _finish_command,
     _run_doctor,
     _run_lint,
     _vault_from_ctx,
@@ -37,7 +37,11 @@ def _finish_maintain(
     vault = _vault_from_ctx(ctx)
     warnings = list(outcome.warnings)
     text = outcome.text
-    payload = dict(outcome.payload) if isinstance(outcome.payload, dict) else {"result": outcome.payload}
+    payload = (
+        dict(outcome.payload)
+        if isinstance(outcome.payload, dict)
+        else {"result": outcome.payload}
+    )
     if log_event is not None:
         try:
             append_log_event(vault, log_event)
@@ -57,7 +61,9 @@ def _finish_maintain(
             if status == "clean":
                 status = "invalid"
         if fmt != "json":
-            text = f"{text}\nlog check found issues" if text else "log check found issues"
+            text = (
+                f"{text}\nlog check found issues" if text else "log check found issues"
+            )
     raise typer.Exit(
         emit(
             payload,
@@ -312,7 +318,9 @@ def register_vault(app: typer.Typer) -> None:
                         "vault.maintain",
                         "Blocked vault maintenance",
                         summary="actionable source delta",
-                        counts={"actionable": int(str(delta_payload["actionable_count"]))},
+                        counts={
+                            "actionable": int(str(delta_payload["actionable_count"]))
+                        },
                         status="actionable",
                         exit_code=2,
                         metadata={"reason": "actionable_source_delta"},
@@ -369,7 +377,10 @@ def register_vault(app: typer.Typer) -> None:
             log_event=change_event(
                 "vault.maintain",
                 "Ran vault maintenance",
-                summary="Built catalog, linted vault, scanned sources, checked audit findings.",
+                summary=(
+                    "Built catalog, linted vault, scanned sources, "
+                    "checked audit findings."
+                ),
                 counts={
                     "updated_source_count": result.updated_source_count,
                     "catalog_count": result.catalog_count,

@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import typer
 
-from ..cli_helpers import CommandOutcome, _finish_command, _run_note_create, _vault_from_ctx
+from ..cli_helpers import (
+    CommandOutcome,
+    _finish_command,
+    _run_note_create,
+    _vault_from_ctx,
+)
 from ..cli_output import print_findings_payload, result_payload
 from ..links import normalize_links, render_link_normalization_json
 from ..lint import lint_note_payload
@@ -114,7 +119,9 @@ def register_note(app: typer.Typer) -> None:
             )
         wrapped = result_payload(
             command="note.normalize",
-            status="changed" if fix and (note_result["changed"] or link_result.changed) else "clean",
+            status="changed"
+            if fix and (note_result["changed"] or link_result.changed)
+            else "clean",
             data=payload,
         )
         wrapped.update(payload)
@@ -124,7 +131,9 @@ def register_note(app: typer.Typer) -> None:
                 payload=wrapped,
                 text=text,
                 command="note.normalize",
-                status="changed" if fix and (note_result["changed"] or link_result.changed) else "clean",
+                status="changed"
+                if fix and (note_result["changed"] or link_result.changed)
+                else "clean",
             ),
             fmt,
             log_event=event,

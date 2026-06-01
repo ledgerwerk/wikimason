@@ -59,7 +59,12 @@ def register_task(app: typer.Typer) -> None:
         _finish_command(
             ctx,
             CommandOutcome(
-                payload={"ok": True, "path": rel_path, "line": line, "status": next_status},
+                payload={
+                    "ok": True,
+                    "path": rel_path,
+                    "line": line,
+                    "status": next_status,
+                },
                 text="ok",
                 command="task.toggle",
                 status="changed",

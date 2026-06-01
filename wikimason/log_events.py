@@ -133,7 +133,9 @@ def query_event(query: str, rows: Sequence[Mapping[str, object]]) -> LogEvent:
     )
 
 
-def lint_event(command: str, payload: Mapping[str, object], *, strict: bool = False) -> LogEvent:
+def lint_event(
+    command: str, payload: Mapping[str, object], *, strict: bool = False
+) -> LogEvent:
     findings = payload.get("findings", [])
     finding_count = len(findings) if isinstance(findings, list) else 0
     titles = {
@@ -148,7 +150,11 @@ def lint_event(command: str, payload: Mapping[str, object], *, strict: bool = Fa
         else f"Lint completed with {finding_count} finding(s)."
     )
     status = "clean" if bool(payload.get("ok", False)) else "invalid"
-    exit_code = int(payload.get("exit_code", 0)) if "exit_code" in payload else (0 if status == "clean" else 1)
+    exit_code = (
+        int(payload.get("exit_code", 0))
+        if "exit_code" in payload
+        else (0 if status == "clean" else 1)
+    )
     return audit_event(
         command,
         titles.get(command, "Ran lint checks"),

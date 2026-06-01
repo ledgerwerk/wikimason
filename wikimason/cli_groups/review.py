@@ -88,7 +88,14 @@ def register_review(app: typer.Typer) -> None:
         _finish_command(
             ctx,
             CommandOutcome(
-                payload={**result_payload(command="review.resolve", status="changed", data=updated.__dict__), **updated.__dict__},
+                payload={
+                    **result_payload(
+                        command="review.resolve",
+                        status="changed",
+                        data=updated.__dict__,
+                    ),
+                    **updated.__dict__,
+                },
                 text=f"resolved {review_id} -> {status}",
                 command="review.resolve",
                 status="changed",
@@ -126,7 +133,12 @@ def register_review(app: typer.Typer) -> None:
         _finish_command(
             ctx,
             CommandOutcome(
-                payload={**result_payload(command="review.add", status="changed", data=item.__dict__), **item.__dict__},
+                payload={
+                    **result_payload(
+                        command="review.add", status="changed", data=item.__dict__
+                    ),
+                    **item.__dict__,
+                },
                 text=f"added {item.review_id}",
                 command="review.add",
                 status="changed",
@@ -136,6 +148,10 @@ def register_review(app: typer.Typer) -> None:
                 "review.add",
                 "Added review item",
                 summary=f"{item.review_id}: {title}",
-                metadata={"review_id": item.review_id, "kind": kind, "source_id": source_id},
+                metadata={
+                    "review_id": item.review_id,
+                    "kind": kind,
+                    "source_id": source_id,
+                },
             ),
         )

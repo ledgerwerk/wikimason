@@ -11,7 +11,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-
 LogPolicy = Literal["none", "manual", "audit", "change"]
 
 
@@ -449,7 +448,10 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
     ),
     CommandSpec(
         path=("vault", "maintain"),
-        usage="wikimason vault maintain [--log TEXT] [--accept-covered] [--format text|json]",
+        usage=(
+            "wikimason vault maintain [--log TEXT] [--accept-covered] "
+            "[--format text|json]"
+        ),
         summary="Full vault maintenance.",
         json_output=True,
         log_policy="change",

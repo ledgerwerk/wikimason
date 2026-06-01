@@ -21,7 +21,17 @@ def test_source_add_writes_log_entry(tmp_path: Path) -> None:
     source_file.write_text("# Brief\n", encoding="utf-8")
 
     assert (
-        main(["source", "add", str(source_file), "--vault", str(vault), "--format", "json"])
+        main(
+            [
+                "source",
+                "add",
+                str(source_file),
+                "--vault",
+                str(vault),
+                "--format",
+                "json",
+            ]
+        )
         == 0
     )
 

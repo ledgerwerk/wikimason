@@ -203,7 +203,8 @@ wikimason log add --action ingest.finish --title "Reviewed ingest" --details "Co
 wikimason log tail -n 10 --format json
 wikimason log check --format json
 ```
-```
+
+````
 
 ### 7. Export context for LLM chat
 
@@ -216,13 +217,12 @@ wikimason context export "retrieval pipeline" --print --source-closure
 
 # Export to file for chat use
 wikimason context export "retrieval pipeline" -o context.md --purpose chat
-```
+````
 
 Context export selects relevant wiki pages and declared sources for a topic query,
 ranks them by relevance with tiered priority (seed matches, declared sources, graph
 expansion), applies token and byte budgets, and renders a deterministic Markdown file
 with a selection manifest, omitted candidates report, and source closure gaps.
-
 
 ## Configuration
 

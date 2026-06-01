@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import typer
 
-from ..cli_helpers import CommandOutcome, _finish_command, _run_row_command, _vault_from_ctx
+from ..cli_helpers import (
+    CommandOutcome,
+    _finish_command,
+    _run_row_command,
+    _vault_from_ctx,
+)
 from ..cli_output import emit, result_payload
 from ..files import resolve_existing_path
 from ..links import (

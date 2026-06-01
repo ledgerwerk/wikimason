@@ -5,7 +5,7 @@ from __future__ import annotations
 import typer
 
 from ..cli_helpers import CommandOutcome, _finish_command, _vault_from_ctx
-from ..cli_output import emit, result_payload
+from ..cli_output import result_payload
 from ..errors import UsageError
 from ..ingest import (
     ingest_finish,
