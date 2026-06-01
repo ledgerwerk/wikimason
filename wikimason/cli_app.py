@@ -59,6 +59,7 @@ def main_callback(
 
 from .cli_groups.agents import register_agents
 from .cli_groups.catalog import register_catalog
+from .cli_groups.context import register_context
 from .cli_groups.config import register_config
 from .cli_groups.daily import register_daily
 from .cli_groups.file import register_file
@@ -82,6 +83,7 @@ from .cli_groups.vault import register_vault
 register_root(app)
 register_agents(app)
 register_catalog(app)
+register_context(app)
 register_config(app)
 register_daily(app)
 register_file(app)

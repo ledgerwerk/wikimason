@@ -723,4 +723,35 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         summary="Add a review queue item.",
         json_output=True,
     ),
+    # -- context --
+    CommandSpec(
+        path=("context",),
+        usage="wikimason context [COMMAND] [--help]",
+        summary="Context export commands.",
+    ),
+    CommandSpec(
+        path=("context", "plan"),
+        usage="wikimason context plan QUERY [--format text|json]"
+        " [--max-files N] [--max-bytes N] [--max-tokens N]"
+        " [--depth N] [--include wiki|sources|both]"
+        " [--include-indexes] [--min-score FLOAT] [--rebuild-index]",
+        summary="Preview which files would be selected for a topic query.",
+        json_output=True,
+    ),
+    CommandSpec(
+        path=("context", "export"),
+        usage="wikimason context export QUERY --output PATH"
+        " [--print] [--copy] [--max-files N] [--max-bytes N] [--max-tokens N]"
+        " [--depth N] [--include wiki|sources|both]"
+        " [--include-indexes] [--allow-sensitive] [--rebuild-index]",
+        summary="Export relevant wiki files into a single Markdown context file.",
+        json_output=True,
+    ),
+    CommandSpec(
+        path=("context", "index"),
+        usage="wikimason context index [--rebuild] [--format text|json]",
+        summary="Build or rebuild the FTS search index.",
+        json_output=True,
+    ),
 )
+

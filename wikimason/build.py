@@ -71,6 +71,16 @@ def build_vault(vault: Path) -> BuildResult:
     )
 
     write_agents_md(vault, config=config)
+
+    # Rebuild search index
+    try:
+        from .search_index import open_search_index
+
+        idx = open_search_index(vault)
+        idx.rebuild(vault)
+        idx.close()
+    except Exception:
+        pass  # Search index is optional; build should not fail
     return BuildResult(updated_source_count=updated, catalog_count=len(entries))
 
 
