@@ -50,7 +50,10 @@ class TestSQLiteSearchIndex:
         idx = SQLiteSearchIndex(db_path)
         results = idx.query("demo")
         assert len(results) > 0
-        assert any("demo" in str(r["path"]).lower() or "demo" in str(r["title"]).lower() for r in results)
+        assert any(
+            "demo" in str(r["path"]).lower() or "demo" in str(r["title"]).lower()
+            for r in results
+        )
         idx.close()
 
     def test_safe_fts_query(self) -> None:
@@ -62,8 +65,8 @@ class TestSQLiteSearchIndex:
         # Special FTS characters should be stripped
         q = to_safe_fts_query('test "quoted" (parens)')
         # Should not contain raw FTS operators like parentheses
-        assert '(' not in q
-        assert ')' not in q
+        assert "(" not in q
+        assert ")" not in q
 
     def test_index_status_missing(self, tmp_path: Path) -> None:
         from wikimason.search_index import index_status
@@ -117,7 +120,16 @@ class TestContextPlan:
         topics_dir = vault / "Wiki/Topics"
         topics_dir.mkdir(parents=True, exist_ok=True)
         (topics_dir / "llm-wiki.md").write_text(
-            "---\ntitle: LLM Wiki\nkind: topic\nsources:\n  - Raw/Sources/llm-wiki-paper.md\n---\n# LLM Wiki\n\nContent about LLM wikis.\n",
+            (
+                "---\n"
+                "title: LLM Wiki\n"
+                "kind: topic\n"
+                "sources:\n"
+                "  - Raw/Sources/llm-wiki-paper.md\n"
+                "---\n"
+                "# LLM Wiki\n\n"
+                "Content about LLM wikis.\n"
+            ),
             encoding="utf-8",
         )
 
@@ -143,7 +155,10 @@ class TestContextPlan:
 
         # Page A links to Page B
         (topics_dir / "page-a.md").write_text(
-            "---\ntitle: Page A\nkind: topic\n---\n# Page A\n\nSee [[Wiki/Concepts/page-b|Page B]].\n",
+            (
+                "---\ntitle: Page A\nkind: topic\n---\n"
+                "# Page A\n\nSee [[Wiki/Concepts/page-b|Page B]].\n"
+            ),
             encoding="utf-8",
         )
         (concepts_dir / "page-b.md").write_text(
@@ -173,7 +188,10 @@ class TestContextPlan:
         # Create several small pages
         for i in range(10):
             (topics_dir / f"topic-{i}.md").write_text(
-                f"---\ntitle: Topic {i}\nkind: topic\n---\n# Topic {i}\n\nContent for topic {i}.\n",
+                (
+                    f"---\ntitle: Topic {i}\nkind: topic\n---\n"
+                    f"# Topic {i}\n\nContent for topic {i}.\n"
+                ),
                 encoding="utf-8",
             )
 
@@ -195,7 +213,7 @@ class TestContextPlan:
         from wikimason.context_export import plan_context
 
         plan = plan_context(built_vault, "index", include_indexes=True)
-        paths = [item.path for item in plan.items]
+        [item.path for item in plan.items]
         # With include_indexes, generated wiki index pages should be allowed
         # (they still need to match the query to appear)
         assert isinstance(plan.selected_count, int)
@@ -252,8 +270,8 @@ class TestExportFormat:
         export_context(built_vault, "demo", out)
 
         content = out.read_text(encoding="utf-8")
-        assert '<!-- wikimason:begin-file' in content
-        assert '<!-- wikimason:end-file -->' in content
+        assert "<!-- wikimason:begin-file" in content
+        assert "<!-- wikimason:end-file -->" in content
 
     def test_export_no_path_escape(self, tmp_path: Path) -> None:
         """Query should never read outside the vault."""
@@ -322,7 +340,11 @@ class TestCredentialSafety:
         topics_dir = vault / "Wiki/Topics"
         topics_dir.mkdir(parents=True, exist_ok=True)
         (topics_dir / "secrets.md").write_text(
-            "---\ntitle: Secrets\nkind: topic\n---\n# Secrets\n\napi_key=AKIA1234567890abcdef\npassword=hunter2\n",
+            (
+                "---\ntitle: Secrets\nkind: topic\n---\n"
+                "# Secrets\n\napi_key=AKIA1234567890abcdef\n"
+                "password=hunter2\n"
+            ),
             encoding="utf-8",
         )
 
@@ -342,7 +364,10 @@ class TestCredentialSafety:
         topics_dir = vault / "Wiki/Topics"
         topics_dir.mkdir(parents=True, exist_ok=True)
         (topics_dir / "secrets.md").write_text(
-            "---\ntitle: Secrets\nkind: topic\n---\n# Secrets\n\napi_key=AKIA1234567890abcdef\n",
+            (
+                "---\ntitle: Secrets\nkind: topic\n---\n"
+                "# Secrets\n\napi_key=AKIA1234567890abcdef\n"
+            ),
             encoding="utf-8",
         )
 
@@ -350,7 +375,7 @@ class TestCredentialSafety:
         out = tmp_path / "export.md"
 
         # Should succeed with --allow-sensitive
-        plan = export_context(vault, "secrets", out, allow_sensitive=True)
+        export_context(vault, "secrets", out, allow_sensitive=True)
         assert out.exists()
 
 
@@ -369,25 +394,40 @@ class TestContextCLI:
         assert "export" in out
         assert "index" in out
 
-    def test_context_plan_text(self, built_vault: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_context_plan_text(
+        self, built_vault: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         from wikimason.cli import main
 
-        result = main([
-            "context", "plan", "demo",
-            "--vault", str(built_vault),
-        ])
+        result = main(
+            [
+                "context",
+                "plan",
+                "demo",
+                "--vault",
+                str(built_vault),
+            ]
+        )
         assert result == 0
         out = capsys.readouterr().out
         assert "demo" in out.lower()
 
-    def test_context_plan_json(self, built_vault: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_context_plan_json(
+        self, built_vault: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         from wikimason.cli import main
 
-        result = main([
-            "context", "plan", "demo",
-            "--vault", str(built_vault),
-            "--format", "json",
-        ])
+        result = main(
+            [
+                "context",
+                "plan",
+                "demo",
+                "--vault",
+                str(built_vault),
+                "--format",
+                "json",
+            ]
+        )
         assert result == 0
         output = capsys.readouterr().out
         payload = json.loads(output.splitlines()[-1])
@@ -398,38 +438,58 @@ class TestContextCLI:
         from wikimason.cli import main
 
         out = built_vault / "ctx.md"
-        result = main([
-            "context", "export", "demo",
-            "--vault", str(built_vault),
-            "--output", str(out),
-        ])
+        result = main(
+            [
+                "context",
+                "export",
+                "demo",
+                "--vault",
+                str(built_vault),
+                "--output",
+                str(out),
+            ]
+        )
         assert result == 0
         assert out.exists()
         content = out.read_text(encoding="utf-8")
         assert "wikimason_context_export" in content
 
-    def test_context_index_rebuild(self, built_vault: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_context_index_rebuild(
+        self, built_vault: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         from wikimason.cli import main
 
-        result = main([
-            "context", "index", "--rebuild",
-            "--vault", str(built_vault),
-            "--format", "json",
-        ])
+        result = main(
+            [
+                "context",
+                "index",
+                "--rebuild",
+                "--vault",
+                str(built_vault),
+                "--format",
+                "json",
+            ]
+        )
         assert result == 0
         output = capsys.readouterr().out
         payload = json.loads(output.splitlines()[-1])
         assert payload["result"]["ok"]
 
-
-    def test_context_export_print(self, built_vault: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_context_export_print(
+        self, built_vault: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         from wikimason.cli import main
 
-        result = main([
-            "context", "export", "demo",
-            "--vault", str(built_vault),
-            "--print",
-        ])
+        result = main(
+            [
+                "context",
+                "export",
+                "demo",
+                "--vault",
+                str(built_vault),
+                "--print",
+            ]
+        )
         assert result == 0
         output = capsys.readouterr().out
         assert "wikimason_context_export" in output

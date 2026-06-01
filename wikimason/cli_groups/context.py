@@ -24,9 +24,7 @@ def register_context(app: typer.Typer) -> None:
         ctx: typer.Context,
         query: str = typer.Argument(..., help="Topic query."),
         max_files: int = typer.Option(30, "--max-files", help="Max files to select."),
-        max_bytes: int = typer.Option(
-            250_000, "--max-bytes", help="Max total bytes."
-        ),
+        max_bytes: int = typer.Option(250_000, "--max-bytes", help="Max total bytes."),
         max_tokens: int = typer.Option(
             60_000, "--max-tokens", help="Max estimated tokens."
         ),
@@ -66,7 +64,9 @@ def register_context(app: typer.Typer) -> None:
         )
         if fmt == "json":
             payload = plan_to_json(plan)
-            text = f"{plan.selected_count} files selected, ~{plan.estimated_tokens} tokens"
+            text = (
+                f"{plan.selected_count} files selected, ~{plan.estimated_tokens} tokens"
+            )
             _exit_emit(payload, text, fmt)
         else:
             md = render_context_markdown(vault, plan)
@@ -79,14 +79,10 @@ def register_context(app: typer.Typer) -> None:
         output: Path | None = typer.Option(
             None, "--output", "-o", help="Output file path."
         ),
-        print_out: bool = typer.Option(
-            False, "--print", help="Write to stdout."
-        ),
+        print_out: bool = typer.Option(False, "--print", help="Write to stdout."),
         copy: bool = typer.Option(False, "--copy", help="Copy to clipboard."),
         max_files: int = typer.Option(30, "--max-files", help="Max files."),
-        max_bytes: int = typer.Option(
-            250_000, "--max-bytes", help="Max total bytes."
-        ),
+        max_bytes: int = typer.Option(250_000, "--max-bytes", help="Max total bytes."),
         max_tokens: int = typer.Option(
             60_000, "--max-tokens", help="Max estimated tokens."
         ),

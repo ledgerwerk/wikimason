@@ -11,7 +11,7 @@ import re
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Protocol
 
 # ---------------------------------------------------------------------------
 # Schema DDL
@@ -122,9 +122,9 @@ class SQLiteSearchIndex:
         source_count = 0
 
         # Index compiled pages
-        from .paths import compiled_md_files, rel_to_vault
-        from .page_profiles import split_page_text
         from .config import load_runtime_config
+        from .page_profiles import split_page_text
+        from .paths import compiled_md_files, rel_to_vault
 
         config = load_runtime_config(vault)
         for path in compiled_md_files(vault):
@@ -226,8 +226,9 @@ class SQLiteSearchIndex:
             )
         else:
             cursor = conn.execute(
-                "INSERT INTO search_docs (path, kind, sha256, title, aliases, "
-                "tags, headings, summary, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO search_docs (path, kind, sha256, title, "
+                "aliases, tags, headings, summary, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (path, kind, sha256, title, aliases, tags, headings, summary, now),
             )
             docid = cursor.lastrowid
@@ -267,15 +268,17 @@ class SQLiteSearchIndex:
             # BM25 rank is negative (more negative = better match).
             # Convert to a 0-100 score.
             score = _bm25_to_score(row[5])
-            results.append({
-                "path": row[0],
-                "kind": row[1],
-                "title": row[2],
-                "tags": row[3],
-                "summary": row[4],
-                "score": score,
-                "reason": "body:fts",
-            })
+            results.append(
+                {
+                    "path": row[0],
+                    "kind": row[1],
+                    "title": row[2],
+                    "tags": row[3],
+                    "summary": row[4],
+                    "score": score,
+                    "reason": "body:fts",
+                }
+            )
         return results
 
     def status(self) -> dict[str, object]:
@@ -327,7 +330,9 @@ class StubSearchIndex:
 # ---------------------------------------------------------------------------
 
 
-def open_search_index(vault: Path, *, index_path: str | None = None) -> SQLiteSearchIndex:
+def open_search_index(
+    vault: Path, *, index_path: str | None = None
+) -> SQLiteSearchIndex:
     """Open (or create) a search index for *vault*."""
     path = vault / (index_path or DEFAULT_INDEX_PATH)
     return SQLiteSearchIndex(path)
@@ -383,6 +388,7 @@ def _extract_headings(body: str) -> str:
                 headings.append(heading)
     return " ".join(headings)
 
+
 def _strip_frontmatter_from_text(text: str) -> str:
     """Remove YAML frontmatter from text for indexing."""
     if not text.startswith("---"):
@@ -390,7 +396,7 @@ def _strip_frontmatter_from_text(text: str) -> str:
     end = text.find("---", 3)
     if end == -1:
         return text
-    return text[end + 3:].lstrip("\n")
+    return text[end + 3 :].lstrip("\n")
 
 
 def _bm25_to_score(rank: float) -> float:

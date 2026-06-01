@@ -7,16 +7,18 @@ them, then renders into a deterministic Markdown context file.
 from __future__ import annotations
 
 import hashlib
-import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from .search import SearchCandidate
 
 from .config import load_runtime_config
 from .lint_credentials import check_credentials
 from .page_profiles import split_page_text
-from .paths import compiled_md_files, rel_to_vault, source_md_files
+from .paths import rel_to_vault, source_md_files
 
 # ---------------------------------------------------------------------------
 # Scoring weights
@@ -168,7 +170,10 @@ def plan_context(
 
     for cand in final_candidates:
         if len(selected) >= max_files:
-            warnings.append(f"max-files limit ({max_files}) reached; {total_candidates - len(selected)} candidates omitted")
+            warnings.append(
+                f"max-files limit ({max_files}) reached; "
+                f"{total_candidates - len(selected)} candidates omitted"
+            )
             break
 
         file_path = vault / cand.path
@@ -187,44 +192,50 @@ def plan_context(
             # Try summary mode instead
             summary = _extract_summary(vault, cand.path)
             if summary:
-                selected.append(ContextItem(
-                    path=cand.path,
-                    kind=cand.kind,
-                    score=cand.score,
-                    reasons=cand.reasons,
-                    include="summary",
-                    estimated_tokens=_estimate_tokens(summary),
-                    sha256=hashlib.sha256(text.encode("utf-8")).hexdigest()[:12],
-                ))
+                selected.append(
+                    ContextItem(
+                        path=cand.path,
+                        kind=cand.kind,
+                        score=cand.score,
+                        reasons=cand.reasons,
+                        include="summary",
+                        estimated_tokens=_estimate_tokens(summary),
+                        sha256=hashlib.sha256(text.encode("utf-8")).hexdigest()[:12],
+                    )
+                )
                 warnings.append(f"{cand.path} truncated to summary (token budget)")
             continue
 
         if running_bytes + size > max_bytes:
             summary = _extract_summary(vault, cand.path)
             if summary:
-                selected.append(ContextItem(
-                    path=cand.path,
-                    kind=cand.kind,
-                    score=cand.score,
-                    reasons=cand.reasons,
-                    include="summary",
-                    estimated_tokens=_estimate_tokens(summary),
-                    sha256=hashlib.sha256(text.encode("utf-8")).hexdigest()[:12],
-                ))
+                selected.append(
+                    ContextItem(
+                        path=cand.path,
+                        kind=cand.kind,
+                        score=cand.score,
+                        reasons=cand.reasons,
+                        include="summary",
+                        estimated_tokens=_estimate_tokens(summary),
+                        sha256=hashlib.sha256(text.encode("utf-8")).hexdigest()[:12],
+                    )
+                )
                 warnings.append(f"{cand.path} truncated to summary (byte budget)")
             continue
 
         running_bytes += size
         running_tokens += tokens
-        selected.append(ContextItem(
-            path=cand.path,
-            kind=cand.kind,
-            score=cand.score,
-            reasons=cand.reasons,
-            include="full",
-            estimated_tokens=tokens,
-            sha256=hashlib.sha256(text.encode("utf-8")).hexdigest()[:12],
-        ))
+        selected.append(
+            ContextItem(
+                path=cand.path,
+                kind=cand.kind,
+                score=cand.score,
+                reasons=cand.reasons,
+                include="full",
+                estimated_tokens=tokens,
+                sha256=hashlib.sha256(text.encode("utf-8")).hexdigest()[:12],
+            )
+        )
 
     total_tokens = sum(item.estimated_tokens for item in selected)
 
@@ -245,7 +256,7 @@ def render_context_markdown(vault: Path, plan: ContextPlan) -> str:
 
     # YAML frontmatter
     lines.append("---")
-    lines.append(f"wikimason_context_export: 1")
+    lines.append("wikimason_context_export: 1")
     lines.append(f'query: "{plan.query}"')
     lines.append(f'generated_at: "{now}"')
     lines.append(f"selected_count: {plan.selected_count}")
@@ -264,7 +275,9 @@ def render_context_markdown(vault: Path, plan: ContextPlan) -> str:
     lines.append("| ---: | ----: | ---- | ---- | ------ |")
     for i, item in enumerate(plan.items, start=1):
         reason_str = ", ".join(item.reasons)
-        lines.append(f"| {i} | {item.score:.1f} | {item.kind} | {item.path} | {reason_str} |")
+        lines.append(
+            f"| {i} | {item.score:.1f} | {item.kind} | {item.path} | {reason_str} |"
+        )
     lines.append("")
 
     if plan.warnings:
@@ -323,7 +336,8 @@ def export_context(
     check_credentials(md, "<export>", cred_findings)
     if cred_findings and not allow_sensitive:
         raise ValueError(
-            f"Context export contains {len(cred_findings)} potential credential leak(s). "
+            f"Context export contains {len(cred_findings)} "
+            f"potential credential leak(s). "
             "Use --allow-sensitive to proceed."
         )
 
@@ -381,9 +395,80 @@ class _Candidate:
 # ---------------------------------------------------------------------------
 
 
-def _merge_catalog_seeds(
-    vault: Path, query: str, acc: dict[str, _Candidate]
-) -> None:
+def _score_catalog_candidate(
+    cand: SearchCandidate,
+    norm: str,
+    fuzz: Any,
+) -> tuple[float, list[str]]:
+    score = 0.0
+    reasons: list[str] = []
+
+    # Title scoring
+    title_norm = cand.label.casefold()
+    if title_norm == norm:
+        score = WEIGHTS["title_exact"]
+        reasons.append("title:exact")
+    elif norm in title_norm:
+        score = WEIGHTS["title_fuzzy"]
+        reasons.append("title:contains")
+    else:
+        ratio = fuzz.WRatio(norm, title_norm)
+        if ratio >= 70:
+            score = max(score, WEIGHTS["title_fuzzy"] * ratio / 100)
+            reasons.append("title:fuzzy")
+
+    # Path scoring
+    if cand.path:
+        path_norm = cand.path.casefold()
+        path_ratio = fuzz.WRatio(norm, path_norm)
+        if path_ratio >= 65:
+            score = max(score, WEIGHTS["path_fuzzy"] * path_ratio / 100)
+            if "path:fuzzy" not in reasons:
+                reasons.append("path:fuzzy")
+
+    # Alias scoring
+    for alias in cand.aliases:
+        alias_norm = alias.casefold()
+        if norm == alias_norm:
+            score = max(score, WEIGHTS["alias"])
+            reasons.append("alias:exact")
+        else:
+            ratio = fuzz.WRatio(norm, alias_norm)
+            if ratio >= 70:
+                score = max(score, WEIGHTS["alias"] * ratio / 100)
+                reasons.append("alias:fuzzy")
+
+    # Tag scoring
+    tags_str = cand.fields.get("tags", "")
+    if tags_str:
+        tags = tags_str.lower().split()
+        for tag in tags:
+            if norm == tag:
+                score = max(score, WEIGHTS["tag"])
+                reasons.append("tag:exact")
+            elif norm in tag:
+                score = max(score, WEIGHTS["tag"] * 0.9)
+                reasons.append("tag:partial")
+
+    # Topic scoring
+    topics_str = cand.fields.get("topics", "")
+    if topics_str:
+        topics = topics_str.lower().split()
+        for topic in topics:
+            if norm == topic:
+                score = max(score, WEIGHTS["topic"])
+                reasons.append("topic:exact")
+
+    # Summary scoring
+    summary = cand.fields.get("summary", "")
+    if summary and norm in summary.casefold():
+        score = max(score, WEIGHTS["summary_fts"])
+        reasons.append("summary:match")
+
+    return score, reasons
+
+
+def _merge_catalog_seeds(vault: Path, query: str, acc: dict[str, _Candidate]) -> None:
     from .search import normalize_query
     from .search_backends import CatalogBackend
 
@@ -399,70 +484,7 @@ def _merge_catalog_seeds(
         if not cand.path:
             continue
         path = cand.path
-        score = 0.0
-        reasons: list[str] = []
-
-        # Title scoring
-        title_norm = cand.label.casefold()
-        if title_norm == norm:
-            score = WEIGHTS["title_exact"]
-            reasons.append("title:exact")
-        elif norm in title_norm:
-            score = WEIGHTS["title_fuzzy"]
-            reasons.append("title:contains")
-        else:
-            ratio = fuzz.WRatio(norm, title_norm)
-            if ratio >= 70:
-                score = max(score, WEIGHTS["title_fuzzy"] * ratio / 100)
-                reasons.append("title:fuzzy")
-
-        # Path scoring
-        if cand.path:
-            path_norm = cand.path.casefold()
-            path_ratio = fuzz.WRatio(norm, path_norm)
-            if path_ratio >= 65:
-                score = max(score, WEIGHTS["path_fuzzy"] * path_ratio / 100)
-                if "path:fuzzy" not in reasons:
-                    reasons.append("path:fuzzy")
-
-        # Alias scoring
-        for alias in cand.aliases:
-            alias_norm = alias.casefold()
-            if norm == alias_norm:
-                score = max(score, WEIGHTS["alias"])
-                reasons.append("alias:exact")
-            else:
-                ratio = fuzz.WRatio(norm, alias_norm)
-                if ratio >= 70:
-                    score = max(score, WEIGHTS["alias"] * ratio / 100)
-                    reasons.append("alias:fuzzy")
-
-        # Tag scoring
-        tags_str = cand.fields.get("tags", "")
-        if tags_str:
-            tags = tags_str.lower().split()
-            for tag in tags:
-                if norm == tag:
-                    score = max(score, WEIGHTS["tag"])
-                    reasons.append("tag:exact")
-                elif norm in tag:
-                    score = max(score, WEIGHTS["tag"] * 0.9)
-                    reasons.append("tag:partial")
-
-        # Topic scoring
-        topics_str = cand.fields.get("topics", "")
-        if topics_str:
-            topics = topics_str.lower().split()
-            for topic in topics:
-                if norm == topic:
-                    score = max(score, WEIGHTS["topic"])
-                    reasons.append("topic:exact")
-
-        # Summary scoring
-        summary = cand.fields.get("summary", "")
-        if summary and norm in summary.casefold():
-            score = max(score, WEIGHTS["summary_fts"])
-            reasons.append("summary:match")
+        score, reasons = _score_catalog_candidate(cand, norm, fuzz)
 
         if score > 0:
             if path in acc:
@@ -478,11 +500,10 @@ def _merge_catalog_seeds(
                 )
 
 
-def _merge_source_seeds(
-    vault: Path, query: str, acc: dict[str, _Candidate]
-) -> None:
-    from .search import normalize_query
+def _merge_source_seeds(vault: Path, query: str, acc: dict[str, _Candidate]) -> None:
     from rapidfuzz import fuzz
+
+    from .search import normalize_query
 
     norm = normalize_query(query)
     for path in source_md_files(vault):
@@ -502,11 +523,10 @@ def _merge_source_seeds(
                 )
 
 
-def _merge_filename_seeds(
-    vault: Path, query: str, acc: dict[str, _Candidate]
-) -> None:
-    from .search import normalize_query
+def _merge_filename_seeds(vault: Path, query: str, acc: dict[str, _Candidate]) -> None:
     from rapidfuzz import fuzz
+
+    from .search import normalize_query
 
     norm = normalize_query(query)
     for path in vault.rglob("*.md"):
@@ -529,9 +549,7 @@ def _merge_filename_seeds(
                 )
 
 
-def _merge_fts_seeds(
-    vault: Path, query: str, acc: dict[str, _Candidate]
-) -> None:
+def _merge_fts_seeds(vault: Path, query: str, acc: dict[str, _Candidate]) -> None:
     """Merge FTS5 search results into candidates."""
     from .search_index import DEFAULT_INDEX_PATH
 
@@ -582,8 +600,6 @@ def _expand_graph(
     from .links import backlinks, outgoing_links
 
     config = load_runtime_config(vault)
-    # Collect paths of top-scoring candidates for expansion
-    top_paths = sorted(acc.values(), key=lambda c: -c.score)[:10]
     visited = set(acc.keys())
 
     for _round in range(depth):
@@ -660,7 +676,8 @@ def _estimate_tokens(text: str) -> int:
 
 
 def _extract_summary(vault: Path, rel: str) -> str | None:
-    """Extract a summary for a file: frontmatter summary, first heading, first paragraph."""
+    """Extract a summary for a file: frontmatter summary, first heading,
+    first paragraph."""
     path = vault / rel
     if not path.exists():
         return None

@@ -754,4 +754,3 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         json_output=True,
     ),
 )
-
