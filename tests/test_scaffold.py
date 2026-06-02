@@ -45,6 +45,7 @@ def test_init_writes_starter_shape_placeholders(
         "Wiki/Projects/.gitkeep",
         "Wiki/Projects/index.md",
         "Wiki/Logs/.gitkeep",
+        "Wiki/logs/.gitkeep",
         "Wiki/Logs/index.md",
         "_templates/.gitkeep",
         "wikimason.toml",

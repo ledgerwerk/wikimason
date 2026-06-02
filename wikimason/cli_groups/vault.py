@@ -10,6 +10,7 @@ from ..audit import audit_vault
 from ..build import build_vault
 from ..cli_helpers import (
     CommandOutcome,
+    _append_command_log,
     _doctor_payload,
     _doctor_text,
     _finish_command,
@@ -18,6 +19,7 @@ from ..cli_helpers import (
     _vault_from_ctx,
 )
 from ..cli_output import emit
+from ..config import load_runtime_config
 from ..lint import lint_vault
 from ..log_events import audit_event, change_event, lint_event
 from ..logs import append_log_event, check_log
@@ -44,13 +46,13 @@ def _finish_maintain(
     )
     if log_event is not None:
         try:
-            append_log_event(vault, log_event)
+            _append_command_log(ctx, log_event)
         except OSError as exc:
             message = f"log write failed: {exc}"
             warnings.append(message)
             if fmt != "json":
                 text = f"{text}\nwarning: {message}" if text else f"warning: {message}"
-    log_result = check_log(vault)
+    log_result = check_log(vault, config=load_runtime_config(vault))
     payload["log_check"] = log_result
     exit_code = outcome.exit_code
     status = outcome.status
@@ -113,6 +115,7 @@ def register_vault(app: typer.Typer) -> None:
                     "demo": str(demo).lower(),
                 },
             ),
+            config=load_runtime_config(target),
         )
         raise typer.Exit(
             emit(
@@ -160,6 +163,7 @@ def register_vault(app: typer.Typer) -> None:
                 summary=f"{name}: {target}",
                 metadata={"name": name, "path": str(target)},
             ),
+            config=load_runtime_config(target),
         )
         raise typer.Exit(
             emit(

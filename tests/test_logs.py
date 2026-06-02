@@ -4,6 +4,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
+from wikimason.config import LoggingConfig, LogRotationConfig
 from wikimason.logs import (
     LOG_HEADING_RE,
     LogEvent,
@@ -70,6 +71,7 @@ def test_append_log_event_uses_append_shape(tmp_path: Path) -> None:
             summary="Query: skills",
             timestamp=datetime(2026, 6, 1, 13, 6, 10, tzinfo=timezone.utc),
         ),
+        force=True,
     )
 
     content = (vault / "Wiki/log.md").read_text(encoding="utf-8")
@@ -102,6 +104,7 @@ def test_parse_log_entries_returns_recent_entries(tmp_path: Path) -> None:
             summary="Query: agent skills",
             timestamp=datetime(2026, 6, 1, 13, 9, 10, tzinfo=timezone.utc),
         ),
+        force=True,
     )
 
     entries = parse_log_entries((vault / "Wiki/log.md").read_text(encoding="utf-8"))
@@ -153,3 +156,89 @@ def test_log_check_allows_initial_header_only(tmp_path: Path) -> None:
     result = check_log(vault)
 
     assert result == {"ok": True, "entries": 0, "findings": []}
+
+
+def _normal_config(**overrides: object) -> LoggingConfig:
+    base = LoggingConfig(
+        enabled=True,
+        path="Wiki/log.md",
+        mode="normal",
+        min_level="info",
+        include_audit_success=False,
+        include_metadata=False,
+        include_counts="non_clean",
+        max_summary_chars=160,
+        include_commands=(),
+        exclude_commands=(),
+        rotation=LogRotationConfig(
+            enabled=True,
+            strategy="size",
+            max_bytes=1_048_576,
+            max_files=5,
+            archive_dir="Wiki/logs",
+        ),
+    )
+    return LoggingConfig(**{**base.__dict__, **overrides})
+
+
+def test_render_log_event_normal_omits_info_exit_code_and_level() -> None:
+    rendered = render_log_event(_event("query", "Searched"), config=_normal_config())
+    assert "- exit_code:" not in rendered
+    assert "- level:" not in rendered
+    assert "- status: changed" in rendered
+    assert "- command: query" in rendered
+
+
+def test_render_log_event_normal_includes_nonzero_exit_code_and_warning_level() -> None:
+    event = LogEvent(
+        action="doctor",
+        title="Doctor degraded",
+        command="doctor",
+        status="degraded",
+        exit_code=2,
+        level="warning",
+    )
+    rendered = render_log_event(event, config=_normal_config())
+    assert "- exit_code: 2" in rendered
+    assert "- level: warning" in rendered
+
+
+def test_render_log_event_diagnostic_preserves_existing_shape() -> None:
+    rendered = render_log_event(_event("source.add", "Added source"))
+    assert "- exit_code: 0" in rendered
+    assert "- level: info" in rendered
+
+
+def test_empty_metadata_omitted_in_normal_mode() -> None:
+    event = LogEvent(
+        action="query",
+        title="Searched catalog",
+        command="query",
+        status="clean",
+        metadata={"note": ""},
+    )
+    rendered = render_log_event(
+        event, config=_normal_config(include_metadata=True, include_audit_success=True)
+    )
+    assert "metadata:" not in rendered
+
+
+def test_parse_log_entries_accepts_old_and_new_rendered_entries() -> None:
+    old_event = _event("source.add", "Added raw source")
+    new_event = LogEvent(
+        action="query",
+        title="Searched catalog",
+        command="query",
+        status="clean",
+    )
+    old_text = render_log_event(old_event)
+    new_text = render_log_event(
+        new_event, config=_normal_config(include_audit_success=True)
+    )
+    text = "# Wiki Log\n\n" + old_text + "\n\n" + new_text + "\n"
+
+    entries = parse_log_entries(text)
+
+    assert len(entries) == 2
+    assert entries[0]["command"] == "source.add"
+    assert entries[1]["command"] == "query"

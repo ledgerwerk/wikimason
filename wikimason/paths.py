@@ -167,6 +167,7 @@ def compiled_md_files(vault: Path, schema: VaultSchema | None = None) -> Iterato
     config = load_runtime_config(vault)
     pages_dir = config.profile_config.pages_dir
     hub_filename = config.profile_config.hub_filename
+    log_rel = config.logging.path
     prefixes = schema_compiled_prefixes(schema or load_vault_schema(vault))
     for path in wiki_md_files(vault):
         rel = rel_to_vault(vault, path)
@@ -175,6 +176,7 @@ def compiled_md_files(vault: Path, schema: VaultSchema | None = None) -> Iterato
         )
         if (
             rel == f"{pages_dir}/log.md"
+            or rel == log_rel
             or path.name in {"index.md", hub_filename}
             or path.name.endswith("___index.md")
             or path.name.endswith(f"___{hub_filename}")

@@ -75,6 +75,8 @@ PUBLIC_COMMAND_SEQUENCE: tuple[tuple[str, ...], ...] = (
     ("log", "add"),
     ("log", "tail"),
     ("log", "check"),
+    ("log", "rotate"),
+    ("log", "stats"),
     ("query",),
     ("index", "build"),
     ("index", "check"),

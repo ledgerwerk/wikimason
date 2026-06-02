@@ -95,6 +95,54 @@ class ProfileConfig:
 
 
 @dataclass(frozen=True)
+class LogRotationConfig:
+    enabled: bool
+    strategy: str
+    max_bytes: int
+    max_files: int
+    archive_dir: str
+
+    def as_dict(self) -> dict[str, bool | int | str]:
+        return {
+            "enabled": self.enabled,
+            "strategy": self.strategy,
+            "max_bytes": self.max_bytes,
+            "max_files": self.max_files,
+            "archive_dir": self.archive_dir,
+        }
+
+
+@dataclass(frozen=True)
+class LoggingConfig:
+    enabled: bool
+    path: str
+    mode: str
+    min_level: str
+    include_audit_success: bool
+    include_metadata: bool
+    include_counts: str
+    max_summary_chars: int
+    include_commands: tuple[str, ...]
+    exclude_commands: tuple[str, ...]
+    rotation: LogRotationConfig
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "enabled": self.enabled,
+            "path": self.path,
+            "mode": self.mode,
+            "min_level": self.min_level,
+            "include_audit_success": self.include_audit_success,
+            "include_metadata": self.include_metadata,
+            "include_counts": self.include_counts,
+            "max_summary_chars": self.max_summary_chars,
+            "include_commands": list(self.include_commands),
+            "exclude_commands": list(self.exclude_commands),
+            "rotation": self.rotation.as_dict(),
+        }
+
+
+@dataclass(frozen=True)
 class WikiMasonConfig:
     config_version: int
     name: str | None
@@ -104,6 +152,7 @@ class WikiMasonConfig:
     paths: PathConfig
     links: LinkConfig
     profile_config: ProfileConfig
+    logging: LoggingConfig
 
     @property
     def tool(self) -> str:
@@ -210,6 +259,31 @@ def default_config(
                 ),
             )
         ),
+        logging=LoggingConfig(
+            enabled=True,
+            path="Wiki/log.md",
+            mode="normal",
+            min_level="info",
+            include_audit_success=False,
+            include_metadata=False,
+            include_counts="non_clean",
+            max_summary_chars=160,
+            include_commands=(),
+            exclude_commands=(
+                "doctor",
+                "vault.doctor",
+                "links.check",
+                "source.coverage",
+                "ingest.plan",
+            ),
+            rotation=LogRotationConfig(
+                enabled=True,
+                strategy="size",
+                max_bytes=1_048_576,
+                max_files=5,
+                archive_dir="Wiki/logs",
+            ),
+        ),
     )
 
 
@@ -262,6 +336,15 @@ def load_config_file(path: Path) -> WikiMasonConfig:
     profile_values.update(
         cast(dict[str, Any], _load_profile_overrides(raw, base.profile))
     )  # noqa: E501
+    logging_values = base.logging.as_dict()
+    logging_overrides = _logging_table(raw.get("logging", {}), table_name="logging")
+    rotation_overrides = _rotation_table(
+        logging_overrides.pop("rotation", {}), table_name="logging.rotation"
+    )
+    logging_values.update(logging_overrides)
+    rotation_values = base.logging.rotation.as_dict()
+    rotation_values.update(rotation_overrides)
+    logging_values["rotation"] = rotation_values
 
     return WikiMasonConfig(
         config_version=config_version,
@@ -277,6 +360,7 @@ def load_config_file(path: Path) -> WikiMasonConfig:
                 _profile_table(profile_values, table_name="profile settings"),
             )  # noqa: E501
         ),
+        logging=LoggingConfig(**cast(dict[str, Any], _logging_values(logging_values))),
     )
 
 
@@ -318,6 +402,24 @@ def write_config_file(
         if p_value is None:
             continue
         lines.append(f"{key} = {_toml_value(p_value)}")
+    lines.extend(
+        [
+            "",
+            "[logging]",
+        ]
+    )
+    for key, value in config.logging.as_dict().items():
+        if key == "rotation":
+            continue
+        lines.append(f"{key} = {_toml_config_value(value)}")
+    lines.extend(
+        [
+            "",
+            "[logging.rotation]",
+        ]
+    )
+    for key, value in config.logging.rotation.as_dict().items():
+        lines.append(f"{key} = {_toml_config_value(value)}")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -469,8 +571,174 @@ def _load_profile_overrides(
     return _profile_table(overrides, table_name=f"tool_settings.{profile}")
 
 
+def _logging_table(raw: object, *, table_name: str) -> dict[str, object]:
+    if not isinstance(raw, dict):
+        raise UsageError(f"invalid config: {table_name} must be a table")
+    values: dict[str, object] = {}
+    allowed = {
+        "enabled",
+        "path",
+        "mode",
+        "min_level",
+        "include_audit_success",
+        "include_metadata",
+        "include_counts",
+        "max_summary_chars",
+        "include_commands",
+        "exclude_commands",
+        "rotation",
+    }
+    for key, value in raw.items():
+        if key not in allowed:
+            raise UsageError(f"invalid config: unsupported {table_name} setting {key}")
+        if key in {"enabled", "include_audit_success", "include_metadata"}:
+            if not isinstance(value, bool):
+                raise UsageError(f"invalid config: {table_name}.{key} must be boolean")
+            values[key] = value
+            continue
+        if key in {"path", "mode", "min_level", "include_counts"}:
+            if not isinstance(value, str):
+                raise UsageError(f"invalid config: {table_name}.{key} must be a string")
+            values[key] = value
+            continue
+        if key == "max_summary_chars":
+            if not isinstance(value, int):
+                raise UsageError(
+                    f"invalid config: {table_name}.{key} must be an integer"
+                )
+            values[key] = value
+            continue
+        if key in {"include_commands", "exclude_commands"}:
+            if not isinstance(value, (list, tuple)) or not all(
+                isinstance(item, str) for item in value
+            ):
+                raise UsageError(
+                    f"invalid config: {table_name}.{key} must be a string array"
+                )
+            values[key] = tuple(value)
+            continue
+        if key == "rotation":
+            if not isinstance(value, dict):
+                raise UsageError(
+                    f"invalid config: {table_name}.rotation must be a table"
+                )
+            values[key] = value
+            continue
+    return values
+
+
+def _rotation_table(raw: object, *, table_name: str) -> dict[str, object]:
+    if not isinstance(raw, dict):
+        raise UsageError(f"invalid config: {table_name} must be a table")
+    values: dict[str, object] = {}
+    allowed = {"enabled", "strategy", "max_bytes", "max_files", "archive_dir"}
+    for key, value in raw.items():
+        if key not in allowed:
+            raise UsageError(f"invalid config: unsupported {table_name} setting {key}")
+        if key == "enabled":
+            if not isinstance(value, bool):
+                raise UsageError(
+                    f"invalid config: {table_name}.enabled must be boolean"
+                )
+            values[key] = value
+            continue
+        if key in {"strategy", "archive_dir"}:
+            if not isinstance(value, str):
+                raise UsageError(f"invalid config: {table_name}.{key} must be a string")
+            values[key] = value
+            continue
+        if key in {"max_bytes", "max_files"}:
+            if not isinstance(value, int):
+                raise UsageError(
+                    f"invalid config: {table_name}.{key} must be an integer"
+                )
+            values[key] = value
+            continue
+    return values
+
+
+def _relative_vault_path(value: str, *, key: str) -> str:
+    path = Path(value)
+    if path.is_absolute():
+        raise UsageError(f"invalid config: {key} must be a relative vault path")
+    normalized = Path(value.replace("\\", "/"))
+    if any(part == ".." for part in normalized.parts):
+        raise UsageError(f"invalid config: {key} must stay inside the vault")
+    return normalized.as_posix()
+
+
+def _logging_values(raw: dict[str, object]) -> dict[str, object]:
+    mode = str(raw.get("mode", "normal"))
+    if mode not in {"quiet", "normal", "diagnostic"}:
+        raise UsageError(
+            "invalid config: logging.mode must be one of quiet|normal|diagnostic"
+        )
+    min_level = str(raw.get("min_level", "info"))
+    if min_level not in {"info", "warning", "error"}:
+        raise UsageError(
+            "invalid config: logging.min_level must be one of info|warning|error"
+        )
+    include_counts = str(raw.get("include_counts", "non_clean"))
+    if include_counts not in {"never", "non_clean", "always"}:
+        raise UsageError(
+            "invalid config: logging.include_counts must be one of "
+            "never|non_clean|always"
+        )
+    max_summary_chars = int(raw.get("max_summary_chars", 160))
+    if max_summary_chars < 1:
+        raise UsageError("invalid config: logging.max_summary_chars must be >= 1")
+    include_commands = tuple(raw.get("include_commands", ()))
+    exclude_commands = tuple(raw.get("exclude_commands", ()))
+    rotation_table = raw.get("rotation", {})
+    if not isinstance(rotation_table, dict):
+        raise UsageError("invalid config: logging.rotation must be a table")
+    strategy = str(rotation_table.get("strategy", "size"))
+    if strategy not in {"none", "size"}:
+        raise UsageError("invalid config: logging.rotation.strategy must be none|size")
+    max_bytes = int(rotation_table.get("max_bytes", 1_048_576))
+    if max_bytes < 4096:
+        raise UsageError("invalid config: logging.rotation.max_bytes must be >= 4096")
+    max_files = int(rotation_table.get("max_files", 5))
+    if max_files < 0:
+        raise UsageError("invalid config: logging.rotation.max_files must be >= 0")
+    return {
+        "enabled": bool(raw.get("enabled", True)),
+        "path": _relative_vault_path(
+            str(raw.get("path", "Wiki/log.md")), key="logging.path"
+        ),
+        "mode": mode,
+        "min_level": min_level,
+        "include_audit_success": bool(raw.get("include_audit_success", False)),
+        "include_metadata": bool(raw.get("include_metadata", False)),
+        "include_counts": include_counts,
+        "max_summary_chars": max_summary_chars,
+        "include_commands": include_commands,
+        "exclude_commands": exclude_commands,
+        "rotation": LogRotationConfig(
+            enabled=bool(rotation_table.get("enabled", True)),
+            strategy=strategy,
+            max_bytes=max_bytes,
+            max_files=max_files,
+            archive_dir=_relative_vault_path(
+                str(rotation_table.get("archive_dir", "Wiki/logs")),
+                key="logging.rotation.archive_dir",
+            ),
+        ),
+    }
+
+
 def _toml_value(value: Any) -> str:
     try:
         return toml_value(value)
     except ValueError as exc:
         raise UsageError(str(exc)) from exc
+
+
+def _toml_config_value(value: Any) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        return str(value)
+    return _toml_value(value)

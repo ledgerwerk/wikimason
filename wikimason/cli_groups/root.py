@@ -12,12 +12,14 @@ from .. import __version__
 from ..audit import audit_vault
 from ..cli_helpers import (
     CommandOutcome,
+    _append_command_log,
     _finish_command,
     _run_doctor,
     _run_lint,
     _vault_from_ctx,
 )
 from ..cli_output import emit
+from ..config import load_runtime_config
 from ..ingest import doctor_status, ingest_status
 from ..log_events import audit_event, change_event, lint_event
 from ..logs import append_log_event
@@ -106,6 +108,7 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
                     "demo": str(demo).lower(),
                 },
             ),
+            config=load_runtime_config(target),
         )
         raise typer.Exit(
             emit(
@@ -123,8 +126,8 @@ def register_root(app: typer.Typer) -> None:  # noqa: C901
         vault = _vault_from_ctx(ctx)
         rows = search_catalog(vault, query=query or "", tag=tag, limit=10)
         text = "\n".join(f"{row['title']}\t{row['path']}" for row in rows)
-        append_log_event(
-            vault,
+        _append_command_log(
+            ctx,
             audit_event(
                 "query",
                 "Searched catalog",

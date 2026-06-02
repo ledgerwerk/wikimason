@@ -12,6 +12,7 @@ import typer
 
 from .cli_output import OutputFormat, emit, normalize_format, result_payload
 from .cli_state import resolve_vault
+from .config import load_runtime_config
 from .logs import LogEvent, append_log_event
 from .notes import new_note, parse_path_values
 from .paths import rel_to_vault
@@ -39,6 +40,7 @@ def _config_payload(context: Any) -> dict[str, Any]:
         "paths": context.config.paths.as_dict(),
         "links": context.config.links.as_dict(),
         "profile_settings": context.config.profile_config.as_dict(),
+        "logging": context.config.logging.as_dict(),
     }
 
 
@@ -176,7 +178,7 @@ def _finish_command(
     warnings = list(outcome.warnings)
     if log_event is not None:
         try:
-            append_log_event(_vault_from_ctx(ctx), log_event)
+            _append_command_log(ctx, log_event)
         except OSError as exc:
             message = f"log write failed: {exc}"
             warnings.append(message)
@@ -195,6 +197,27 @@ def _finish_command(
             next_action=outcome.next_action,
         )
     )
+
+
+def _context_from_ctx(ctx: typer.Context) -> Any:
+    vault = _vault_from_ctx(ctx)
+    return type(
+        "CommandContext",
+        (),
+        {"root": vault, "config": load_runtime_config(vault)},
+    )()
+
+
+def _append_command_log(
+    ctx: typer.Context,
+    event: LogEvent | None,
+    *,
+    force: bool = False,
+) -> Path | None:
+    if event is None:
+        return None
+    context = _context_from_ctx(ctx)
+    return append_log_event(context.root, event, config=context.config, force=force)
 
 
 def _exit_rows(rows: Sequence[str], fmt: str, *, total: bool = False) -> None:

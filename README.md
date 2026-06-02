@@ -114,7 +114,7 @@ A standard Markdown or Obsidian profile creates this shape:
 
 The Logseq profile stores logical wiki pages under `pages/` using flat filenames, while keeping raw sources, schema files, templates, and `AGENTS.md` in the same canonical roles.
 
-`Wiki/log.md` is the append-only operational timeline for vault changes and audit actions. Use `wikimason log tail` to inspect recent activity and `wikimason log check` to validate the file shape.
+`Wiki/log.md` is the operational timeline for vault changes and audit actions. By default, log entries are compact and clean audit checks are suppressed to reduce noise. Use `mode = "diagnostic"` in `[logging]` for full verbose tracing.
 
 ## Core workflow
 
@@ -192,6 +192,7 @@ wikimason audit --format json
 wikimason vault maintain --format json
 wikimason log tail -n 5 --format json
 wikimason log check --format json
+wikimason log stats --format json
 ```
 
 `vault maintain` verifies the vault, checks raw-source delta, rebuilds indexes and catalog files, scans sources, lints, audits tracked local state, writes an operational log entry to `Wiki/log.md`, and validates the log as part of the maintenance run.
@@ -202,6 +203,7 @@ wikimason log check --format json
 wikimason log add --action ingest.finish --title "Reviewed ingest" --details "Confirmed clean finish." --format json
 wikimason log tail -n 10 --format json
 wikimason log check --format json
+wikimason log rotate --format json
 ```
 
 ````

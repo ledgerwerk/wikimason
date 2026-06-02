@@ -727,6 +727,20 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         log_policy="none",
     ),
     CommandSpec(
+        path=("log", "rotate"),
+        usage="wikimason log rotate [--format text|json]",
+        summary="Rotate the operational log immediately.",
+        json_output=True,
+        log_policy="none",
+    ),
+    CommandSpec(
+        path=("log", "stats"),
+        usage="wikimason log stats [--archives] [--format text|json]",
+        summary="Show operational log and archive statistics.",
+        json_output=True,
+        log_policy="none",
+    ),
+    CommandSpec(
         path=("audit",),
         usage="wikimason audit [--format text|json]",
         summary="Audit vault.",

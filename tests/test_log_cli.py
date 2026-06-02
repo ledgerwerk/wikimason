@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from conftest import _strip_ansi
 
 from wikimason.cli import main
+from wikimason.config import load_config_file, write_config_file
 from wikimason.scaffold import init_vault
 
 
@@ -16,6 +18,8 @@ def test_cli_log_group_help(capsys) -> None:
     assert "add" in out
     assert "tail" in out
     assert "check" in out
+    assert "rotate" in out
+    assert "stats" in out
 
 
 def test_cli_log_add_and_tail_json(tmp_path: Path, capsys) -> None:
@@ -74,3 +78,79 @@ def test_cli_log_check_json_reports_invalid_log(tmp_path: Path, capsys) -> None:
         finding["code"] == "log_header_invalid"
         for finding in payload["data"]["findings"]
     )
+
+
+def test_cli_log_rotate_and_tail_archives(tmp_path: Path, capsys) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault, demo=False)
+    config_path = vault / "wikimason.toml"
+    config = load_config_file(config_path)
+    config = replace(
+        config,
+        logging=replace(
+            config.logging,
+            rotation=replace(
+                config.logging.rotation,
+                max_bytes=4096,
+                max_files=2,
+                archive_dir="Wiki/logs",
+            ),
+        ),
+    )
+    write_config_file(config_path, config, root_value=".")
+
+    assert (
+        main(
+            [
+                "log",
+                "add",
+                "--vault",
+                str(vault),
+                "--action",
+                "source.add",
+                "--title",
+                "Added source",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    capsys.readouterr()
+
+    assert main(["log", "rotate", "--vault", str(vault), "--format", "json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["command"] == "log.rotate"
+    assert payload["data"]["rotated"] is True
+
+    assert (
+        main(
+            [
+                "log",
+                "tail",
+                "--vault",
+                str(vault),
+                "--archives",
+                "-n",
+                "10",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["command"] == "log.tail"
+    assert payload["data"]["total"] >= 1
+    assert payload["data"]["items"][0]["path"] in {"Wiki/log.md", "Wiki/logs/log.1.md"}
+
+
+def test_cli_log_stats_json(tmp_path: Path, capsys) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault, demo=False)
+
+    assert main(["log", "stats", "--vault", str(vault), "--format", "json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["command"] == "log.stats"
+    assert payload["data"]["path"] == "Wiki/log.md"
+    assert "archive_count" in payload["data"]

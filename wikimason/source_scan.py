@@ -227,15 +227,18 @@ def raw_record(
 def build_source_coverage_map(
     vault: Path,
 ) -> tuple[dict[str, list[str]], list[dict[str, str]]]:
+    from .config import load_runtime_config
     from .paths import decode_unicode_escape_literals, rel_to_vault
 
     prefixes = compiled_prefixes(load_vault_schema(vault))
+    config = load_runtime_config(vault)
+    log_rel = config.logging.path
     existing_raw = {rel_to_vault(vault, p) for p in source_md_files(vault)}
     coverage_map: dict[str, list[str]] = {}
     weak_sources: list[dict[str, str]] = []
     for note in sorted((vault / "Wiki").rglob("*.md")):
         rel_note = rel_to_vault(vault, note)
-        if note.name == "index.md" or rel_note == "Wiki/log.md":
+        if note.name == "index.md" or rel_note == log_rel:
             continue
         if not any(rel_note.startswith(prefix) for prefix in prefixes):
             continue

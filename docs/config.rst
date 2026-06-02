@@ -76,3 +76,42 @@ Validate config
 .. code-block:: bash
 
    wikimason config validate --format json
+
+Logging
+-------
+
+WikiMason supports configurable operational logging and rotation.
+
+.. code-block:: toml
+
+   [logging]
+   enabled = true
+   path = "Wiki/log.md"
+   mode = "normal"              # quiet | normal | diagnostic
+   min_level = "info"           # info | warning | error
+   include_audit_success = false
+   include_metadata = false
+   include_counts = "non_clean" # never | non_clean | always
+   max_summary_chars = 160
+   include_commands = []
+   exclude_commands = [
+     "doctor",
+     "vault.doctor",
+     "links.check",
+     "source.coverage",
+     "ingest.plan",
+   ]
+
+   [logging.rotation]
+   enabled = true
+   strategy = "size"            # none | size
+   max_bytes = 1048576
+   max_files = 5
+   archive_dir = "Wiki/logs"
+
+Behavior:
+
+1. ``mode = "normal"`` logs changes and actionable/problem states with compact entries.
+2. ``mode = "diagnostic"`` logs full verbose audit/change entries (legacy shape).
+3. ``mode = "quiet"`` logs only warnings/errors/actionable/problem outcomes.
+4. ``enabled = false`` suppresses automatic logs, but ``wikimason log add`` still writes.

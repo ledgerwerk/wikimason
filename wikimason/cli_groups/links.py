@@ -6,6 +6,7 @@ import typer
 
 from ..cli_helpers import (
     CommandOutcome,
+    _append_command_log,
     _finish_command,
     _run_row_command,
     _vault_from_ctx,
@@ -26,7 +27,6 @@ from ..links import (
     unresolved_links,
 )
 from ..log_events import audit_event, change_event
-from ..logs import append_log_event
 
 
 def register_links(app: typer.Typer) -> None:
@@ -148,8 +148,8 @@ def register_links(app: typer.Typer) -> None:
         outcome = _run_row_command(ctx, unresolved_links, command="links.unresolved")
         data = outcome.payload["data"] if isinstance(outcome.payload, dict) else {}
         items = data.get("items", []) if isinstance(data, dict) else []
-        append_log_event(
-            _vault_from_ctx(ctx),
+        _append_command_log(
+            ctx,
             audit_event(
                 "links.unresolved",
                 "Listed unresolved links",
@@ -168,8 +168,8 @@ def register_links(app: typer.Typer) -> None:
         outcome = _run_row_command(ctx, orphan_notes, command="links.orphans")
         data = outcome.payload["data"] if isinstance(outcome.payload, dict) else {}
         items = data.get("items", []) if isinstance(data, dict) else []
-        append_log_event(
-            _vault_from_ctx(ctx),
+        _append_command_log(
+            ctx,
             audit_event(
                 "links.orphans",
                 "Listed orphan notes",
@@ -188,8 +188,8 @@ def register_links(app: typer.Typer) -> None:
         outcome = _run_row_command(ctx, deadend_notes, command="links.deadends")
         data = outcome.payload["data"] if isinstance(outcome.payload, dict) else {}
         items = data.get("items", []) if isinstance(data, dict) else []
-        append_log_event(
-            _vault_from_ctx(ctx),
+        _append_command_log(
+            ctx,
             audit_event(
                 "links.deadends",
                 "Listed dead-end notes",

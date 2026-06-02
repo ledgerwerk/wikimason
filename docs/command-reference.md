@@ -314,6 +314,18 @@ Global context options: `--config PATH`, `--env NAME`, `--vault PATH`.
 - Summary: Validate operational log format.
 - JSON output: yes
 
+### `log rotate`
+
+- Usage: `wikimason log rotate [--format text|json]`
+- Summary: Rotate the operational log immediately.
+- JSON output: yes
+
+### `log stats`
+
+- Usage: `wikimason log stats [--archives] [--format text|json]`
+- Summary: Show operational log and archive statistics.
+- JSON output: yes
+
 ## Query
 
 ### `query`

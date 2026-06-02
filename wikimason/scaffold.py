@@ -92,6 +92,7 @@ CORE_KEEP_FILES = [
     "Wiki/Entities/.gitkeep",
     "Wiki/Projects/.gitkeep",
     "Wiki/Logs/.gitkeep",
+    "Wiki/logs/.gitkeep",
     "_templates/.gitkeep",
 ]
 
@@ -380,6 +381,7 @@ def _wiki_index_placeholder(config: Any) -> str:
 
 def _write_if_missing(path: Path, content: str) -> None:
     if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
 
 
@@ -399,6 +401,7 @@ def _core_keep_files(config: Any) -> list[str]:
                 "Wiki/Entities/.gitkeep",
                 "Wiki/Projects/.gitkeep",
                 "Wiki/Logs/.gitkeep",
+                "Wiki/logs/.gitkeep",
             ]
         )
     return keep

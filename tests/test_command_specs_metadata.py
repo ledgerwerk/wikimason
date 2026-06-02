@@ -39,6 +39,8 @@ def test_log_command_specs_have_expected_log_policies() -> None:
     assert specs[("log", "add")].log_policy == "manual"
     assert specs[("log", "tail")].log_policy == "none"
     assert specs[("log", "check")].log_policy == "none"
+    assert specs[("log", "rotate")].log_policy == "none"
+    assert specs[("log", "stats")].log_policy == "none"
 
 
 def test_change_policy_commands_have_change_log_policy() -> None:
