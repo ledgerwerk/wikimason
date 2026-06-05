@@ -31,6 +31,7 @@ from ..sources import (
 
 DEFAULT_SOURCE_READ_LINES = 160
 
+
 def _source_result(
     *,
     command: str,
@@ -490,7 +491,9 @@ def register_source(app: typer.Typer) -> None:
         lines: int | None = typer.Option(
             None, "--lines", "-n", help="Limit output to first N lines."
         ),
-        all_content: bool = typer.Option(False, "--all", help="Return the full source body."),
+        all_content: bool = typer.Option(
+            False, "--all", help="Return the full source body."
+        ),
         first: bool = typer.Option(
             False, "--first", help="Allow first fuzzy match when query is ambiguous."
         ),
@@ -505,7 +508,9 @@ def register_source(app: typer.Typer) -> None:
         metadata, body = split_frontmatter(text)
         content_lines = body.splitlines()
         line_limit = None if all_content else (lines or DEFAULT_SOURCE_READ_LINES)
-        preview_lines = content_lines if line_limit is None else content_lines[:line_limit]
+        preview_lines = (
+            content_lines if line_limit is None else content_lines[:line_limit]
+        )
         preview = "\n".join(preview_lines)
         truncated = len(preview_lines) < len(content_lines)
         raw = {

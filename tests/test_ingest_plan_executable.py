@@ -106,32 +106,88 @@ def test_ingest_finish_json_compact_by_default(tmp_path: Path, capsys) -> None:
     vault = tmp_path / "vault"
     init_vault(vault)
     write_source(vault, "foo")
-    assert main([
-        "note", "new", "--vault", str(vault), "--kind", "topic",
-        "--title", "Foo", "--source", "Raw/Sources/foo.md",
-        "--allow-incomplete", "--format", "json",
-    ]) == 0
+    assert (
+        main(
+            [
+                "note",
+                "new",
+                "--vault",
+                str(vault),
+                "--kind",
+                "topic",
+                "--title",
+                "Foo",
+                "--source",
+                "Raw/Sources/foo.md",
+                "--allow-incomplete",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
 
-    assert main(["ingest", "finish", "--accept-covered", "--vault", str(vault), "--format", "json"]) == 0
+    assert (
+        main(
+            [
+                "ingest",
+                "finish",
+                "--accept-covered",
+                "--vault",
+                str(vault),
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
     payload = read_json(capsys)
 
     assert "records" not in payload["data"]["coverage"]
 
 
-def test_ingest_finish_details_includes_coverage_records(tmp_path: Path, capsys) -> None:
+def test_ingest_finish_details_includes_coverage_records(
+    tmp_path: Path, capsys
+) -> None:
     vault = tmp_path / "vault"
     init_vault(vault)
     write_source(vault, "foo")
-    assert main([
-        "note", "new", "--vault", str(vault), "--kind", "topic",
-        "--title", "Foo", "--source", "Raw/Sources/foo.md",
-        "--allow-incomplete", "--format", "json",
-    ]) == 0
+    assert (
+        main(
+            [
+                "note",
+                "new",
+                "--vault",
+                str(vault),
+                "--kind",
+                "topic",
+                "--title",
+                "Foo",
+                "--source",
+                "Raw/Sources/foo.md",
+                "--allow-incomplete",
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
 
-    assert main([
-        "ingest", "finish", "--accept-covered", "--details",
-        "--vault", str(vault), "--format", "json",
-    ]) == 0
+    assert (
+        main(
+            [
+                "ingest",
+                "finish",
+                "--accept-covered",
+                "--details",
+                "--vault",
+                str(vault),
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
     payload = read_json(capsys)
 
     assert "records" in payload["data"]["coverage"]
@@ -143,7 +199,10 @@ def test_ingest_plan_groups_related_sources(tmp_path: Path, capsys) -> None:
     write_source(vault, "Vim Grammar", title="Vim Grammar")
     write_source(vault, "mastering-vim-grammar", title="Mastering Vim grammar")
 
-    assert main(["source", "scan", "--update", "--vault", str(vault), "--format", "json"]) == 0
+    assert (
+        main(["source", "scan", "--update", "--vault", str(vault), "--format", "json"])
+        == 0
+    )
     assert main(["ingest", "plan", "--vault", str(vault), "--format", "json"]) == 0
     payload = read_json(capsys)
     data = payload["data"]

@@ -152,7 +152,9 @@ def test_vault_maintain_acceptance_scenario(tmp_path: Path, capsys) -> None:
     assert status["data"]["next_action"] == "maintain_clean_vault"
 
 
-def test_vault_maintain_reports_audit_separately_from_agents(tmp_path: Path, capsys) -> None:
+def test_vault_maintain_reports_audit_separately_from_agents(
+    tmp_path: Path, capsys
+) -> None:
     vault = tmp_path / "vault"
     init_vault(vault, demo=True)
     build_vault(vault)
@@ -166,4 +168,6 @@ def test_vault_maintain_reports_audit_separately_from_agents(tmp_path: Path, cap
 
     assert data["agents_ok"] is True
     assert data["audit_ok"] is False
-    assert any("tracked local obsidian state" in item for item in data["audit_findings"])
+    assert any(
+        "tracked local obsidian state" in item for item in data["audit_findings"]
+    )

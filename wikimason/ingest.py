@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import shlex
 from dataclasses import asdict, dataclass
 from datetime import date
@@ -20,8 +21,6 @@ from .sources import (
     source_scan_payload,
 )
 
-import re
-from collections import defaultdict
 
 @dataclass(frozen=True)
 class IngestFinishResult:
@@ -81,8 +80,12 @@ def ingest_plan(vault: Path, source_args: list[str] | None = None) -> dict[str, 
         # All sources are related, return a single group plan
         return source_plan_group(vault, groups[0])
     # Multiple groups or mixed
-    group_plans = [source_plan_group(vault, group) for group in groups if len(group) > 1]
-    single_plans = [source_plan(vault, s) for group in groups if len(group) == 1 for s in group]
+    group_plans = [
+        source_plan_group(vault, group) for group in groups if len(group) > 1
+    ]
+    single_plans = [
+        source_plan(vault, s) for group in groups if len(group) == 1 for s in group
+    ]
     return {"groups": group_plans, "plans": single_plans}
 
 
@@ -157,7 +160,6 @@ def actionable_sources(vault: Path) -> list[str]:
             seen.add(path)
             ordered.append(path)
     return ordered
-
 
 
 def normalize_plan_title(title: str) -> str:
@@ -292,6 +294,7 @@ def source_plan_group(vault: Path, sources: list[str]) -> dict[str, Any]:
             "argv": ["vault", "maintain", "--accept-covered", "--format", "json"],
         },
     }
+
 
 def source_plan(vault: Path, source_arg: str) -> dict[str, Any]:
     path = normalize_source_argument(vault, source_arg)

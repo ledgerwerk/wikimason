@@ -136,7 +136,9 @@ def register_ingest(app: typer.Typer) -> None:
         source: str | None = typer.Option(
             None, "--source", help="Restrict scoped checks to one source path."
         ),
-        details: bool = typer.Option(False, "--details", help="Include full coverage records."),
+        details: bool = typer.Option(
+            False, "--details", help="Include full coverage records."
+        ),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         if scope not in {"changed", "all"}:

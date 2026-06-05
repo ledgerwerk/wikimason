@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import typer
 
-from ..agents import agents_md_up_to_date, compile_agents_md, compute_input_hashes, write_agents_md
-from ..config import load_runtime_config
+from ..agents import (
+    agents_md_up_to_date,
+    compute_input_hashes,
+    write_agents_md,
+)
 from ..cli_helpers import CommandOutcome, _finish_command, _vault_from_ctx
 from ..cli_output import emit
+from ..config import load_runtime_config
 from ..log_events import change_event
 from ..paths import rel_to_vault
 

@@ -195,14 +195,29 @@ def test_source_delta_check_mode_exits_two_when_actionable(
     assert payload["data"]["actionable_count"] > 0
 
 
-def test_source_read_truncates_by_default_and_reports_metadata(tmp_path: Path, capsys) -> None:
+def test_source_read_truncates_by_default_and_reports_metadata(
+    tmp_path: Path, capsys
+) -> None:
     vault = tmp_path / "vault"
     init_vault(vault)
     body = "\n".join(f"line {i}" for i in range(300))
     target = vault / "Raw/Sources/long.md"
     target.write_text(f"---\nTitle: Long\n---\n\n{body}\n", encoding="utf-8")
 
-    assert main(["source", "read", "Raw/Sources/long.md", "--vault", str(vault), "--format", "json"]) == 0
+    assert (
+        main(
+            [
+                "source",
+                "read",
+                "Raw/Sources/long.md",
+                "--vault",
+                str(vault),
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
     data = payload["data"]
 
@@ -218,10 +233,21 @@ def test_source_read_all_returns_full_content(tmp_path: Path, capsys) -> None:
     target = vault / "Raw/Sources/long.md"
     target.write_text(f"---\nTitle: Long\n---\n\n{body}\n", encoding="utf-8")
 
-    assert main([
-        "source", "read", "Raw/Sources/long.md", "--all",
-        "--vault", str(vault), "--format", "json",
-    ]) == 0
+    assert (
+        main(
+            [
+                "source",
+                "read",
+                "Raw/Sources/long.md",
+                "--all",
+                "--vault",
+                str(vault),
+                "--format",
+                "json",
+            ]
+        )
+        == 0
+    )
     payload = json.loads(capsys.readouterr().out.splitlines()[-1])
     data = payload["data"]
 
