@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import typer
 
-from ..agents import compile_agents_md, compute_input_hashes, write_agents_md
+from ..agents import agents_md_up_to_date, compile_agents_md, compute_input_hashes, write_agents_md
+from ..config import load_runtime_config
 from ..cli_helpers import CommandOutcome, _finish_command, _vault_from_ctx
 from ..cli_output import emit
 from ..log_events import change_event
@@ -22,11 +23,11 @@ def register_agents(app: typer.Typer) -> None:
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
-        target = vault / "AGENTS.md"
-        compiled = compile_agents_md(vault)
+        config = load_runtime_config(vault)
+        target = vault / config.paths.agents
         if check:
-            ok = target.exists() and target.read_text(encoding="utf-8") == compiled
-            hashes = compute_input_hashes(vault)
+            ok = agents_md_up_to_date(vault, config=config)
+            hashes = compute_input_hashes(vault, config=config)
             payload = {
                 "ok": ok,
                 "path": rel_to_vault(vault, target),
@@ -60,10 +61,10 @@ def register_agents(app: typer.Typer) -> None:
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         vault = _vault_from_ctx(ctx)
-        target = vault / "AGENTS.md"
-        compiled = compile_agents_md(vault)
-        ok = target.exists() and target.read_text(encoding="utf-8") == compiled
-        hashes = compute_input_hashes(vault)
+        config = load_runtime_config(vault)
+        target = vault / config.paths.agents
+        ok = agents_md_up_to_date(vault, config=config)
+        hashes = compute_input_hashes(vault, config=config)
         payload = {
             "ok": ok,
             "path": rel_to_vault(vault, target),

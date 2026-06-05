@@ -19,6 +19,26 @@ MANUAL_BLOCK_RE = re.compile(
     r"<!--\s*WIKIMASON:MANUAL\s+BEGIN\s*-->(.*?)<!--\s*WIKIMASON:MANUAL\s+END\s*-->",
     re.DOTALL,
 )
+GENERATED_AT_RE = re.compile(r"(^  generated_at: ).*$", re.MULTILINE)
+
+
+def normalize_agents_generated_at(text: str) -> str:
+    """Return AGENTS.md text with volatile generated_at ignored."""
+    return GENERATED_AT_RE.sub(r"\1<ignored>", text)
+
+
+def agents_text_equivalent(left: str, right: str) -> bool:
+    """Compare generated AGENTS.md text while ignoring volatile metadata."""
+    return normalize_agents_generated_at(left) == normalize_agents_generated_at(right)
+
+
+def agents_md_up_to_date(vault: Path, *, config: WikiMasonConfig | None = None) -> bool:
+    active_config = config or load_runtime_config(vault)
+    target = vault / active_config.paths.agents
+    if not target.exists():
+        return False
+    compiled = compile_agents_md(vault, config=active_config)
+    return agents_text_equivalent(target.read_text(encoding="utf-8"), compiled)
 
 
 def agents_sources(vault: Path, *, config: WikiMasonConfig | None = None) -> list[Path]:
@@ -190,7 +210,8 @@ def write_agents_md(
     active_config = config or load_runtime_config(vault)
     target = vault / active_config.paths.agents
     compiled = compile_agents_md(vault, config=active_config)
-    if force or not target.exists() or target.read_text(encoding="utf-8") != compiled:
+    current = target.read_text(encoding="utf-8") if target.exists() else ""
+    if force or not target.exists() or not agents_text_equivalent(current, compiled):
         target.write_text(compiled, encoding="utf-8")
     return target
 

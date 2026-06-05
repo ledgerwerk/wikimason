@@ -344,9 +344,25 @@ def render_skill_markdown() -> str:
         Prefer WikiMason commands over shell inventory/edit operations:
 
         - Use `wikimason file list`, not `find`.
-        - Use `wikimason source list` / `source scan`, not manual `Raw/Sources` traversal.
+        - Do not inspect `Raw/Sources/` with shell inventory commands (`ls`, `find`, `tree`). Use `wikimason source scan`, `wikimason source list`, `wikimason source delta`, or `wikimason ingest todo`.
         - Use `wikimason note new`/`page create` and `wikimason page update`, not direct file writes for normal note workflows.
         - Direct file editing is only allowed when no WikiMason command can express the change; follow with `note normalize`, `note validate`, and `ingest finish`.
+
+        ## Bounded Reads
+
+        - Start source reading with `wikimason source read PATH --lines 160 --format json`.
+        - Use `--all` only when the first preview is insufficient and the source is small enough for the current context.
+        - Do not call `source read` without `--lines` or `--all` for large sources.
+
+        ## Grouped Sources
+
+        - If multiple actionable sources are about the same subject, create one semantic topic/concept/log set with repeated `--source` flags. Do not blindly create one topic per source.
+
+        ## Ingest Completion
+
+        - End source digest with `wikimason ingest finish --accept-covered --format json`.
+        - Run `wikimason vault maintain --accept-covered --format json` as a full-vault gate. Treat full-vault audit findings as global blockers, not necessarily ingest blockers.
+        - After a successful `ingest finish`, do not loop on unrelated global blockers. If `vault maintain` reports audit findings or other pre-existing blockers, report them separately from the ingest result after one repair attempt.
 
         ## Command Reference Subset
 

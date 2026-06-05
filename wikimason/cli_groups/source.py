@@ -29,6 +29,7 @@ from ..sources import (
     source_scan_payload,
 )
 
+DEFAULT_SOURCE_READ_LINES = 160
 
 def _source_result(
     *,
@@ -489,6 +490,7 @@ def register_source(app: typer.Typer) -> None:
         lines: int | None = typer.Option(
             None, "--lines", "-n", help="Limit output to first N lines."
         ),
+        all_content: bool = typer.Option(False, "--all", help="Return the full source body."),
         first: bool = typer.Option(
             False, "--first", help="Allow first fuzzy match when query is ambiguous."
         ),
@@ -502,12 +504,17 @@ def register_source(app: typer.Typer) -> None:
         text = full_path.read_text(encoding="utf-8")
         metadata, body = split_frontmatter(text)
         content_lines = body.splitlines()
-        preview = "\n".join(content_lines[:lines]) if lines else body
+        line_limit = None if all_content else (lines or DEFAULT_SOURCE_READ_LINES)
+        preview_lines = content_lines if line_limit is None else content_lines[:line_limit]
+        preview = "\n".join(preview_lines)
+        truncated = len(preview_lines) < len(content_lines)
         raw = {
             "path": resolved_rel,
             "metadata": metadata,
             "content": preview,
             "total_lines": len(content_lines),
+            "returned_lines": len(preview_lines),
+            "truncated": truncated,
         }
         payload = _source_result(command="source.read", status="clean", data=raw)
         text = (

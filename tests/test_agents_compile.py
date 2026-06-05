@@ -54,3 +54,29 @@ def test_agents_compile_mentions_markdown_tool_profile(tmp_path: Path) -> None:
         "Generic Markdown wiki with YAML frontmatter and nested directories."
         in agents_text
     )
+
+
+def test_agents_check_ignores_generated_at_timestamp(tmp_path: Path) -> None:
+    import time
+
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    build_vault(vault)
+    time.sleep(1.1)
+
+    assert main(["agents", "check", "--vault", str(vault), "--format", "json"]) == 0
+
+
+def test_build_vault_does_not_rewrite_agents_for_timestamp_only(tmp_path: Path) -> None:
+    import time
+
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    build_vault(vault)
+    first = (vault / "AGENTS.md").read_text(encoding="utf-8")
+
+    time.sleep(1.1)
+    build_vault(vault)
+    second = (vault / "AGENTS.md").read_text(encoding="utf-8")
+
+    assert second == first

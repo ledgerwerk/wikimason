@@ -6,6 +6,7 @@ from pathlib import Path
 
 import typer
 
+from ..agents import agents_md_up_to_date
 from ..audit import audit_vault
 from ..build import build_vault
 from ..cli_helpers import (
@@ -341,14 +342,16 @@ def register_vault(app: typer.Typer) -> None:
         lint_ok = not lint_errors
         source_lint_ok = not source_lint_errors
         links_ok = True  # links check runs in lint
-        agents_ok = not audit_findings
-        overall_ok = lint_ok and source_lint_ok and agents_ok
+        agents_ok = agents_md_up_to_date(vault)
+        audit_ok = not audit_findings
+        overall_ok = lint_ok and source_lint_ok and agents_ok and audit_ok
         payload = {
             "doctor_ok": True,
             "source_lint_ok": source_lint_ok,
             "lint_ok": lint_ok,
             "links_ok": links_ok,
             "agents_ok": agents_ok,
+            "audit_ok": audit_ok,
             "ok": overall_ok,
             "sources": {
                 "total": coverage["total"],
@@ -362,6 +365,16 @@ def register_vault(app: typer.Typer) -> None:
             "source_lint_errors": source_lint_errors,
             "audit_findings": audit_findings,
         }
+        failed_checks = []
+        if not lint_ok:
+            failed_checks.append("lint")
+        if not source_lint_ok:
+            failed_checks.append("source_lint")
+        if not agents_ok:
+            failed_checks.append("agents")
+        if not audit_ok:
+            failed_checks.append("audit")
+        payload["failed_checks"] = failed_checks
         next_action = "maintain_clean_vault" if overall_ok else "repair_required"
         text = "maintain passed" if overall_ok else "maintain failed"
         exit_code = 0 if overall_ok else 1

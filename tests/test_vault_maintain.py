@@ -150,3 +150,20 @@ def test_vault_maintain_acceptance_scenario(tmp_path: Path, capsys) -> None:
     assert main(["status", "--vault", str(vault), "--format", "json"]) == 0
     status = read_json(capsys)
     assert status["data"]["next_action"] == "maintain_clean_vault"
+
+
+def test_vault_maintain_reports_audit_separately_from_agents(tmp_path: Path, capsys) -> None:
+    vault = tmp_path / "vault"
+    init_vault(vault, demo=True)
+    build_vault(vault)
+    state = vault / ".obsidian" / "workspace.json"
+    state.parent.mkdir(parents=True, exist_ok=True)
+    state.write_text("{}", encoding="utf-8")
+
+    assert main(["vault", "maintain", "--vault", str(vault), "--format", "json"]) == 1
+    payload = read_json(capsys)
+    data = payload["data"]
+
+    assert data["agents_ok"] is True
+    assert data["audit_ok"] is False
+    assert any("tracked local obsidian state" in item for item in data["audit_findings"])

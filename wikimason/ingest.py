@@ -20,6 +20,8 @@ from .sources import (
     source_scan_payload,
 )
 
+import re
+from collections import defaultdict
 
 @dataclass(frozen=True)
 class IngestFinishResult:
@@ -70,10 +72,18 @@ def ingest_status(vault: Path) -> dict[str, Any]:
 
 def ingest_plan(vault: Path, source_args: list[str] | None = None) -> dict[str, Any]:
     requested = source_args or actionable_sources(vault)
-    plans = [source_plan(vault, source) for source in requested]
-    if len(plans) == 1:
-        return plans[0]
-    return {"plans": plans}
+    if len(requested) <= 1:
+        plans = [source_plan(vault, source) for source in requested]
+        return plans[0] if plans else {}
+    # Group related sources
+    groups = group_actionable_sources(vault, requested)
+    if len(groups) == 1 and len(groups[0]) == len(requested):
+        # All sources are related, return a single group plan
+        return source_plan_group(vault, groups[0])
+    # Multiple groups or mixed
+    group_plans = [source_plan_group(vault, group) for group in groups if len(group) > 1]
+    single_plans = [source_plan(vault, s) for group in groups if len(group) == 1 for s in group]
+    return {"groups": group_plans, "plans": single_plans}
 
 
 def ingest_finish(
@@ -148,6 +158,140 @@ def actionable_sources(vault: Path) -> list[str]:
             ordered.append(path)
     return ordered
 
+
+
+def normalize_plan_title(title: str) -> str:
+    """Normalize a title for grouping comparison."""
+    t = title.lower()
+    # Remove weak action words
+    weak_words = {"mastering", "intro", "introduction", "guide", "tutorial", "how to"}
+    words = t.split()
+    words = [w for w in words if w not in weak_words]
+    t = " ".join(words)
+    # Strip punctuation
+    t = re.sub(r"[^a-z0-9\s]", "", t)
+    # Collapse whitespace
+    t = " ".join(t.split())
+    return t
+
+
+def _title_similarity(a: str, b: str) -> float:
+    """Compute similarity between two normalized titles using token set ratio."""
+    if not a or not b:
+        return 0.0
+    # Simple containment check
+    if a in b or b in a:
+        return 100.0
+    # Token set ratio
+    tokens_a = set(a.split())
+    tokens_b = set(b.split())
+    if not tokens_a or not tokens_b:
+        return 0.0
+    intersection = tokens_a & tokens_b
+    union = tokens_a | tokens_b
+    return len(intersection) / len(union) * 100
+
+
+def group_actionable_sources(vault: Path, sources: list[str]) -> list[list[str]]:
+    """Group sources that are semantically related."""
+    if len(sources) <= 1:
+        return [sources]
+
+    # Get titles for each source
+    source_titles: list[tuple[str, str]] = []
+    for source in sources:
+        path = normalize_source_argument(vault, source)
+        source_path = vault / path
+        metadata, _ = split_frontmatter(source_path.read_text(encoding="utf-8"))
+        title = str(
+            metadata.get("Title") or metadata.get("title") or source_path.stem
+        ).strip()
+        source_titles.append((path, normalize_plan_title(title)))
+
+    # Group by similarity
+    groups: list[list[str]] = []
+    assigned: set[str] = set()
+    for i, (path_i, norm_i) in enumerate(source_titles):
+        if path_i in assigned:
+            continue
+        group = [path_i]
+        assigned.add(path_i)
+        for j, (path_j, norm_j) in enumerate(source_titles):
+            if j <= i or path_j in assigned:
+                continue
+            if _title_similarity(norm_i, norm_j) >= 80:
+                group.append(path_j)
+                assigned.add(path_j)
+        groups.append(group)
+    return groups
+
+
+def source_plan_group(vault: Path, sources: list[str]) -> dict[str, Any]:
+    """Create a plan for a group of related sources."""
+    # Use the shortest high-signal title as title_hint
+    titles: list[str] = []
+    paths: list[str] = []
+    for source in sources:
+        path = normalize_source_argument(vault, source)
+        source_path = vault / path
+        metadata, _ = split_frontmatter(source_path.read_text(encoding="utf-8"))
+        title = str(
+            metadata.get("Title") or metadata.get("title") or source_path.stem
+        ).strip()
+        titles.append(title)
+        paths.append(path)
+
+    # Choose shortest title as hint
+    title_hint = min(titles, key=len)
+    slug = slugify_title(title_hint)
+    today = date.today().isoformat()
+
+    note_specs = [
+        {
+            "kind": "topic",
+            "title_hint": title_hint,
+            "path_hint": f"Wiki/Topics/{slug}.md",
+        },
+        {
+            "kind": "concept",
+            "title_hint": title_hint,
+            "path_hint": f"Wiki/Concepts/{slug}.md",
+        },
+        {
+            "kind": "log",
+            "title_hint": f"Initial {title_hint} Ingest",
+            "path_hint": f"Wiki/Logs/{today}-initial-{slug}-ingest.md",
+        },
+    ]
+
+    def _make_argv(kind: str, title: str, path_hint: str) -> list[str]:
+        argv = ["note", "new", "--kind", kind, "--title", title]
+        for p in paths:
+            argv.extend(["--source", p])
+        argv.extend(["--path", path_hint, "--allow-incomplete", "--format", "json"])
+        return argv
+
+    recommended_notes = [
+        {
+            **note,
+            "command": {
+                "argv": _make_argv(
+                    note["kind"], str(note["title_hint"]), str(note["path_hint"])
+                )
+            },
+        }
+        for note in note_specs
+    ]
+
+    return {
+        "sources": paths,
+        "title_hint": title_hint,
+        "reason": "similar_titles",
+        "recommended_notes": recommended_notes,
+        "validation": {
+            "argv": ["vault", "maintain", "--accept-covered", "--format", "json"],
+        },
+    }
 
 def source_plan(vault: Path, source_arg: str) -> dict[str, Any]:
     path = normalize_source_argument(vault, source_arg)
@@ -268,8 +412,15 @@ def doctor_status(vault: Path) -> dict[str, Any]:
     }
 
 
-def render_ingest_finish_json(result: IngestFinishResult) -> dict[str, Any]:
-    return asdict(result)
+def render_ingest_finish_json(
+    result: IngestFinishResult, *, details: bool = False
+) -> dict[str, Any]:
+    data = asdict(result)
+    if not details:
+        coverage = dict(data.get("coverage", {}))
+        coverage.pop("records", None)
+        data["coverage"] = coverage
+    return data
 
 
 def normalize_source_argument(vault: Path, source_arg: str) -> str:

@@ -136,6 +136,7 @@ def register_ingest(app: typer.Typer) -> None:
         source: str | None = typer.Option(
             None, "--source", help="Restrict scoped checks to one source path."
         ),
+        details: bool = typer.Option(False, "--details", help="Include full coverage records."),
         fmt: str = typer.Option("text", "--format", help="Output format."),
     ) -> None:
         if scope not in {"changed", "all"}:
@@ -144,7 +145,7 @@ def register_ingest(app: typer.Typer) -> None:
         result = ingest_finish(
             vault, accept_covered=accept_covered, scope=scope, source=source
         )
-        raw = render_ingest_finish_json(result)
+        raw = render_ingest_finish_json(result, details=details)
         status = "clean"
         if not result.global_lint_ok and result.scoped_lint_ok:
             status = "blocked_by_global_lint"
