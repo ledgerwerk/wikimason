@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
-import re
 from collections.abc import Mapping
 
-import yaml
+from ledgercore.errors import FrontMatterError
+from ledgercore.frontmatter import split_front_matter_text
+from ledgercore.jsonio import canonical_json as _canonical_json
 
 from .errors import UsageError
 
@@ -28,48 +28,28 @@ FRONTMATTER_ORDER = [
 
 
 def split_frontmatter(text: str) -> tuple[dict[str, object], str]:
-    if not text.startswith("---\n"):
-        return {}, text
-    end = text.find("\n---\n", 4)
-    # Handle empty frontmatter: "---\n---\n..."
-    if end == -1 and text.startswith("---\n", 4):
-        end = 3
-    if end == -1:
-        raise UsageError("invalid frontmatter block: missing closing ---")
-    block = text[4:end]
-    body = text[end + 5 :]
-    return parse_frontmatter_block(block), body
+    """Split YAML front matter from *text*.
 
-
-class WikiMasonSafeLoader(yaml.SafeLoader):
-    pass
-
-
-# Remove implicit timestamp resolver so ISO dates stay as strings.
-for _ch, _resolvers in list(WikiMasonSafeLoader.yaml_implicit_resolvers.items()):
-    WikiMasonSafeLoader.yaml_implicit_resolvers[_ch] = [
-        (tag, regexp)
-        for tag, regexp in _resolvers
-        if tag != "tag:yaml.org,2002:timestamp"
-    ]
-
-
-_MUSTACHE_RE = re.compile(r"\{\{.*?\}\}")
-
-
-def parse_frontmatter_block(block: str) -> dict[str, object]:
-    # Wrap mustache template placeholders in quotes so PyYAML treats them as strings.
-    safe_block = _MUSTACHE_RE.sub(lambda m: repr(m.group(0)), block)
-    parsed = yaml.load(safe_block, Loader=WikiMasonSafeLoader)
-    if parsed is None:
-        return {}
-    if not isinstance(parsed, dict):
-        raise UsageError("frontmatter must be a mapping")
-    return dict(parsed)
+    Delegates parsing to ledgercore so this module no longer imports ``yaml``
+    directly and gains timestamp-safe loading plus mustache-placeholder quoting.
+    Missing front matter returns ``({}, original_text)``. YAML timestamps are
+    preserved as strings, and mustache ``{{ name }}`` placeholders are treated
+    as strings anywhere in a value. ``FrontMatterError`` from ledgercore is
+    converted to ``UsageError`` at this module boundary.
+    """
+    try:
+        return split_front_matter_text(
+            text,
+            missing="empty",
+            preserve_yaml_timestamps_as_strings=True,
+            quote_template_placeholders="anywhere",
+        )
+    except FrontMatterError as exc:
+        raise UsageError(str(exc)) from exc
 
 
 def canonical_json(data: Mapping[str, object]) -> str:
-    return json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return _canonical_json(data)
 
 
 def dump_frontmatter(data: Mapping[str, object]) -> str:
@@ -87,6 +67,13 @@ def render_frontmatter_value(value: object, *, list_indent: str = "  ") -> str:
 
 
 def render_frontmatter(data: Mapping[str, object]) -> str:
+    # Rendering stays WikiMason-local. It is pure string manipulation (no yaml
+    # import) and encodes behavior tests rely on: key order via
+    # FRONTMATTER_ORDER then sorted remaining keys, nested values rendered via
+    # their str() repr, and the historical scalar quoting rules. ledgercore's
+    # minimal renderer refuses nested mappings (e.g. ``Created: {date: ...}``
+    # from source_scan.py) and its pyyaml style would change byte output, so
+    # neither is a behavior-preserving drop-in here.
     ordered_keys = [key for key in FRONTMATTER_ORDER if key in data] + sorted(
         key for key in data if key not in FRONTMATTER_ORDER
     )
@@ -107,6 +94,10 @@ def render_frontmatter(data: Mapping[str, object]) -> str:
 
 
 def update_frontmatter(text: str, updates: Mapping[str, object]) -> str:
+    # Do not delegate to ledgercore.update_front_matter_text(): it renders the
+    # body immediately after the closing ``---``. WikiMason inserts a blank
+    # line between the closing delimiter and the body, which is user-visible
+    # and covered by existing behavior.
     data, body = split_frontmatter(text)
     data.update(dict(updates))
     body = body.lstrip("\n")

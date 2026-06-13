@@ -10,6 +10,8 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - Python 3.10 fallback
     import tomli as tomllib
 
+from ledgercore.paths import find_config_upwards
+
 from .constants import (
     CORE_VAULT_DIRS,
     DEFAULT_PROFILE,
@@ -203,15 +205,10 @@ def resolve_existing_env_config_path(name: str) -> Path | None:
 
 
 def find_local_config(start: Path) -> Path | None:
-    current = start.expanduser().resolve()
-    if current.is_file():
-        current = current.parent
-    for candidate_dir in (current, *current.parents):
-        for name in LOCAL_CONFIG_NAMES:
-            candidate = candidate_dir / name
-            if candidate.exists():
-                return candidate
-    return None
+    # Delegated to ledgercore, which walks upward from start.resolve().
+    # Behavior matches the previous hand-written walk (first matching file
+    # in the nearest enclosing directory).
+    return find_config_upwards(start, tuple(LOCAL_CONFIG_NAMES))
 
 
 def looks_like_wiki_root(path: Path) -> bool:

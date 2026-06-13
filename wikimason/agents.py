@@ -13,6 +13,7 @@ from .commands import (
 from .config import WikiMasonConfig, load_runtime_config
 from .profiles import supported_profiles
 from .schema import load_vault_schema, schema_generated_paths, schema_source_label
+from .storage import write_text_atomic
 
 # Regex to find the manual section in existing AGENTS.md
 MANUAL_BLOCK_RE = re.compile(
@@ -212,7 +213,7 @@ def write_agents_md(
     compiled = compile_agents_md(vault, config=active_config)
     current = target.read_text(encoding="utf-8") if target.exists() else ""
     if force or not target.exists() or not agents_text_equivalent(current, compiled):
-        target.write_text(compiled, encoding="utf-8")
+        write_text_atomic(target, compiled)
     return target
 
 

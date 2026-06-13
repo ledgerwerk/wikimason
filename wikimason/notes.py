@@ -25,6 +25,7 @@ from .paths import (
     source_md_files,
 )
 from .schema import load_vault_schema, note_kind
+from .storage import write_text_atomic
 from .templates import (
     TemplateContext,
     packaged_template_for_kind,
@@ -91,7 +92,7 @@ def new_note(
         note_path=note_path,
     )
     if not dry_run:
-        target.write_text(content, encoding="utf-8")
+        write_text_atomic(target, content)
     return NoteScaffold(
         path=target,
         content=content,
@@ -283,9 +284,7 @@ def normalize_note(vault: Path, note_path: str, fix: bool = False) -> dict[str, 
 
     changed = bool(updates)
     if changed and fix:
-        path.write_text(
-            update_page_text(text, updates, config=config), encoding="utf-8"
-        )
+        write_text_atomic(path, update_page_text(text, updates, config=config))
     return {
         "path": rel_to_vault(vault, path),
         "changed": changed,

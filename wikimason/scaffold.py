@@ -19,6 +19,7 @@ from .schema import (
     render_frontmatter_schema_markdown,
     schema_toml_lines,
 )
+from .storage import write_text_atomic
 from .templates import (
     CONCEPT_TEMPLATE,
     ENTITY_TEMPLATE,
@@ -215,20 +216,20 @@ def _write_config_if_missing(path: Path, config: Any, schema: Any) -> None:
         return
     root_value = "." if path.parent == config.root else str(config.root)
     write_config_file(path, config, root_value=root_value)
-    path.write_text(
+    write_text_atomic(
+        path,
         path.read_text(encoding="utf-8")
         + "\n"
         + "\n".join(schema_toml_lines(schema))
         + "\n",
-        encoding="utf-8",
     )
 
 
 def _create_demo(vault: Path, config: Any) -> None:
     today = date.today().isoformat()
-    (vault / "Raw/Sources/wikimason-demo-source.md").write_text(
+    write_text_atomic(
+        vault / "Raw/Sources/wikimason-demo-source.md",
         SOURCE_TEMPLATE.format(title="LLM Wiki Demo Source", date=today),
-        encoding="utf-8",
     )
     _write_demo_page(
         vault,
@@ -346,9 +347,9 @@ def _append_gitignore(vault: Path, *, include_obsidian: bool) -> None:
         existing = path.read_text(encoding="utf-8")
         if "# >>> wikimason >>>" in existing:
             return
-        path.write_text(existing.rstrip() + "\n\n" + block, encoding="utf-8")
+        write_text_atomic(path, existing.rstrip() + "\n\n" + block)
         return
-    path.write_text(block, encoding="utf-8")
+    write_text_atomic(path, block)
 
 
 def _seed_missing_core_files(vault: Path, config: Any) -> None:
@@ -382,7 +383,7 @@ def _wiki_index_placeholder(config: Any) -> str:
 def _write_if_missing(path: Path, content: str) -> None:
     if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content, encoding="utf-8")
+        write_text_atomic(path, content)
 
 
 def _core_keep_files(config: Any) -> list[str]:
@@ -442,7 +443,7 @@ def _write_demo_page(
 ) -> None:
     target = vault / _page_rel(config, logical_ref)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(render_page_text(metadata, body, config=config), encoding="utf-8")
+    write_text_atomic(target, render_page_text(metadata, body, config=config))
 
 
 PURPOSE_MD = """# Wiki Purpose

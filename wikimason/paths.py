@@ -5,6 +5,15 @@ import unicodedata
 from collections.abc import Iterator
 from pathlib import Path
 
+from ledgercore.errors import PathValidationError
+from ledgercore.path_text import (
+    decode_unicode_escape_literals as decode_unicode_escape_literals,
+)
+from ledgercore.path_text import (
+    normalize_path_text as _normalize_path_text,
+)
+from ledgercore.paths import ensure_inside_base
+
 from .config import find_wiki_root, load_runtime_config
 from .errors import UsageError
 from .page_profiles import relpath_to_logical_ref
@@ -20,53 +29,19 @@ from .schema import (
     kind_to_folder as schema_kind_to_folder,
 )
 
-_PATH_PUNCT_TRANSLATION = str.maketrans(
-    {
-        "\u2018": "'",
-        "\u2019": "'",
-        "\u201a": "'",
-        "\u201b": "'",
-        "\u2032": "'",
-        "\u201c": '"',
-        "\u201d": '"',
-        "\u201e": '"',
-        "\u201f": '"',
-        "\u2033": '"',
-        "\u2010": "-",
-        "\u2011": "-",
-        "\u2012": "-",
-        "\u2013": "-",
-        "\u2014": "-",
-        "\u2212": "-",
-    }
-)
-
-_UNICODE_ESCAPE_RE = re.compile(r"\\u([0-9a-fA-F]{4})|\\U([0-9a-fA-F]{8})")
-
-
-def decode_unicode_escape_literals(value: str) -> str:
-    """Decode literal Unicode escape sequences from JSON-based agent writes.
-
-    Only decode explicit \\uXXXX and \\UXXXXXXXX forms.  Do not use
-    bytes(...).decode("unicode_escape"), because that also rewrites
-    unrelated backslash escapes and can corrupt paths.
-    """
-
-    def repl(match: re.Match[str]) -> str:
-        code = match.group(1) or match.group(2)
-        return chr(int(code, 16))
-
-    return _UNICODE_ESCAPE_RE.sub(repl, value)
-
 
 def normalize_path_text_for_matching(value: str) -> str:
-    """Canonical path text for matching."""
-    value = decode_unicode_escape_literals(value)
-    value = unicodedata.normalize("NFKC", value)
-    value = value.translate(_PATH_PUNCT_TRANSLATION)
-    value = value.replace("\\", "/")
-    value = re.sub(r"\s+", " ", value).strip()
-    return value
+    # Delegate to ledgercore's configurable normalizer. The "wide"
+    # punctuation profile is a superset of WikiMason's historical
+    # _PATH_PUNCT_TRANSLATION, so typographic apostrophe / en-dash cases
+    # (tests/test_path_names.py) keep matching.
+    return _normalize_path_text(
+        value,
+        unicode_form="NFKC",
+        punctuation_profile="wide",
+        slashify_backslashes=True,
+        collapse_whitespace=True,
+    )
 
 
 def is_vault(path: Path) -> bool:
@@ -91,13 +66,12 @@ def resolve_vault(
 
 
 def ensure_inside_vault(vault: Path, path: Path) -> Path:
-    resolved = path.expanduser().resolve()
-    vault_resolved = vault.expanduser().resolve()
+    # Containment check delegated to ledgercore; PathValidationError is
+    # converted to UsageError at the WikiMason module boundary.
     try:
-        resolved.relative_to(vault_resolved)
-    except ValueError as exc:
+        return ensure_inside_base(vault, path, field_name="vault path")
+    except PathValidationError as exc:
         raise UsageError("path traversal or outside-vault write rejected") from exc
-    return resolved
 
 
 def rel_to_vault(vault: Path, path: Path) -> str:
@@ -125,11 +99,24 @@ def rel_to_vault(vault: Path, path: Path) -> str:
 
 
 def resolve_path_in_vault(vault: Path, rel: str) -> Path:
-    candidate = ensure_inside_vault(vault, vault / rel)
+    # Resolve a vault-relative path, preserving the historical permissive
+    # behavior (containment check only, via ledgercore.ensure_inside_base).
+    # We intentionally do NOT use ledgercore.resolve_under_base here: its
+    # validate_relative_posix_path rejects backslashes and '.' segments that
+    # the current WikiMason behavior tolerates.
+    try:
+        candidate = ensure_inside_base(vault, vault / rel, field_name="vault path")
+    except PathValidationError as exc:
+        raise UsageError("path traversal or outside-vault write rejected") from exc
     if candidate.exists():
         return candidate
     if not candidate.suffix:
-        candidate_md = ensure_inside_vault(vault, vault / f"{rel}.md")
+        try:
+            candidate_md = ensure_inside_base(
+                vault, vault / f"{rel}.md", field_name="vault path"
+            )
+        except PathValidationError as exc:
+            raise UsageError("path traversal or outside-vault write rejected") from exc
         if candidate_md.exists():
             return candidate_md
     return candidate
@@ -200,9 +187,14 @@ def source_md_files(vault: Path) -> Iterator[Path]:
 
 
 def path_match_key(value: str) -> str:
-    normalized = normalize_path_text_for_matching(value)
-    normalized = normalized.casefold()
-    return normalized
+    return _normalize_path_text(
+        value,
+        unicode_form="NFKC",
+        punctuation_profile="wide",
+        slashify_backslashes=True,
+        collapse_whitespace=True,
+        casefold=True,
+    )
 
 
 def build_link_targets(vault: Path) -> set[str]:

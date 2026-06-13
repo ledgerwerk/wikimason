@@ -2,52 +2,57 @@
 
 from __future__ import annotations
 
-import json
 from collections import OrderedDict
 from pathlib import Path
 
+from ledgercore.errors import JsonStoreError
+from ledgercore.jsonl import load_jsonl_object_map, write_jsonl_objects
+
 from .constants import SOURCE_MANIFEST
+
+
+def _format_issue(label: str, issue: object) -> str:
+    line = getattr(issue, "line", "?")
+    code = getattr(issue, "code", "invalid")
+    message = getattr(issue, "message", str(issue))
+    return f"{label} line {line}: {code}: {message}"
 
 
 def load_source_manifest(vault: Path) -> tuple[dict[str, dict[str, object]], list[str]]:
     """Load the source manifest from ``Schema/source-manifest.jsonl``.
 
-    Returns (records_dict, error_list).
+    Returns ``(records_dict, error_list)`` where ``error_list`` is a list of
+    plain ``str`` items, preserving WikiMason's historical return shape.
+    Parsing/validation is delegated to ledgercore.
     """
     manifest_path = vault / SOURCE_MANIFEST
-    if not manifest_path.exists():
-        return {}, []
-    errors: list[str] = []
+    try:
+        result = load_jsonl_object_map(
+            manifest_path,
+            key="path",
+            label="source manifest",
+            missing="empty",
+            comments=True,
+            skip_blank=True,
+            duplicate_keys="last",
+            require_string_key=True,
+        )
+    except JsonStoreError as exc:
+        return {}, [str(exc)]
+
     records: dict[str, dict[str, object]] = OrderedDict()
-    for line_no, line in enumerate(
-        manifest_path.read_text(encoding="utf-8").splitlines(), 1
-    ):
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        try:
-            row = json.loads(line)
-        except json.JSONDecodeError:
-            errors.append(f"manifest line {line_no}: invalid JSON")
-            continue
-        if not isinstance(row, dict):
-            errors.append(
-                f"manifest line {line_no}: expected dict, got {type(row).__name__}"
-            )
-            continue
-        path = row.get("path")
-        if not path or not isinstance(path, str):
-            errors.append(f"manifest line {line_no}: missing or invalid path")
-            continue
+    for path, row in result.rows_by_key.items():
         records[path] = row
+    errors = [_format_issue("manifest", issue) for issue in result.issues]
     return records, errors
 
 
 def write_source_manifest(vault: Path, records: dict[str, dict[str, object]]) -> None:
-    """Write the source manifest to ``Schema/source-manifest.jsonl``."""
+    """Write the source manifest to ``Schema/source-manifest.jsonl``.
+
+    Uses ledgercore's compact, deterministic, atomic JSONL writer. Note this
+    emits compact JSON (``{"a":1}``) rather than the previous spaced form; the
+    content round-trips identically and tests compare parsed content.
+    """
     manifest_path = vault / SOURCE_MANIFEST
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    lines: list[str] = []
-    for record in records.values():
-        lines.append(json.dumps(record, sort_keys=True, ensure_ascii=False))
-    manifest_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    write_jsonl_objects(manifest_path, records.values(), atomic=True)

@@ -25,9 +25,9 @@ readme = "README.md"
 license = "MIT"
 keywords = ["markdown", "wiki", "llm", "cli", "knowledge-management", "obsidian", "logseq"]
 dependencies = [
+  "ledgercore>=0.2.0,<0.3.0",
   "typer",
   "click",
-  "PyYAML",
   "rapidfuzz",
   "fuzzysearch",
   'tomli>=2; python_version < "3.11"',

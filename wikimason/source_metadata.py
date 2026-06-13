@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from datetime import datetime, timezone
 from pathlib import Path
+
+from ledgercore.errors import JsonStoreError
+from ledgercore.hashing import sha256_bytes as sha256_bytes
+from ledgercore.hashing import sha256_text as sha256_text
+from ledgercore.jsonio import load_json_object, write_json
+from ledgercore.time import utc_now_iso
 
 from .constants import SOURCE_SCHEMA_VERSION
 from .frontmatter import update_frontmatter
@@ -59,7 +63,7 @@ def manifest_required_fields() -> set[str]:
 
 def generate_source_id(content: str, timestamp: datetime | None = None) -> str:
     ts = timestamp or datetime.now(timezone.utc)
-    prefix = hashlib.sha256(content.encode("utf-8")).hexdigest()[:12]
+    prefix = sha256_text(content)[:12]
     return f"src_{ts.strftime('%Y%m%d')}_{prefix}"
 
 
@@ -131,20 +135,29 @@ def is_binary_source(path: Path) -> bool:
 
 
 def read_sidecar(sidecar: Path) -> dict[str, object] | None:
-    """Read a JSON sidecar."""
-    if not sidecar.exists():
+    """Read a JSON sidecar.
+
+    Returns ``None`` when the sidecar is absent or unreadable, preserving
+    WikiMason's historical tolerance. Delegated to ledgercore.
+    """
+    try:
+        return load_json_object(
+            sidecar, label="WikiMason source sidecar", missing="empty"
+        )
+    except JsonStoreError:
         return None
-    with sidecar.open(encoding="utf-8") as fh:
-        data = json.loads(fh.read())
-    if isinstance(data, dict):
-        return data
-    return None
 
 
 def write_sidecar(sidecar: Path, block: dict[str, object]) -> None:
-    """Write a JSON sidecar with the wikimason block."""
-    sidecar.parent.mkdir(parents=True, exist_ok=True)
-    sidecar.write_text(json.dumps(block, sort_keys=True, indent=2), encoding="utf-8")
+    """Write a JSON sidecar with the wikimason block via ledgercore's atomic writer."""
+    write_json(
+        sidecar,
+        block,
+        indent=2,
+        sort_keys=True,
+        ensure_ascii=False,
+        atomic=True,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -170,9 +183,7 @@ def _guess_mime(path: Path) -> str:
     return mime_map.get(suffix, "application/octet-stream")
 
 
-def sha256_text(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
 def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    # ledgercore formats as YYYY-MM-DDTHH:MM:SSZ. No WikiMason test asserts
+    # the legacy microsecond/+00:00 form on source-record timestamps.
+    return utc_now_iso()

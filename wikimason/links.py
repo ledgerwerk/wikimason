@@ -23,6 +23,7 @@ from .paths import (
     rel_to_vault,
     resolve_path_in_vault,
 )
+from .storage import write_text_atomic
 
 
 @dataclass(frozen=True)
@@ -279,11 +280,9 @@ def normalize_links(
                 updated_text = render_page_text(
                     updated_data, updated_body, config=config
                 )
-            path.write_text(updated_text, encoding="utf-8")
+            write_text_atomic(path, updated_text)
         elif replacements:
-            path.write_text(
-                render_page_text(data, updated_body, config=config), encoding="utf-8"
-            )
+            write_text_atomic(path, render_page_text(data, updated_body, config=config))
     return LinkNormalization(
         path=rel,
         changed=changed,

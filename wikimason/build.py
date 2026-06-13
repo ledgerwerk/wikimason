@@ -18,6 +18,7 @@ from .schema import (
     render_frontmatter_schema_markdown,
     schema_source_label,
 )
+from .storage import write_text_atomic
 
 
 @dataclass(frozen=True)
@@ -39,9 +40,9 @@ def sync_source_count(vault: Path) -> int:
         source_count: Any = data.get("source_count", 0)
         if int(source_count) == expected:
             continue
-        path.write_text(
+        write_text_atomic(
+            path,
             update_page_text(text, {"source_count": expected}, config=config),
-            encoding="utf-8",
         )
         updated += 1
     return updated
@@ -58,16 +59,16 @@ def build_vault(vault: Path) -> BuildResult:
     write_catalog(vault, entries)
     rebuild_indexes(vault, entries, schema=schema, config=config)
 
-    (schema_dir / "frontmatter-schema.md").write_text(
+    write_text_atomic(
+        schema_dir / "frontmatter-schema.md",
         render_frontmatter_schema_markdown(
             schema,
             source_label=schema_source_label(vault, config=config),
         ),
-        encoding="utf-8",
     )
-    (schema_dir / "command-reference.md").write_text(
+    write_text_atomic(
+        schema_dir / "command-reference.md",
         render_command_reference_markdown(),
-        encoding="utf-8",
     )
 
     write_agents_md(vault, config=config)
@@ -96,7 +97,7 @@ def rebuild_indexes(
     ).items():
         target = vault / relpath
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8")
+        write_text_atomic(target, content)
 
 
 def render_index_pages(

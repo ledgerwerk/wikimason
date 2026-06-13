@@ -19,9 +19,12 @@ from wikimason.scaffold import init_vault
 def test_runtime_dependencies_declared():
     data = tomllib.loads(Path("pyproject.toml").read_text())
     deps = set(data["project"]["dependencies"])
+    assert "ledgercore>=0.2.0,<0.3.0" in deps
     assert "typer" in deps
     assert "click" in deps
-    assert "PyYAML" in deps
+    # PyYAML is provided transitively via ledgercore; WikiMason no longer
+    # imports yaml directly after the front matter facade migration.
+    assert "PyYAML" not in deps
     assert "rapidfuzz" in deps
     assert "fuzzysearch" in deps
 
@@ -215,3 +218,32 @@ def test_visible_typer_commands_have_command_specs() -> None:
     spec_paths = {spec.path for spec in COMMAND_SPECS if not spec.hidden}
     undocumented = actual - spec_paths
     assert not undocumented
+
+
+def test_frontmatter_facade_matches_current_spacing():
+    from wikimason.frontmatter import update_frontmatter
+
+    text = "---\ntitle: T\n---\n\nBody\n"
+    assert update_frontmatter(text, {"x": "y"}) == "---\ntitle: T\nx: y\n---\n\nBody\n"
+
+
+def test_frontmatter_facade_preserves_dates_as_strings():
+    from wikimason.frontmatter import split_frontmatter
+
+    data, _ = split_frontmatter("---\ncreated: 2026-01-01\n---\nBody\n")
+    assert data["created"] == "2026-01-01"
+
+
+def test_frontmatter_facade_quotes_mustache_anywhere():
+    from wikimason.frontmatter import split_frontmatter
+
+    data, _ = split_frontmatter("---\ntitle: prefix {{ name }} suffix\n---\nBody\n")
+    assert data["title"] == "prefix {{ name }} suffix"
+
+
+def test_frontmatter_facade_missing_returns_original():
+    from wikimason.frontmatter import split_frontmatter
+
+    data, body = split_frontmatter("no front matter here\n")
+    assert data == {}
+    assert body == "no front matter here\n"

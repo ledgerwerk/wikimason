@@ -244,3 +244,17 @@ aliases: []
     assert payload["weak_sources"] == []
     records = {row["path"]: row for row in payload["records"]}
     assert records[source_rel]["coverage"] == ["Wiki/Topics/escaped-source.md"]
+
+
+def test_manifest_loader_returns_string_errors(tmp_path: Path) -> None:
+    from wikimason.constants import SOURCE_MANIFEST
+    from wikimason.source_manifest import load_source_manifest
+
+    vault = tmp_path
+    path = vault / SOURCE_MANIFEST
+    path.parent.mkdir()
+    path.write_text("{bad json\n{}\n", encoding="utf-8")
+    records, errors = load_source_manifest(vault)
+    assert records == {}
+    assert errors
+    assert all(isinstance(item, str) for item in errors)

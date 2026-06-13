@@ -5,10 +5,12 @@ Reads and writes a JSONL review queue at Schema/review.jsonl.
 
 from __future__ import annotations
 
-import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, cast
+
+from ledgercore.jsonl import load_jsonl_objects, write_jsonl_objects
 
 REVIEW_QUEUE_FILE = "Schema/review.jsonl"
 
@@ -56,29 +58,26 @@ def review_queue_path(vault: Path) -> Path:
 
 
 def load_review_queue(vault: Path) -> list[ReviewItem]:
-    """Read all review items from the JSONL queue."""
+    """Read all review items from the JSONL queue.
+
+    Malformed rows are silently ignored, preserving the historical
+    "ignore malformed rows" behavior. JSONL parsing is delegated to ledgercore.
+    """
     path = review_queue_path(vault)
-    if not path.exists():
-        return []
+    result = load_jsonl_objects(path, label="review queue", missing="empty")
     items: list[ReviewItem] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line:
-            continue
+    for row in result.rows:
         try:
-            data = json.loads(line)
-            items.append(ReviewItem(**data))
-        except (json.JSONDecodeError, TypeError):
+            items.append(ReviewItem(**cast(dict[str, Any], row)))
+        except TypeError:
             continue
     return items
 
 
 def save_review_queue(vault: Path, items: list[ReviewItem]) -> None:
-    """Write the full review queue to JSONL."""
+    """Write the full review queue to JSONL using ledgercore's atomic writer."""
     path = review_queue_path(vault)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    lines = [json.dumps(asdict(item), sort_keys=True) for item in items]
-    path.write_text("\n".join(lines) + "\n" if lines else "", encoding="utf-8")
+    write_jsonl_objects(path, [asdict(item) for item in items], atomic=True)
 
 
 def add_review_item(vault: Path, item: ReviewItem) -> None:

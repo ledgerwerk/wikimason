@@ -10,6 +10,7 @@ from .errors import UsageError
 from .frontmatter import render_frontmatter, split_frontmatter
 from .page_profiles import render_page_text, split_page_text
 from .paths import rel_to_vault, resolve_path_in_vault, slugify_title
+from .storage import create_text_atomic, write_text_atomic
 from .templates import resolve_template, template_path
 from .wikilinks import resolve_file_name
 
@@ -67,7 +68,11 @@ def write_file(
             title or target.stem,
             slug=slugify_title(title or target.stem),
         )
-    target.write_text(content, encoding="utf-8")
+    if overwrite:
+        write_text_atomic(target, content)
+    else:
+        # Guard above already ensured the target does not exist.
+        create_text_atomic(target, content)
     return target
 
 
@@ -91,7 +96,7 @@ def append_file(vault: Path, path: str, content: str, *, inline: bool = False) -
     else:
         separator = "" if not existing or existing.endswith("\n") else "\n"
         updated = existing + separator + content
-    target.write_text(updated, encoding="utf-8")
+    write_text_atomic(target, updated)
     return target
 
 
@@ -119,7 +124,7 @@ def prepend_file(vault: Path, path: str, content: str) -> Path:
         updated = (
             content + ("\n" if content and not content.endswith("\n") else "") + text
         )
-    target.write_text(updated, encoding="utf-8")
+    write_text_atomic(target, updated)
     return target
 
 

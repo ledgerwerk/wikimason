@@ -8,8 +8,10 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+from ledgercore.hashing import front_matter_fingerprint
+
 from .constants import SOURCE_SCHEMA_VERSION
-from .frontmatter import split_frontmatter, update_frontmatter
+from .frontmatter import canonical_json, split_frontmatter, update_frontmatter
 from .link_format import normalize_internal_link_target
 from .paths import rel_to_vault, source_md_files
 from .schema import compiled_prefixes, load_vault_schema
@@ -23,6 +25,7 @@ from .source_metadata import (
     is_binary_source,
     now_iso,
     read_sidecar,
+    sha256_bytes,
     sha256_text,
     sidecar_path,
     write_sidecar,
@@ -30,8 +33,6 @@ from .source_metadata import (
 
 
 def _record_content_inputs(path: Path) -> dict[str, Any]:
-    from .frontmatter import canonical_json
-
     metadata: dict[str, Any] = {}
     body = ""
     wm_block: dict[str, Any] | None = None
@@ -39,7 +40,10 @@ def _record_content_inputs(path: Path) -> dict[str, Any]:
     if is_binary_source(path):
         source_kind = "binary"
         raw_bytes = path.read_bytes()
-        full_sha = sha256_text(raw_bytes.hex())
+        # True SHA-256 of file bytes (ledgercore.sha256_bytes) instead of the
+        # legacy sha256_text(raw_bytes.hex()). Requires schema version >= 2;
+        # migrate existing vaults with `wikimason source rehash --accept-covered`.
+        full_sha = sha256_bytes(raw_bytes)
         content_sha256 = full_sha
         body_sha256 = full_sha
         metadata_sha256 = sha256_text(canonical_json({}))
@@ -47,12 +51,21 @@ def _record_content_inputs(path: Path) -> dict[str, Any]:
     else:
         source_kind = "text"
         text = path.read_text(encoding="utf-8")
-        full_sha = sha256_text(text)
         metadata, body = split_frontmatter(text)
         wm_block = extract_wikimason_metadata(metadata)
-        content_sha256 = sha256_text(body)
-        body_sha256 = content_sha256
-        metadata_sha256 = sha256_text(canonical_json(metadata))
+        # ledgercore fingerprints the full document, parsed body, and canonical
+        # metadata with the same parse kwargs as split_frontmatter, so the
+        # hashes stay consistent with metadata/body above.
+        fingerprint = front_matter_fingerprint(
+            text,
+            missing="empty",
+            preserve_yaml_timestamps_as_strings=True,
+            quote_template_placeholders="anywhere",
+        )
+        full_sha = fingerprint.full_sha256
+        content_sha256 = fingerprint.body_sha256
+        body_sha256 = fingerprint.body_sha256
+        metadata_sha256 = fingerprint.metadata_sha256
 
     return {
         "source_kind": source_kind,
@@ -480,7 +493,7 @@ def _seed_binary_source(target: Path) -> None:
         source_kind="binary",
         mime_type=_guess_mime(target),
         byte_size=target.stat().st_size,
-        content_sha256=sha256_text(raw_bytes.hex()),
+        content_sha256=sha256_bytes(raw_bytes),
         hash_scope="full_file_bytes",
     )
     write_sidecar(sidecar_path(target), wm_block)
