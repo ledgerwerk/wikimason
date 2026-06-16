@@ -8,3 +8,5 @@
 {"data":{"synced_rows":16},"event":"audit.updated","event_id":"event-0008","record_revisions":{"commit_audit_sheet":3},"release_version":"v0.2.0","schema_version":2}
 {"data":{"ok":true},"event":"audit.validated","event_id":"event-0009","record_revisions":{"commit_audit_sheet":3},"release_version":"v0.2.0","schema_version":2}
 {"data":{"ok":true},"event":"audit.validated","event_id":"event-0010","record_revisions":{"commit_audit_sheet":3},"release_version":"v0.2.0","schema_version":2}
+{"data":{"ok":true},"event":"audit.validated","event_id":"event-0011","record_revisions":{"commit_audit_sheet":3},"release_version":"v0.2.0","schema_version":2}
+{"data":{"released_at":"2026-06-16"},"event":"release.finalized","event_id":"event-0012","record_revisions":{"release:v0.2.0":5},"release_version":"v0.2.0","schema_version":2}

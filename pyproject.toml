@@ -54,10 +54,10 @@ dynamic=["version"]
 wikimason = "wikimason.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/holgern/wikimason"
-Repository = "https://github.com/holgern/wikimason"
-Issues = "https://github.com/holgern/wikimason/issues"
-Changelog = "https://github.com/holgern/wikimason/releases"
+Homepage = "https://github.com/ledgerwerk/wikimason"
+Repository = "https://github.com/ledgerwerk/wikimason"
+Issues = "https://github.com/ledgerwerk/wikimason/issues"
+Changelog = "https://github.com/ledgerwerk/wikimason/releases"
 
 [project.optional-dependencies]
 dev = [
