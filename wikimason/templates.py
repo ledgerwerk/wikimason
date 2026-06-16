@@ -9,10 +9,12 @@ from .config import LinkConfig
 from .errors import UsageError
 from .frontmatter import render_frontmatter_value
 from .link_format import format_link, normalize_internal_link_target
+from .note_types import display_type_for_kind
 
 TEMPLATE_RE = re.compile(r"{{\s*([a-zA-Z0-9_]+)\s*}}")
 
 SOURCE_TEMPLATE = """---
+type: Source
 Title: "{{title}}"
 Author: ""
 Reference: ""
@@ -34,6 +36,7 @@ Short source summary.
 """
 
 TOPIC_TEMPLATE = """---
+type: {{type}}
 tags:
   - topic
 topics: {{topics_yaml}}
@@ -63,6 +66,7 @@ Define the topic boundary.
 """
 
 CONCEPT_TEMPLATE = """---
+type: {{type}}
 tags:
   - concept
 topics: {{topics_yaml}}
@@ -92,6 +96,7 @@ Explain the concept in one place without duplicating raw source text.
 """
 
 ENTITY_TEMPLATE = """---
+type: {{type}}
 tags:
   - entity
 topics: {{topics_yaml}}
@@ -121,6 +126,7 @@ Describe the entity and why it matters to the wiki.
 """
 
 PROJECT_TEMPLATE = """---
+type: {{type}}
 tags:
   - project
 topics: {{topics_yaml}}
@@ -150,6 +156,7 @@ Current state and next actions.
 """
 
 LOG_TEMPLATE = """---
+type: {{type}}
 tags:
   - log
 topics: {{topics_yaml}}
@@ -318,6 +325,7 @@ def _normalized_template_slug(name: str) -> str:
 
 def _template_values(context: TemplateContext) -> dict[str, str]:
     return {
+        "type": display_type_for_kind(context.kind) if context.kind else "",
         "title": context.title,
         "slug": context.slug,
         "kind": context.kind,

@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .config import WikiMasonConfig
 
 DEFAULT_COMPILED_REQUIRED = (
+    "type",
     "tags",
     "topics",
     "status",

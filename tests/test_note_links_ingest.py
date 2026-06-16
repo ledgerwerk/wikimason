@@ -56,6 +56,13 @@ def test_note_new_with_source_and_related_lints_clean(
         == 0
     )
 
+    from wikimason.frontmatter import split_frontmatter
+
+    data, _ = split_frontmatter(
+        (vault / "Wiki/Concepts/foo-concept.md").read_text(encoding="utf-8")
+    )
+    assert data["type"] == "Concept"
+
     build_vault(vault)
 
     assert main(["vault", "lint", "--vault", str(vault)]) == 0

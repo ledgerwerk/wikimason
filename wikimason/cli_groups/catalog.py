@@ -79,6 +79,7 @@ def register_catalog(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         result = build_vault(vault)
         payload = {
+            "updated_type_count": result.updated_type_count,
             "updated_source_count": result.updated_source_count,
             "catalog_count": result.catalog_count,
         }
@@ -86,7 +87,10 @@ def register_catalog(app: typer.Typer) -> None:
             ctx,
             CommandOutcome(
                 payload=payload,
-                text=f"updated_source_count={result.updated_source_count}",
+                text=(
+                    f"updated_type_count={result.updated_type_count}"
+                    f" updated_source_count={result.updated_source_count}"
+                ),
                 command="catalog.rebuild",
                 status="changed",
             ),
@@ -97,6 +101,7 @@ def register_catalog(app: typer.Typer) -> None:
                 summary=f"updated_source_count={result.updated_source_count}",
                 paths=("Wiki/catalog.jsonl",),
                 counts={
+                    "updated_type_count": result.updated_type_count,
                     "updated_source_count": result.updated_source_count,
                     "catalog_count": result.catalog_count,
                 },

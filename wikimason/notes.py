@@ -10,6 +10,11 @@ from .config import load_runtime_config
 from .errors import UsageError
 from .frontmatter import split_frontmatter
 from .link_format import format_link, normalize_internal_link_target
+from .note_types import (
+    display_type_for_kind,
+    expected_type_for_compiled_path,
+    has_valid_type,
+)
 from .page_profiles import (
     logical_ref_to_relpath,
     render_page_text,
@@ -126,6 +131,7 @@ def render_note_content(
     config = load_runtime_config(vault)
     kind_config = note_kind(schema, kind)
     default_data = {
+        "type": display_type_for_kind(kind),
         "tags": [kind_config.tag],
         "topics": [],
         "status": status,
@@ -202,6 +208,7 @@ def _load_note_template(vault: Path, name: str, kind: str) -> str:
 
 
 CLI_AUTHORITATIVE_FIELDS = (
+    "type",
     "tags",
     "topics",
     "status",
@@ -275,6 +282,12 @@ def normalize_note(vault: Path, note_path: str, fix: bool = False) -> dict[str, 
         updates["sources"] = sources
     if int(data.get("source_count", 0)) != len(sources):
         updates["source_count"] = len(sources)
+
+    schema = load_vault_schema(vault)
+    rel = rel_to_vault(vault, path)
+    expected_type = expected_type_for_compiled_path(schema, rel)
+    if expected_type and not has_valid_type(data.get("type")):
+        updates["type"] = expected_type
 
     # P1 fix: infer source frontmatter from body links when sources is empty.
     body_source_links = _extract_body_source_links(vault, body)

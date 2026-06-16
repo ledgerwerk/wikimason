@@ -18,11 +18,13 @@ from .schema import (
     render_frontmatter_schema_markdown,
     schema_source_label,
 )
+from .schema_upgrade import migrate_compiled_note_types
 from .storage import write_text_atomic
 
 
 @dataclass(frozen=True)
 class BuildResult:
+    updated_type_count: int
     updated_source_count: int
     catalog_count: int
 
@@ -54,6 +56,7 @@ def build_vault(vault: Path) -> BuildResult:
     schema_dir = vault / config.paths.schema
     schema_dir.mkdir(parents=True, exist_ok=True)
 
+    type_result = migrate_compiled_note_types(vault)
     updated = sync_source_count(vault)
     entries = list(iter_catalog_entries(vault))
     write_catalog(vault, entries)
@@ -82,7 +85,11 @@ def build_vault(vault: Path) -> BuildResult:
         idx.close()
     except Exception:
         pass  # Search index is optional; build should not fail
-    return BuildResult(updated_source_count=updated, catalog_count=len(entries))
+    return BuildResult(
+        updated_type_count=type_result.updated,
+        updated_source_count=updated,
+        catalog_count=len(entries),
+    )
 
 
 def rebuild_indexes(

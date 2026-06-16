@@ -26,6 +26,7 @@ from .sources import (
 class IngestFinishResult:
     ok: bool
     exit_code: int
+    build_updated_type_count: int
     build_updated_source_count: int
     build_catalog_count: int
     lint_ok: bool
@@ -129,6 +130,7 @@ def ingest_finish(
     return IngestFinishResult(
         ok=exit_code == 0,
         exit_code=exit_code,
+        build_updated_type_count=build_result.updated_type_count,
         build_updated_source_count=build_result.updated_source_count,
         build_catalog_count=build_result.catalog_count,
         lint_ok=lint_ok,

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from conftest import remove_frontmatter_field
 
 from wikimason.build import build_vault
 from wikimason.frontmatter import update_frontmatter
@@ -122,4 +123,23 @@ def test_valid_logseq_scaffold_passes(tmp_path: Path) -> None:
     vault = tmp_path / "vault"
     init_vault(vault, demo=True, profile="logseq")
     build_vault(vault)
+    assert lint_vault(vault) == []
+
+
+def test_missing_type_fails_before_build_and_build_migrates(tmp_path: Path) -> None:
+    """A compiled note missing type fails lint; vault build migrates it in place."""
+    vault = tmp_path / "vault"
+    init_vault(vault, demo=True)
+    build_vault(vault)
+    target = vault / "Wiki/Concepts/compiled-knowledge.md"
+    text = target.read_text(encoding="utf-8")
+    target.write_text(remove_frontmatter_field(text, "type"), encoding="utf-8")
+
+    errors = lint_vault(vault)
+    assert any("type must be a non-empty string" in error for error in errors), (
+        f"Got: {errors}"
+    )
+
+    result = build_vault(vault)
+    assert result.updated_type_count == 1
     assert lint_vault(vault) == []

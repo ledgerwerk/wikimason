@@ -9,6 +9,7 @@ from ledgercore.jsonio import canonical_json as _canonical_json
 from .errors import UsageError
 
 FRONTMATTER_ORDER = [
+    "type",
     "title",
     "Title",
     "Author",

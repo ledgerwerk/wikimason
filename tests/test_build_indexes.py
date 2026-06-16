@@ -38,5 +38,6 @@ def test_source_count_sync_updates_frontmatter(tmp_path: Path) -> None:
     )
     result = build_vault(vault)
     assert result.updated_source_count >= 1
+    assert isinstance(result.updated_type_count, int)
     text = concept.read_text(encoding="utf-8")
     assert "source_count: 1" in text

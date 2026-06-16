@@ -25,6 +25,7 @@ def test_init_writes_starter_templates(tmp_path: Path) -> None:
         assert "{{date}}" in text
         assert "## Related" in text
         assert "## Sources" in text
+        assert "type: {{type}}" in text
     source = (vault / "_templates/source-note.md").read_text(encoding="utf-8")
     for field in (
         "Title:",
@@ -36,6 +37,7 @@ def test_init_writes_starter_templates(tmp_path: Path) -> None:
         "tags:",
     ):
         assert field in source
+    assert "type: Source" in source
 
 
 def test_schema_docs_created(tmp_path: Path) -> None:

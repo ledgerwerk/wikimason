@@ -7,6 +7,7 @@ from typing import Any
 from .config import load_runtime_config
 from .lint_credentials import check_credentials
 from .lint_links import kind_for_lint, validate_body_links, validate_field_links
+from .note_types import has_valid_type
 from .page_profiles import relpath_to_logical_ref, split_page_text
 from .schema import (
     allowed_tags,
@@ -106,6 +107,8 @@ def _validate_page_contract(
 
     required = compiled_required_fields(schema)
     for field in required:
+        if field == "type":
+            continue
         if field not in data:
             findings.append(
                 LintFinding(
@@ -115,6 +118,17 @@ def _validate_page_contract(
                     message=f"missing field {field}",
                 )
             )
+
+    if not has_valid_type(data.get("type")):
+        findings.append(
+            LintFinding(
+                path=rel,
+                line=None,
+                code="missing_type",
+                message="type must be a non-empty string",
+                suggestion="run wikimason vault build or note normalize --fix",
+            )
+        )
 
     tags = data.get("tags", [])
     if not isinstance(tags, list) or not tags:

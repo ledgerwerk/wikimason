@@ -167,3 +167,16 @@ required_sections = ["Decision", "Related", "Sources"]
     assert "Wiki/Decisions/adopt-schema.md" in (vault / "Wiki/catalog.jsonl").read_text(
         encoding="utf-8"
     )
+
+
+def test_generated_schema_doc_lists_type_as_compiled_required(
+    tmp_path: Path,
+) -> None:
+    """Schema/frontmatter-schema.md lists type under compiled required fields."""
+    vault = tmp_path / "vault"
+    init_vault(vault)
+    build_vault(vault)
+    schema_md = (vault / "Schema/frontmatter-schema.md").read_text(encoding="utf-8")
+    compiled_section = schema_md.split("## Compiled note required fields", 1)[1]
+    compiled_section = compiled_section.split("##", 1)[0]
+    assert "- `type`" in compiled_section

@@ -53,3 +53,15 @@ def read_json(capsys):
 
 def _strip_ansi(text: str) -> str:
     return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
+
+def remove_frontmatter_field(text: str, key: str) -> str:
+    """Remove a key from YAML frontmatter, preserving the body and blank line."""
+    from wikimason.frontmatter import render_frontmatter, split_frontmatter
+
+    data, body = split_frontmatter(text)
+    data.pop(key, None)
+    body = body.lstrip("\n")
+    if body:
+        return f"{render_frontmatter(data)}\n\n{body}"
+    return f"{render_frontmatter(data)}\n"

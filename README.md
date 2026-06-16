@@ -116,6 +116,8 @@ The Logseq profile stores logical wiki pages under `pages/` using flat filenames
 
 `Wiki/log.md` is the operational timeline for vault changes and audit actions. By default, log entries are compact and clean audit checks are suppressed to reduce noise. Use `mode = "diagnostic"` in `[logging]` for full verbose tracing.
 
+Compiled knowledge notes under `Wiki/Topics`, `Wiki/Concepts`, `Wiki/Entities`, `Wiki/Projects`, and `Wiki/Logs` carry a self-describing `type` field (for example `type: Concept`). `wikimason vault build` backfills any missing `type` in place, and `wikimason vault lint` fails a compiled note whose `type` is missing, non-string, or empty. Existing raw sources under `Raw/Sources/` are not rewritten by this step.
+
 ## Core workflow
 
 ### 1. Add raw sources

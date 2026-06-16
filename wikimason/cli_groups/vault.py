@@ -206,10 +206,14 @@ def register_vault(app: typer.Typer) -> None:
         vault = _vault_from_ctx(ctx)
         result = build_vault(vault)
         payload = {
+            "updated_type_count": result.updated_type_count,
             "updated_source_count": result.updated_source_count,
             "catalog_count": result.catalog_count,
         }
-        text = f"updated_source_count={result.updated_source_count}"
+        text = (
+            f"updated_type_count={result.updated_type_count}"
+            f" updated_source_count={result.updated_source_count}"
+        )
         _finish_command(
             ctx,
             CommandOutcome(
@@ -224,6 +228,7 @@ def register_vault(app: typer.Typer) -> None:
                 "Built vault",
                 summary=text,
                 counts={
+                    "updated_type_count": result.updated_type_count,
                     "updated_source_count": result.updated_source_count,
                     "catalog_count": result.catalog_count,
                 },
@@ -360,6 +365,7 @@ def register_vault(app: typer.Typer) -> None:
                 "coverage_percent": coverage["coverage_percent"],
             },
             "catalog_count": result.catalog_count,
+            "updated_type_count": result.updated_type_count,
             "updated_source_count": result.updated_source_count,
             "lint_errors": lint_errors,
             "source_lint_errors": source_lint_errors,
@@ -399,6 +405,7 @@ def register_vault(app: typer.Typer) -> None:
                     "checked audit findings."
                 ),
                 counts={
+                    "updated_type_count": result.updated_type_count,
                     "updated_source_count": result.updated_source_count,
                     "catalog_count": result.catalog_count,
                     "source_total": coverage["total"],

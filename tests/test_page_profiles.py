@@ -54,6 +54,7 @@ See [[Wiki/Topics/wikimason|WikiMason]].
 """
     text = render_page_text(
         {
+            "type": "Concept",
             "tags": ["concept", "build"],
             "status": "active",
             "sources": ["Raw/Sources/demo.md"],
@@ -64,6 +65,7 @@ See [[Wiki/Topics/wikimason|WikiMason]].
     )
 
     assert "- tags:: concept, build" in text
+    assert "- type:: Concept" in text
     assert "- ## Deployment Pipeline" in text
     assert "  - Ship the documented steps." in text
     assert "    - 1. Run tests" in text
@@ -74,6 +76,7 @@ See [[Wiki/Topics/wikimason|WikiMason]].
     data, parsed_body = split_page_text(text, config=config)
 
     assert data == {
+        "type": "Concept",
         "tags": ["concept", "build"],
         "status": "active",
         "sources": ["Raw/Sources/demo.md"],

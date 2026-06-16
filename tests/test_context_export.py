@@ -314,7 +314,10 @@ class TestContextPlan:
             )
 
         build_vault(vault)
-        plan = plan_context(vault, "gappy", max_files=10, max_tokens=80)
+        # Budget tuned so the referencing page (gappy.md) is included but the
+        # large source is excluded; compiled notes now carry a required `type`
+        # field, which raises each note's token count slightly.
+        plan = plan_context(vault, "gappy", max_files=10, max_tokens=120)
 
         # Should have a closure gap if source was excluded by budget
         if not any("gappy-src" in item.path for item in plan.items):

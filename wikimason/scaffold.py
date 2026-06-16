@@ -236,6 +236,7 @@ def _create_demo(vault: Path, config: Any) -> None:
         config,
         logical_ref="Wiki/Concepts/compiled-knowledge",
         metadata={
+            "type": "Concept",
             "tags": ["concept"],
             "topics": ["Wiki/Topics/wikimason.md"],
             "status": "seed",
@@ -261,6 +262,7 @@ def _create_demo(vault: Path, config: Any) -> None:
         config,
         logical_ref="Wiki/Topics/wikimason",
         metadata={
+            "type": "Topic",
             "tags": ["topic"],
             "topics": [],
             "status": "active",
@@ -286,6 +288,7 @@ def _create_demo(vault: Path, config: Any) -> None:
         config,
         logical_ref="Wiki/Projects/wikimason-demo",
         metadata={
+            "type": "Project",
             "tags": ["project"],
             "topics": ["Wiki/Topics/wikimason.md"],
             "status": "active",
@@ -311,6 +314,7 @@ def _create_demo(vault: Path, config: Any) -> None:
         config,
         logical_ref="Wiki/Logs/initial-ingest",
         metadata={
+            "type": "Log",
             "tags": ["log"],
             "topics": ["Wiki/Topics/wikimason.md"],
             "status": "active",

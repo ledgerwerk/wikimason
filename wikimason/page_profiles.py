@@ -263,6 +263,7 @@ def _parse_logseq_property(name: str, value: str) -> object:
 
 def _render_logseq_properties(metadata: dict[str, Any]) -> list[str]:
     preferred = [
+        "type",
         "title",
         "summary",
         "tags",
