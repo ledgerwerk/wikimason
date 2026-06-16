@@ -1,0 +1,598 @@
+schema_version: 1
+object_type: commit_audit_sheet
+versioning:
+  schema_version: 1
+  revision: 3
+release_version: v0.2.0
+git_base_ref: v0.1.0
+git_base_sha: e3f073f7f7b232f829d94149f9b36677d9862321
+git_head_ref: HEAD
+git_head_sha: 5dfe5f5678e98497e604c646ba27faeb2ee9442b
+git_range: e3f073f7f7b232f829d94149f9b36677d9862321..5dfe5f5678e98497e604c646ba27faeb2ee9442b
+commit_count: 16
+rows:
+  - sha: aaa39314fc8795285bddd3ffddd8a4f5313e9809
+    source_ref: git:aaa39314fc8795285bddd3ffddd8a4f5313e9809
+    short_sha: aaa3931
+    changed_paths:
+      - README.md
+    stats:
+      files_changed: 1
+      insertions: 342
+      deletions: 16
+    inspected: true
+    inspected_paths:
+      - README.md
+    observed_behavior:
+      "Complete README rewrite: added install instructions, first-run
+      walkthrough for markdown/obsidian/logseq profiles, command overview table, status
+      section, and development guide. 342 new lines of user-facing documentation."
+    public_impact: public
+    decision: accepted
+    evidence_subject: "doc: improve readme"
+    target_entry_key: docs-readme
+    target_entry_id: entry-0001
+  - sha: 6c6e9d24775f976cc1b07c790d82babc435a373e
+    source_ref: git:6c6e9d24775f976cc1b07c790d82babc435a373e
+    short_sha: 6c6e9d2
+    changed_paths:
+      - .taskledger.toml
+      - ARCHITECTURE.md
+      - docs/agent-workflow.rst
+      - docs/architecture.rst
+      - docs/command-reference.rst
+      - docs/commands.rst
+      - docs/conf.py
+      - docs/config.rst
+      - docs/index.rst
+      - docs/logseq.rst
+      - docs/profiles.rst
+      - docs/raw-sources.rst
+      - pyproject.toml
+      - tests/test_skills.py
+      - wikimason/git_hooks.py
+      - wikimason/scaffold.py
+    stats:
+      files_changed: 16
+      insertions: 378
+      deletions: 262
+    inspected: true
+    inspected_paths:
+      - docs/
+      - pyproject.toml
+      - wikimason/scaffold.py
+      - wikimason/git_hooks.py
+    observed_behavior:
+      "Updated Sphinx documentation across all rst files: restructured
+      commands.rst, expanded config.rst, improved architecture docs, added index entries.
+      Updated pyproject.toml for docs extras. Minor scaffold and git_hooks fixes."
+    public_impact: public
+    decision: accepted
+    evidence_subject: "doc: update doc"
+    target_entry_key: docs-sphinx
+    target_entry_id: entry-0002
+  - sha: c88f033a749f5b369e4a6aad47aa3fdbf7402100
+    source_ref: git:c88f033a749f5b369e4a6aad47aa3fdbf7402100
+    short_sha: c88f033
+    changed_paths:
+      - .archledger/records/contexts/al_0024.md
+      - .archledger/records/runtime/al_0044.md
+      - .archledger/sections/al_0006.md
+      - ARCHITECTURE.md
+    stats:
+      files_changed: 4
+      insertions: 5
+      deletions: 5
+    inspected: true
+    inspected_paths:
+      - .archledger/
+      - ARCHITECTURE.md
+    observed_behavior:
+      "Minor fixes to architecture ledger records and ARCHITECTURE.md:
+      wording corrections and formatting tweaks. No behavioral change."
+    public_impact: internal
+    decision: internal
+    evidence_subject: "doc: update architecture doc"
+    target_entry_id: entry-0011
+  - sha: 8104499f460ee232e66a9acd792776a61cbbb9fd
+    source_ref: git:8104499f460ee232e66a9acd792776a61cbbb9fd
+    short_sha: "8104499"
+    changed_paths:
+      - .taskledger.toml
+      - docs/command-reference.md
+      - skills/wikimason/SKILL.md
+      - tests/test_command_specs_metadata.py
+      - tests/test_ingest_plan_executable.py
+      - tests/test_json_envelope.py
+      - tests/test_note_links_ingest.py
+      - tests/test_source_cli.py
+      - tests/test_templates_starter_style.py
+      - tests/test_vault_maintain.py
+      - wikimason/cli_groups/root.py
+      - wikimason/cli_groups/source.py
+      - wikimason/cli_groups/vault.py
+      - wikimason/cli_output.py
+      - wikimason/command_specs.py
+      - wikimason/ingest.py
+      - wikimason/notes.py
+    stats:
+      files_changed: 17
+      insertions: 989
+      deletions: 115
+    inspected: true
+    inspected_paths:
+      - wikimason/cli_output.py
+      - wikimason/command_specs.py
+      - wikimason/cli_groups/source.py
+      - wikimason/cli_groups/vault.py
+      - wikimason/notes.py
+      - wikimason/ingest.py
+      - tests/
+    observed_behavior:
+      Added cli_output module for structured JSON envelope output.
+      Extended source scan/delta/coverage with --details flag for compact vs full output.
+      Improved vault maintain with --accept-covered option. Enhanced notes and ingest
+      modules. Added 7 new test files.
+    public_impact: public
+    decision: accepted
+    evidence_subject: "feat: improved skill and related agent commands"
+    target_entry_key: cli-output-source
+    target_entry_id: entry-0003
+  - sha: 149dc2458822ecab1881366aa9b2ba7bb33b4163
+    source_ref: git:149dc2458822ecab1881366aa9b2ba7bb33b4163
+    short_sha: 149dc24
+    changed_paths:
+      - tests/test_command_specs_metadata.py
+      - tests/test_ingest_plan_executable.py
+      - tests/test_json_envelope.py
+      - tests/test_vault_maintain.py
+      - wikimason/cli_groups/source.py
+    stats:
+      files_changed: 5
+      insertions: 140
+      deletions: 142
+    inspected: true
+    inspected_paths:
+      - wikimason/cli_groups/source.py
+      - tests/
+    observed_behavior:
+      "Pre-commit formatting fixes: reorganized imports, adjusted whitespace
+      and line lengths in source CLI and tests. No behavioral change."
+    public_impact: internal
+    decision: internal
+    evidence_subject: "chore: pre-commit"
+    target_entry_id: entry-0012
+  - sha: 2d51ad0b2448c9d68180894570de12c2386a7511
+    source_ref: git:2d51ad0b2448c9d68180894570de12c2386a7511
+    short_sha: 2d51ad0
+    changed_paths:
+      - .taskledger.toml
+      - docs/agent-workflow.md
+      - wikimason/cli_groups/source.py
+    stats:
+      files_changed: 3
+      insertions: 7
+      deletions: 8
+    inspected: true
+    inspected_paths:
+      - wikimason/cli_groups/source.py
+      - docs/agent-workflow.md
+    observed_behavior:
+      Minor code cleanup in source CLI and agent workflow docs. No
+      new functionality.
+    public_impact: internal
+    decision: internal
+    evidence_subject: "feat: code improvement"
+    target_entry_id: entry-0013
+  - sha: 648b5157bc4f2f758ee908c2700bc4279a27e2f8
+    source_ref: git:648b5157bc4f2f758ee908c2700bc4279a27e2f8
+    short_sha: 648b515
+    changed_paths:
+      - .taskledger.toml
+      - tests/test_context_export.py
+      - wikimason/build.py
+      - wikimason/cli_app.py
+      - wikimason/cli_groups/context.py
+      - wikimason/command_specs.py
+      - wikimason/context_export.py
+      - wikimason/search_index.py
+    stats:
+      files_changed: 8
+      insertions: 1723
+      deletions: 20
+    inspected: true
+    inspected_paths:
+      - wikimason/context_export.py
+      - wikimason/cli_groups/context.py
+      - wikimason/search_index.py
+      - tests/test_context_export.py
+    observed_behavior:
+      "Added context export feature: new context command group (context
+      plan, context export) for topic-based wiki content selection. Implemented FTS
+      search index with scoring and link expansion. 707-line context_export module with
+      plan/export/render workflow. 435-line test suite."
+    public_impact: public
+    decision: accepted
+    evidence_subject: "feat: context export feature"
+    target_entry_key: context-export
+    target_entry_id: entry-0004
+  - sha: 5cd44fd045e13a4a8c7fdd7f0f13be4cd4ad3c16
+    source_ref: git:5cd44fd045e13a4a8c7fdd7f0f13be4cd4ad3c16
+    short_sha: 5cd44fd
+    changed_paths:
+      - tests/test_context_export.py
+      - wikimason/cli_app.py
+      - wikimason/cli_groups/context.py
+      - wikimason/command_specs.py
+      - wikimason/context_export.py
+      - wikimason/search_index.py
+    stats:
+      files_changed: 6
+      insertions: 263
+      deletions: 185
+    inspected: true
+    inspected_paths:
+      - wikimason/context_export.py
+      - wikimason/search_index.py
+      - tests/test_context_export.py
+    observed_behavior:
+      Pre-commit formatting and style fixes for context export module,
+      search index, and tests. No behavioral change.
+    public_impact: internal
+    decision: internal
+    evidence_subject: "chore: pre-commit"
+    target_entry_id: entry-0014
+  - sha: 710fad3af1c9478c862b5c88bea8e081f8ef5dca
+    source_ref: git:710fad3af1c9478c862b5c88bea8e081f8ef5dca
+    short_sha: 710fad3
+    changed_paths:
+      - .taskledger.toml
+      - README.md
+      - docs/architecture.rst
+      - docs/command-reference.md
+      - docs/commands.rst
+      - skills/wikimason/SKILL.md
+      - tests/test_command_specs_metadata.py
+      - tests/test_json_envelope.py
+      - tests/test_log_cli.py
+      - tests/test_logs.py
+      - tests/test_operational_logging.py
+      - tests/test_scaffold.py
+      - wikimason/cli_app.py
+      - wikimason/cli_groups/agents.py
+      - wikimason/cli_groups/catalog.py
+      - wikimason/cli_groups/daily.py
+      - wikimason/cli_groups/file.py
+      - wikimason/cli_groups/index.py
+      - wikimason/cli_groups/ingest.py
+      - wikimason/cli_groups/links.py
+      - wikimason/cli_groups/log.py
+      - wikimason/cli_groups/note.py
+      - wikimason/cli_groups/page.py
+      - wikimason/cli_groups/property.py
+      - wikimason/cli_groups/review.py
+      - wikimason/cli_groups/root.py
+      - wikimason/cli_groups/source.py
+      - wikimason/cli_groups/task.py
+      - wikimason/cli_groups/vault.py
+      - wikimason/cli_helpers.py
+      - wikimason/command_specs.py
+      - wikimason/commands.py
+      - wikimason/log_events.py
+      - wikimason/logging_policy.py
+      - wikimason/logs.py
+      - wikimason/scaffold.py
+    stats:
+      files_changed: 36
+      insertions: 2429
+      deletions: 185
+    inspected: true
+    inspected_paths:
+      - wikimason/log_events.py
+      - wikimason/logging_policy.py
+      - wikimason/logs.py
+      - wikimason/cli_groups/log.py
+      - wikimason/cli_helpers.py
+      - wikimason/command_specs.py
+      - tests/test_logs.py
+      - tests/test_log_cli.py
+      - tests/test_operational_logging.py
+    observed_behavior:
+      "Added operational logging infrastructure: log command group
+      with add/tail/check commands, structured log events with actions and timestamps,
+      logging policy module, log validation. Extended all CLI groups with operational
+      logging. Added 3 test files for logging."
+    public_impact: public
+    decision: accepted
+    evidence_subject: "feat: better logging"
+    target_entry_key: operational-logging
+    target_entry_id: entry-0005
+  - sha: 1d5e24238650126170a99c1243e292386f2b70f6
+    source_ref: git:1d5e24238650126170a99c1243e292386f2b70f6
+    short_sha: 1d5e242
+    changed_paths:
+      - .taskledger.toml
+      - README.md
+      - docs/commands.rst
+      - tests/test_context_export.py
+      - wikimason/cli_groups/context.py
+      - wikimason/command_specs.py
+      - wikimason/context_export.py
+      - wikimason/search_index.py
+    stats:
+      files_changed: 8
+      insertions: 1138
+      deletions: 66
+    inspected: true
+    inspected_paths:
+      - wikimason/context_export.py
+      - wikimason/search_index.py
+      - wikimason/cli_groups/context.py
+      - tests/test_context_export.py
+    observed_behavior:
+      "Enhanced context generation: improved search index with better
+      scoring, expanded context export with more filtering options (--include-indexes,
+      --include-generated, --include-binary, --min-score, --allow-sensitive). 472 new
+      test lines."
+    public_impact: public
+    decision: accepted
+    evidence_subject: "feat: improve context generation"
+    target_entry_key: context-generation
+    target_entry_id: entry-0006
+  - sha: 9a817c0c6dc27a08d32d37f7ca00423b27b49464
+    source_ref: git:9a817c0c6dc27a08d32d37f7ca00423b27b49464
+    short_sha: 9a817c0
+    changed_paths:
+      - README.md
+      - tests/test_context_export.py
+      - tests/test_log_cli.py
+      - tests/test_logs.py
+      - tests/test_operational_logging.py
+      - wikimason/cli_groups/ingest.py
+      - wikimason/cli_groups/links.py
+      - wikimason/cli_groups/log.py
+      - wikimason/cli_groups/note.py
+      - wikimason/cli_groups/page.py
+      - wikimason/cli_groups/property.py
+      - wikimason/cli_groups/review.py
+      - wikimason/cli_groups/root.py
+      - wikimason/cli_groups/source.py
+      - wikimason/cli_groups/task.py
+      - wikimason/cli_groups/vault.py
+      - wikimason/command_specs.py
+      - wikimason/context_export.py
+      - wikimason/log_events.py
+      - wikimason/logs.py
+      - wikimason/search_index.py
+    stats:
+      files_changed: 21
+      insertions: 257
+      deletions: 101
+    inspected: true
+    inspected_paths:
+      - wikimason/cli_groups/
+      - wikimason/logs.py
+      - wikimason/context_export.py
+      - tests/
+    observed_behavior:
+      "Pre-commit fixes across all CLI groups: import reordering, type
+      annotation cleanup, minor code style. Also fixed README formatting and test adjustments.
+      No behavioral change."
+    public_impact: internal
+    decision: internal
+    evidence_subject: "chore: fix pre-commit"
+    target_entry_id: entry-0015
+  - sha: b17e939d9ad6d3394776d9687383c2d7de4e741a
+    source_ref: git:b17e939d9ad6d3394776d9687383c2d7de4e741a
+    short_sha: b17e939
+    changed_paths:
+      - .taskledger.toml
+      - README.md
+      - docs/command-reference.md
+      - docs/config.rst
+      - tests/test_command_specs_metadata.py
+      - tests/test_config_logging.py
+      - tests/test_log_cli.py
+      - tests/test_logging_policy.py
+      - tests/test_logs.py
+      - tests/test_logs_rotation.py
+      - tests/test_operational_logging.py
+      - tests/test_scaffold.py
+      - wikimason/cli_groups/links.py
+      - wikimason/cli_groups/log.py
+      - wikimason/cli_groups/root.py
+      - wikimason/cli_groups/vault.py
+      - wikimason/cli_helpers.py
+      - wikimason/command_specs.py
+      - wikimason/commands.py
+      - wikimason/config.py
+      - wikimason/log_policy.py
+      - wikimason/logs.py
+      - wikimason/paths.py
+      - wikimason/scaffold.py
+      - wikimason/source_scan.py
+    stats:
+      files_changed: 25
+      insertions: 1409
+      deletions: 72
+    inspected: true
+    inspected_paths:
+      - wikimason/config.py
+      - wikimason/log_policy.py
+      - wikimason/logs.py
+      - wikimason/cli_groups/log.py
+      - wikimason/command_specs.py
+      - tests/test_config_logging.py
+      - tests/test_logging_policy.py
+      - tests/test_logs_rotation.py
+      - docs/config.rst
+    observed_behavior:
+      Added log rotation with configurable retention, logging configuration
+      via config.py (log_max_bytes, log_backup_count, log_level), new log rotate CLI
+      command, log policy module, and log archives support (--archives flag on tail/check).
+      Expanded logging docs. 6 new test files.
+    public_impact: public
+    decision: accepted
+    evidence_subject: "feat: log rotation and loggin config added"
+    target_entry_key: log-rotation
+    target_entry_id: entry-0007
+  - sha: 6768b7783d46864b9025ee59955ba2ce85fc75b2
+    source_ref: git:6768b7783d46864b9025ee59955ba2ce85fc75b2
+    short_sha: 6768b77
+    changed_paths:
+      - .taskledger.toml
+      - skills/wikimason/SKILL.md
+      - tests/test_agents_compile.py
+      - tests/test_ingest_plan_executable.py
+      - tests/test_source_cli.py
+      - tests/test_vault_maintain.py
+      - wikimason/agents.py
+      - wikimason/cli_groups/agents.py
+      - wikimason/cli_groups/ingest.py
+      - wikimason/cli_groups/source.py
+      - wikimason/cli_groups/vault.py
+      - wikimason/commands.py
+      - wikimason/ingest.py
+    stats:
+      files_changed: 13
+      insertions: 375
+      deletions: 23
+    inspected: true
+    inspected_paths:
+      - wikimason/ingest.py
+      - wikimason/agents.py
+      - wikimason/commands.py
+      - wikimason/cli_groups/ingest.py
+      - skills/wikimason/SKILL.md
+      - tests/
+    observed_behavior:
+      "Improved ingest guidance: added source grouping for related
+      sources in ingest plans, agent commands for agents.md freshness check, and SKILL.md
+      guidance updates. Enhanced agents.py with generated_at comparison normalization."
+    public_impact: public
+    decision: accepted
+    evidence_subject: "feat: better ingest guidance"
+    target_entry_key: ingest-guidance
+    target_entry_id: entry-0008
+  - sha: edd07effc0192c9060b1db99150471a8f9135c09
+    source_ref: git:edd07effc0192c9060b1db99150471a8f9135c09
+    short_sha: edd07ef
+    changed_paths:
+      - tests/test_ingest_plan_executable.py
+      - tests/test_source_cli.py
+      - tests/test_vault_maintain.py
+      - wikimason/cli_groups/agents.py
+      - wikimason/cli_groups/ingest.py
+      - wikimason/cli_groups/source.py
+      - wikimason/ingest.py
+    stats:
+      files_changed: 7
+      insertions: 139
+      deletions: 36
+    inspected: true
+    inspected_paths:
+      - wikimason/ingest.py
+      - wikimason/cli_groups/
+      - tests/
+    observed_behavior:
+      Pre-commit formatting and test refinements for ingest, source
+      CLI, and agents. No behavioral change.
+    public_impact: internal
+    decision: internal
+    evidence_subject: "chore: pre-commit"
+    target_entry_id: entry-0016
+  - sha: df58f4dac88d01a32e413ed688cfd3f31a0d664b
+    source_ref: git:df58f4dac88d01a32e413ed688cfd3f31a0d664b
+    short_sha: df58f4d
+    changed_paths:
+      - .taskledger.toml
+      - pyproject.toml
+      - tests/test_refactor.py
+      - tests/test_source_manifest.py
+      - wikimason/agents.py
+      - wikimason/build.py
+      - wikimason/catalog.py
+      - wikimason/config.py
+      - wikimason/constants.py
+      - wikimason/files.py
+      - wikimason/frontmatter.py
+      - wikimason/links.py
+      - wikimason/notes.py
+      - wikimason/paths.py
+      - wikimason/review.py
+      - wikimason/scaffold.py
+      - wikimason/source_manifest.py
+      - wikimason/source_metadata.py
+      - wikimason/source_scan.py
+      - wikimason/storage.py
+    stats:
+      files_changed: 20
+      insertions: 321
+      deletions: 213
+    inspected: true
+    inspected_paths:
+      - wikimason/frontmatter.py
+      - wikimason/paths.py
+      - wikimason/storage.py
+      - pyproject.toml
+      - wikimason/config.py
+      - wikimason/build.py
+    observed_behavior:
+      "Refactored to use ledgercore library: frontmatter parsing now
+      delegates to ledgercore.frontmatter, path validation uses ledgercore.errors, and
+      added storage.py wrapper. Added ledgercore dependency to pyproject.toml. Rendering
+      stays WikiMason-local to preserve existing behavior."
+    public_impact: public
+    decision: accepted
+    evidence_subject: "feat: use ledgercore"
+    target_entry_key: use-ledgercore
+    target_entry_id: entry-0009
+  - sha: 5dfe5f5678e98497e604c646ba27faeb2ee9442b
+    source_ref: git:5dfe5f5678e98497e604c646ba27faeb2ee9442b
+    short_sha: 5dfe5f5
+    changed_paths:
+      - .taskledger.toml
+      - README.md
+      - tests/conftest.py
+      - tests/test_build_indexes.py
+      - tests/test_context_export.py
+      - tests/test_lint_starter_contract.py
+      - tests/test_note_links_ingest.py
+      - tests/test_page_profiles.py
+      - tests/test_schema_behavior.py
+      - tests/test_templates_starter_style.py
+      - wikimason/build.py
+      - wikimason/cli_groups/catalog.py
+      - wikimason/cli_groups/vault.py
+      - wikimason/frontmatter.py
+      - wikimason/ingest.py
+      - wikimason/lint_rules.py
+      - wikimason/note_types.py
+      - wikimason/notes.py
+      - wikimason/page_profiles.py
+      - wikimason/scaffold.py
+      - wikimason/schema.py
+      - wikimason/schema_upgrade.py
+      - wikimason/templates.py
+    stats:
+      files_changed: 23
+      insertions: 214
+      deletions: 5
+    inspected: true
+    inspected_paths:
+      - wikimason/note_types.py
+      - wikimason/schema_upgrade.py
+      - wikimason/lint_rules.py
+      - wikimason/build.py
+      - wikimason/templates.py
+      - wikimason/notes.py
+      - tests/
+    observed_behavior:
+      "Added note type system: new note_types module with display types
+      per note kind, schema_upgrade module for type migration, lint rules for type validation,
+      and type annotation in templates and build. Notes now get a type field in frontmatter."
+    public_impact: public
+    decision: accepted
+    evidence_subject: "feat: add type to created files"
+    target_entry_key: note-types
+    target_entry_id: entry-0010
