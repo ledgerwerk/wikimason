@@ -1,6 +1,11 @@
 # Agent Workflow
 
-Use canonical top-level WikiMason commands for wiki workflows. The product is filesystem-backed and does not expose a runtime bridge or a `wikimason obsidian` command namespace.
+This landing page mirrors the generated Markdown reference in
+`docs/agent-workflow.md`.
+
+Use the canonical top-level WikiMason commands for wiki workflows. The
+product is filesystem-backed and does not expose a runtime bridge or a
+`wikimason obsidian` command namespace.
 
 ## First-run workflow
 

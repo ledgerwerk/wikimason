@@ -75,7 +75,7 @@ rich = [
 docs = [
     "sphinx",
     "sphinx-rtd-theme",
-    "myst-parser",
+    "myst-parser>=2.0.0",
 ]
 
 [tool.setuptools_scm]

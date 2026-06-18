@@ -384,10 +384,10 @@ Primary docs live in `docs/`. Runtime-generated vault docs are written under `Sc
 Important docs:
 
 - `docs/command-reference.md`: generated public command reference.
-- `docs/config.rst`: TOML configuration model and precedence.
-- `docs/profiles.rst`: Markdown, Obsidian, and Logseq profiles.
-- `docs/raw-sources.rst`: raw-source metadata, manifest, hashing, and rename detection.
-- `docs/agent-workflow.rst`: recommended workflow for coding agents.
+- `docs/config.md`: TOML configuration model and precedence.
+- `docs/profiles.md`: Markdown, Obsidian, and Logseq profiles.
+- `docs/raw-sources.md`: raw-source metadata, manifest, hashing, and rename detection.
+- `docs/agent-workflow.md`: recommended workflow for coding agents.
 
 ## Design constraints
 

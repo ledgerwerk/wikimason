@@ -82,8 +82,12 @@ def test_readme_documents_core_workflows() -> None:
         assert phrase in text
 
 
+def test_docs_are_markdown_only() -> None:
+    assert not list(Path("docs").glob("*.rst"))
+
+
 def test_docs_index_exposes_main_pages() -> None:
-    text = Path("docs/index.rst").read_text(encoding="utf-8")
+    text = Path("docs/index.md").read_text(encoding="utf-8")
     for page in [
         "architecture",
         "profiles",
