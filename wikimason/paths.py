@@ -68,14 +68,16 @@ def resolve_vault(
 
 
 def ensure_inside_vault(vault: Path, path: Path) -> Path:
-    # Validate the resolved path, but keep the caller's lexical path. This
-    # avoids platform-specific aliases such as macOS's /private/tmp prefix.
-    candidate = path.expanduser().absolute()
+    # Validate an absolute path, but return the caller's expanded lexical path.
+    # This avoids platform-specific aliases such as macOS's /private/tmp prefix
+    # and Windows drive prefixes added to root-relative paths.
+    lexical_path = path.expanduser()
+    candidate = lexical_path.absolute()
     try:
         ensure_inside_base(vault, candidate, field_name="vault path")
     except PathValidationError as exc:
         raise UsageError("path traversal or outside-vault write rejected") from exc
-    return candidate
+    return lexical_path
 
 
 def rel_to_vault(vault: Path, path: Path) -> str:
