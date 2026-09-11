@@ -125,9 +125,12 @@ def _render_kv_pairs(values: dict[str, Any], *, omit_empty: bool = False) -> str
 
 
 def _render_log_event_diagnostic(event: LogEvent) -> str:
-    lines = [
+    title = (
         f"## [{_format_timestamp(event.timestamp)}] {event.action} | "
-        f"{_sanitize_scalar(event.title)}",
+        f"{_sanitize_scalar(event.title)}"
+    )
+    lines = [
+        title,
         "",
         f"- status: {_sanitize_scalar(event.status)}",
         f"- command: {_sanitize_scalar(event.command)}",
@@ -163,9 +166,12 @@ def _should_include_counts(event: LogEvent, logging: LoggingConfig) -> bool:
 
 
 def _render_log_event_compact(event: LogEvent, logging: LoggingConfig) -> str:
-    lines = [
+    title = (
         f"## [{_format_timestamp(event.timestamp)}] {event.action} | "
-        f"{_sanitize_scalar(event.title)}",
+        f"{_sanitize_scalar(event.title)}"
+    )
+    lines = [
+        title,
         "",
         f"- status: {_sanitize_scalar(event.status)}",
         f"- command: {_sanitize_scalar(event.command)}",

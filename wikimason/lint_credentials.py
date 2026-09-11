@@ -17,7 +17,7 @@ def check_credentials(text: str, rel: str, findings: list) -> None:
 
     for line_number, line in enumerate(text.splitlines(), start=1):
         stripped = line.strip()
-        if stripped.startswith("#") or stripped.startswith("<!--"):
+        if stripped.startswith(("#", "<!--")):
             continue
         for pattern in _CREDENTIAL_PATTERNS:
             if pattern.search(stripped):

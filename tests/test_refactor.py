@@ -120,7 +120,7 @@ def test_search_module_imports_without_fuzzysearch(monkeypatch):
 def test_frontmatter_yaml_preserves_dates_as_strings():
     from wikimason.frontmatter import split_frontmatter
 
-    data, body = split_frontmatter(
+    data, _body = split_frontmatter(
         "---\ncreated: 2026-05-29\naliases:\n  - Demo\n---\nBody"
     )
     assert data["created"] == "2026-05-29"

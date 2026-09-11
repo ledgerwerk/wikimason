@@ -62,20 +62,14 @@ def emit(
     normalized = normalize_format(fmt)
     if normalized is OutputFormat.json:
         # Wrap raw payloads in the standard envelope.
-        if command is not None and not isinstance(payload, dict):
-            payload = emit_json_envelope(
-                command=command,
-                data=payload,
-                exit_code=exit_code,
-                status=status,
-                warnings=warnings,
-                errors=errors,
-                next_action=next_action,
-            )
-        elif (
+        if (
             command is not None
-            and isinstance(payload, dict)
-            and "schema_version" not in payload
+            and not isinstance(payload, dict)
+            or (
+                command is not None
+                and isinstance(payload, dict)
+                and "schema_version" not in payload
+            )
         ):
             payload = emit_json_envelope(
                 command=command,

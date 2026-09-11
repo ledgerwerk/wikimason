@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .config import LinkConfig
@@ -225,7 +225,7 @@ def packaged_template_for_kind(kind: str) -> str:
 
 
 def resolve_template(text: str, title: str, **values: str) -> str:
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     context = TemplateContext(
         title=title,
         slug=values.get("slug", ""),
@@ -299,7 +299,7 @@ def read_template_file(vault: Path, name: str) -> str:
 
 
 def render_template_file(vault: Path, name: str, title: str = "") -> str:
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     return render_template(
         read_template_file(vault, name),
         TemplateContext(

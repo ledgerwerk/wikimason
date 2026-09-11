@@ -20,7 +20,7 @@ def resolve_vault(state: CliState) -> Path:
 
 def resolve_context_from_state(
     state: CliState, *, emit_diagnostics: bool
-) -> WikiContext:  # noqa: E501
+) -> WikiContext:
     context = resolve_context(
         vault=str(state.vault) if state.vault else None,
         env=state.env,

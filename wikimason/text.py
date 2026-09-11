@@ -35,5 +35,5 @@ def parse_json_list_or_none(value: str) -> list[str] | None:
         return None
     parsed = json.loads(raw)
     if not isinstance(parsed, list):
-        raise ValueError("expected JSON array")
+        raise TypeError("expected JSON array")
     return [str(v) for v in parsed]

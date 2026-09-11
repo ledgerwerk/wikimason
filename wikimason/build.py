@@ -83,7 +83,7 @@ def build_vault(vault: Path) -> BuildResult:
         idx = open_search_index(vault)
         idx.rebuild(vault)
         idx.close()
-    except Exception:
+    except Exception:  # noqa: BLE001, S110
         pass  # Search index is optional; build should not fail
     return BuildResult(
         updated_type_count=type_result.updated,
@@ -97,7 +97,7 @@ def rebuild_indexes(
     entries: list[dict[str, Any]],
     *,
     schema: Any = None,
-    config: Any = None,  # noqa: E501
+    config: Any = None,
 ) -> None:
     for relpath, content in render_index_pages(
         vault, entries, schema=schema, config=config
@@ -112,7 +112,7 @@ def render_index_pages(
     entries: list[dict[str, Any]],
     *,
     schema: Any = None,
-    config: Any = None,  # noqa: E501
+    config: Any = None,
 ) -> dict[str, str]:
     active_schema = schema or load_vault_schema(vault)
     active_config = config or load_runtime_config(vault)

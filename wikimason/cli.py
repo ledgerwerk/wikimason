@@ -92,7 +92,7 @@ def main(argv: list[str] | None = None) -> int:
             hasattr(exc, "exit_code")
             and hasattr(exc, "show")
             and hasattr(exc, "format_message")
-        ):  # noqa: E501
+        ):
             exc.show()
             return int(exc.exit_code)
         if hasattr(exc, "exit_code"):

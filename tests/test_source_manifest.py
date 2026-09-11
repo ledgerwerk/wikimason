@@ -163,7 +163,7 @@ def test_embed_wikimason_metadata_roundtrip(tmp_path: Path) -> None:
     text = "---\nTitle: Test\n---\n\nBody content"
     fields = {"wm_kind": "raw-source", "wm_source_id": "src_20260529_def456"}
     updated = embed_wikimason_metadata(text, fields)
-    metadata, body = split_frontmatter(updated)
+    metadata, _body = split_frontmatter(updated)
     extracted = extract_wikimason_metadata(metadata)
     assert extracted is not None
     assert extracted["wm_source_id"] == "src_20260529_def456"

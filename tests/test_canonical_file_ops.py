@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 
 from wikimason.cli import main
@@ -30,7 +30,7 @@ def test_daily_property_task_and_tag_commands(tmp_path: Path, capsys) -> None:
     assert (
         run_cli(vault, "daily", "append", "--content", "- [ ] Daily item #project") == 0
     )
-    daily_rel = f"{date.today().isoformat()}.md"
+    daily_rel = f"{datetime.now(timezone.utc).date().isoformat()}.md"
     assert run_cli(vault, "property", "set", "Welcome.md", "status", "draft") == 0
     assert run_cli(vault, "property", "get", "Welcome.md", "status") == 0
     assert "draft" in capsys.readouterr().out

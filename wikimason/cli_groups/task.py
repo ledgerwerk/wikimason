@@ -52,7 +52,7 @@ def register_task(app: typer.Typer) -> None:
         current = next(
             (status for line_num, status, _ in list_tasks(text) if line_num == line),
             " ",
-        )  # noqa: E501
+        )
         next_status = "x" if current == " " else " "
         write_task_status(target, line, next_status)
         rel_path = str(target.relative_to(vault))

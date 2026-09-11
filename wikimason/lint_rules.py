@@ -238,7 +238,7 @@ def check_logseq_profile(rel: str, text: str, findings: list) -> None:
         if (
             stripped
             and not any(stripped.startswith(p) for p in ("-", "```", "#"))
-            and not stripped == "---"
+            and stripped != "---"
         ):
             findings.append(
                 LintFinding(

@@ -1,0 +1,12 @@
+schema_version = 1
+migration_id = "d6166d86-20e9-4c63-9e8f-07dd04ec0b09"
+project_uuid = "ec38bcca-9b78-477c-9192-55314466fdf8"
+plan_hash = "sha256:2d2b3195373d5e175980eb3e3b3ebe3cd8abcb0b77b00f04993fd4a125bd41bd"
+source_root = "/home/nahrstaedt/src/ledger/wikimason/.releaseledger"
+source_fingerprint = "sha256:b57881ad0bc2bbea7d40fd8cf5aa43a75ced81633a7eb86fb79d4dcef52e4cfe"
+target_data_root = "/home/nahrstaedt/src/ledger/wikimason/.ledger/releaseledger/data"
+target_fingerprint = "sha256:f4cb22e46fe7560544ef74282f759d31ac325c293007f311651ba234d8a5b9d3"
+config_before_sha256 = ""
+config_after_sha256 = ""
+completed = true
+legacy_cleanup_permitted = true

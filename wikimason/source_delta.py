@@ -48,10 +48,9 @@ def _classify_record_delta(
     path = str(record["path"])
     present = bool(record.get("present", True))
 
-    if not prior or not bool(prior.get("present", True)):
-        if present:
-            delta["new"].append(record)
-            actionable_paths.add(sid)
+    if (not prior or not bool(prior.get("present", True))) and present:
+        delta["new"].append(record)
+        actionable_paths.add(sid)
     if not present:
         delta["removed"].append(record)
         actionable_paths.add(sid)
@@ -89,9 +88,9 @@ def _classify_record_delta(
 
 
 def _sort_delta_rows(delta: dict[str, list[dict[str, Any]]]) -> None:
-    for key in delta:
+    for key, rows in delta.items():
         delta[key] = sorted(
-            delta[key], key=lambda row: str(row.get("path", row.get("source_id", "")))
+            rows, key=lambda row: str(row.get("path", row.get("source_id", "")))
         )
 
 

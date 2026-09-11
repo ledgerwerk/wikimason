@@ -1,20 +1,23 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 from .files import append_file, prepend_file, read_file
 
 
 def daily_note_path(vault: Path, day: date | None = None) -> Path:
-    active_day = day or date.today()
+    active_day = day or datetime.now(timezone.utc).date()
     return vault / f"{active_day.isoformat()}.md"
 
 
 def ensure_daily_note(vault: Path, day: date | None = None) -> Path:
     path = daily_note_path(vault, day)
     if not path.exists():
-        path.write_text(f"# {(day or date.today()).isoformat()}\n", encoding="utf-8")
+        path.write_text(
+            f"# {(day or datetime.now(timezone.utc).date()).isoformat()}\n",
+            encoding="utf-8",
+        )
     return path
 
 

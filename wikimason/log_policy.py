@@ -48,6 +48,4 @@ def should_log_event(
         return True
     if event.status in {"changed", "degraded"}:
         return True
-    if event.status == "clean" and not config.include_audit_success:
-        return False
-    return True
+    return not (event.status == "clean" and not config.include_audit_success)

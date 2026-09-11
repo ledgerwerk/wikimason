@@ -132,6 +132,4 @@ def _needs_quotes(value: str) -> bool:
         return True
     if any(char in value for char in [":", "#", "[", "]"]):
         return True
-    if value.lower() in {"true", "false", "null", "none"}:
-        return True
-    return False
+    return value.lower() in {"true", "false", "null", "none"}

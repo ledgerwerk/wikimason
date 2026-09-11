@@ -62,11 +62,11 @@ from .source_verify import (
 )
 
 __all__ = [
-    "WIKIMASON_KIND",
-    "WIKIMASON_VERSION",
     "ACCEPTED_WM_KINDS",
     "SIDECAR_SUFFIX",
     "SOURCE_REQUIRED_FIELDS",
+    "WIKIMASON_KIND",
+    "WIKIMASON_VERSION",
     "_build_wm_fields",
     "_guess_mime",
     "build_source_coverage_map",

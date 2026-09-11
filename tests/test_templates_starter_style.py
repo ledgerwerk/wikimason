@@ -126,7 +126,7 @@ def test_note_new_cli_metadata_overrides_stale_vault_template(tmp_path: Path) ->
         status="seed",
     )
 
-    data, body = split_frontmatter(scaffold.path.read_text(encoding="utf-8"))
+    data, _body = split_frontmatter(scaffold.path.read_text(encoding="utf-8"))
     assert data["sources"] == [source_rel], (
         f"Expected sources=[{source_rel}], got {data['sources']}"
     )

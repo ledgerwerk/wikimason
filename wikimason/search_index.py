@@ -355,7 +355,7 @@ class SQLiteSearchIndex:
                 "last_rebuild": last_rebuild[0] if last_rebuild else None,
                 "db_path": str(self._db_path),
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return {"ok": False, "reason": str(exc)}
 
 

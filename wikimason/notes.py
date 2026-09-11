@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -75,7 +75,7 @@ def new_note(
     target = _note_target_path(vault, kind=kind, title=title, path=path, config=config)
     target.parent.mkdir(parents=True, exist_ok=True)
     note_path = rel_to_vault(vault, target)
-    today = date.today().isoformat()
+    today = datetime.now(timezone.utc).date().isoformat()
     normalized_sources = tuple(resolve_source_path(vault, source) for source in sources)
     normalized_related = tuple(
         normalize_related_path(vault, rel_path) for rel_path in related_list
@@ -259,7 +259,7 @@ def _extract_body_source_links(vault: Path, body: str) -> list[str]:
         if not cleaned:
             continue
         # Check if this looks like a source path
-        if cleaned.startswith("Raw/Sources/") or cleaned.startswith("Raw/Files/"):
+        if cleaned.startswith(("Raw/Sources/", "Raw/Files/")):
             try:
                 resolved = resolve_source_path(vault, cleaned)
                 if resolved not in source_links:
@@ -439,7 +439,7 @@ def source_body_lines(
 
 def format_note_link(
     link_config: Any, path: str, *, source_path: str | None = None
-) -> str:  # noqa: E501
+) -> str:
     normalized = (normalize_internal_link_target(path) or path).replace("\\", "/")
     return format_link(link_config, normalized, source_path=source_path)
 

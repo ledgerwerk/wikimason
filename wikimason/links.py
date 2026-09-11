@@ -8,6 +8,7 @@ from typing import Any
 
 from .catalog import extract_title
 from .config import load_runtime_config
+from .errors import UsageError
 from .frontmatter import split_frontmatter
 from .link_format import (
     ParsedLink,
@@ -238,7 +239,7 @@ def normalize_links(
             src_str = str(src).strip()
             try:
                 normalized = normalize_source_path(src_str)
-            except Exception:
+            except UsageError:
                 normalized = src_str
             if normalized != src_str:
                 field_replacements.append(
@@ -258,7 +259,7 @@ def normalize_links(
             val_str = str(val).strip()
             try:
                 normalized = normalize_related_path(vault, val_str)
-            except Exception:
+            except UsageError:
                 normalized = val_str
             if normalized != val_str:
                 field_replacements.append(

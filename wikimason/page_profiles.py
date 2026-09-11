@@ -20,8 +20,7 @@ _LOGSEQ_LIST_FIELDS = {"aliases", "sources", "tags", "topics"}
 
 def normalize_logical_ref(value: str) -> str:
     raw = value.replace("\\", "/").strip()
-    if raw.endswith(".md"):
-        raw = raw[:-3]
+    raw = raw.removesuffix(".md")
     normalized = posixpath.normpath(raw)
     if normalized in {"", "."}:
         raise UsageError("page reference must not be empty")

@@ -28,7 +28,7 @@ from ..scaffold import init_vault
 from ..search import search_catalog
 
 
-def register_root(app: typer.Typer) -> None:  # noqa: C901
+def register_root(app: typer.Typer) -> None:
     """Register top-level commands directly on the root *app*."""
 
     @app.command(hidden=True)

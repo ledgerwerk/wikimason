@@ -496,7 +496,7 @@ def test_note_normalize_repairs_sources_from_body_links(tmp_path: Path, capsys) 
         == 0
     )
 
-    data, body = split_frontmatter(note.read_text(encoding="utf-8"))
+    data, _body = split_frontmatter(note.read_text(encoding="utf-8"))
     assert data["sources"] == [source_rel], (
         f"Expected sources=[{source_rel}], got {data['sources']}"
     )

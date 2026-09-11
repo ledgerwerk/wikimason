@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import shutil
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -280,8 +280,8 @@ def build_source_coverage_map(
                 )
                 continue
             coverage_map.setdefault(normalized, []).append(rel_note)
-    for source in coverage_map:
-        coverage_map[source] = sorted(set(coverage_map[source]))
+    for source, notes in coverage_map.items():
+        coverage_map[source] = sorted(set(notes))
     weak_sources.sort(key=lambda row: (row["wiki_path"], row["source"], row["reason"]))
     return coverage_map, weak_sources
 
@@ -314,7 +314,7 @@ def _find_old_row_for_source(
         wm = extract_wikimason_metadata(metadata)
         if wm and wm.get("source_id"):
             return old_records.get(str(wm["source_id"]))
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
     return None
 
@@ -370,7 +370,7 @@ def _maybe_embed_missing_wm_metadata(
         updated = embed_wikimason_metadata(path.read_text(encoding="utf-8"), wm_block)
         path.write_text(updated, encoding="utf-8")
         return True
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -516,7 +516,7 @@ Author: ""
 Reference: ""
 ContentType:
   - note
-Created: {date.today().isoformat()}
+Created: {datetime.now(timezone.utc).date().isoformat()}
 Processed: false
 tags:
   - source

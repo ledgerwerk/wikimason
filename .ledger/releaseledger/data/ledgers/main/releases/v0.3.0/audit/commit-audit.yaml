@@ -1,0 +1,161 @@
+schema_version: 1
+object_type: commit_audit_sheet
+versioning:
+  schema_version: 1
+  revision: 3
+release_version: v0.3.0
+git_base_ref: v0.2.0
+git_base_sha: d45c7db7f68da99fbb76bf8db84428db6c395476
+git_head_ref: HEAD
+git_head_sha: 0119033ae7cdb00a285066c21c5d12d040e053f6
+git_range: d45c7db7f68da99fbb76bf8db84428db6c395476..0119033ae7cdb00a285066c21c5d12d040e053f6
+commit_count: 4
+rows:
+  - sha: 2a9892ac0adf772e913177c166a4b7ebac4796c4
+    source_ref: git:2a9892ac0adf772e913177c166a4b7ebac4796c4
+    short_sha: 2a9892a
+    changed_paths:
+      - .releaseledger/ledgers/main/events/events.jsonl
+      - .releaseledger/ledgers/main/indexes/releases.json
+      - .releaseledger/ledgers/main/releases/v0.2.0/release.md
+      - CHANGELOG.md
+      - pyproject.toml
+    stats:
+      files_changed: 0
+      insertions: 13
+      deletions: 11
+    inspected: true
+    inspected_paths:
+      - pyproject.toml
+      - CHANGELOG.md
+    observed_behavior:
+      Project metadata now points to the ledgerwerk GitHub repository,
+      while the existing v0.2.0 changelog release date is recorded as 2026-06-16.
+    public_impact: public
+    decision: accepted
+    stale: false
+    evidence_subject: "doc: update release date"
+    target_entry_id: entry-0003
+    notes:
+      The changelog date change records the prior release and is not new v0.3.0
+      product behavior.
+  - sha: cd505575fc2ae1a841ae9ab911f8f492223104ef
+    source_ref: git:cd505575fc2ae1a841ae9ab911f8f492223104ef
+    short_sha: cd50557
+    changed_paths:
+      - .taskledger.toml
+      - README.md
+      - docs/_static/.gitkeep
+      - docs/agent-workflow.md
+      - docs/agent-workflow.rst
+      - docs/architecture.md
+      - docs/architecture.rst
+      - docs/commands.md
+      - docs/commands.rst
+      - docs/conf.py
+      - docs/config.md
+      - docs/config.rst
+      - docs/index.md
+      - docs/index.rst
+      - docs/logseq.md
+      - docs/logseq.rst
+      - docs/migration.md
+      - docs/profiles.md
+      - docs/profiles.rst
+      - docs/raw-sources.md
+      - docs/raw-sources.rst
+      - docs/requirements.txt
+      - pyproject.toml
+      - tests/test_skills.py
+    stats:
+      files_changed: 0
+      insertions: 551
+      deletions: 623
+    inspected: true
+    inspected_paths:
+      - README.md
+      - docs
+      - docs/conf.py
+      - docs/requirements.txt
+      - pyproject.toml
+      - tests/test_skills.py
+    observed_behavior:
+      The Sphinx documentation set is converted from reStructuredText
+      to Markdown with MyST configuration, updated navigation and references, and Markdown-only
+      documentation checks.
+    public_impact: docs
+    decision: accepted
+    stale: false
+    evidence_subject: "doc: move rst to md using myst"
+    target_entry_id: entry-0002
+  - sha: 746b23bc8364931701e960ae760861c304925257
+    source_ref: git:746b23bc8364931701e960ae760861c304925257
+    short_sha: 746b23b
+    changed_paths:
+      - .codecrate.toml
+      - docs/conf.py
+      - tests/test_skills.py
+    stats:
+      files_changed: 0
+      insertions: 2
+      deletions: 3
+    inspected: true
+    inspected_paths:
+      - .codecrate.toml
+      - docs/conf.py
+      - tests/test_skills.py
+    observed_behavior:
+      Documentation tooling and related checks no longer include reStructuredText
+      files, completing the Markdown-only documentation configuration.
+    public_impact: docs
+    decision: accepted
+    stale: false
+    evidence_subject: "doc: switch to md files in the docs"
+    target_entry_id: entry-0002
+  - sha: 0119033ae7cdb00a285066c21c5d12d040e053f6
+    source_ref: git:0119033ae7cdb00a285066c21c5d12d040e053f6
+    short_sha: 0119033
+    changed_paths:
+      - .ledger/ledger.toml
+      - .ledger/migrations/dfe0d0ebde194e05b634cc287603e08d.toml
+      - .ledger/migrations/write.lock
+      - .ledger/taskledger/.ledger-project.toml
+      - .ledger/taskledger/config.toml
+      - ARCHITECTURE.md
+      - CHANGELOG.md
+      - docs/config.md
+      - docs/migration.md
+      - pyproject.toml
+      - tests/test_ledgercore_06_compat.py
+      - tests/test_refactor.py
+      - wikimason/catalog.py
+      - wikimason/config.py
+      - wikimason/frontmatter.py
+      - wikimason/paths.py
+      - wikimason/review.py
+      - wikimason/source_manifest.py
+      - wikimason/source_metadata.py
+      - wikimason/source_scan.py
+      - wikimason/storage.py
+    stats:
+      files_changed: 0
+      insertions: 234
+      deletions: 27
+    inspected: true
+    inspected_paths:
+      - pyproject.toml
+      - wikimason
+      - tests/test_ledgercore_06_compat.py
+      - tests/test_refactor.py
+      - docs/config.md
+      - docs/migration.md
+      - ARCHITECTURE.md
+    observed_behavior:
+      WikiMason now supports ledgercore 0.6.x through its public facade
+      imports, preserves frontmatter, path, hashing, JSON, timestamp, and atomic-write
+      contracts, and documents the ledgercore ownership boundary.
+    public_impact: public
+    decision: accepted
+    stale: false
+    evidence_subject: "feat: migrate to ledgercore 0.6.x"
+    target_entry_id: entry-0001

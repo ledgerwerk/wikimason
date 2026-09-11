@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import shlex
 from dataclasses import asdict, dataclass
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -51,7 +51,7 @@ def ingest_status(vault: Path) -> dict[str, Any]:
     coverage = source_coverage_report(vault)
     actionable_count = (
         int(str(delta_payload["actionable_count"])) if delta_payload else 0
-    )  # noqa: E501
+    )
     next_action = _next_action(lint_errors, source_lint_errors, actionable_count)
     return {
         "doctor_ok": doctor["ok"],
@@ -112,18 +112,19 @@ def ingest_finish(
     doctor_ok = doctor["ok"]
     actionable_count = (
         int(str(delta_payload["actionable_count"])) if delta_payload else 0
-    )  # noqa: E501
+    )
     scoped_paths = _scoped_note_paths(vault, scope=scope, source=source)
     scoped_findings = _filter_lint_findings(lint_errors, scoped_paths, scope=scope)
     scoped_lint_ok = not scoped_findings
     global_findings = lint_errors
     global_lint_ok = not global_findings
     exit_code = 0
-    if not (source_scan_ok and source_lint_ok and doctor_ok) or delta_errors:
-        exit_code = 1
-    elif not scoped_lint_ok:
-        exit_code = 1
-    elif not global_lint_ok:
+    if (
+        not (source_scan_ok and source_lint_ok and doctor_ok)
+        or delta_errors
+        or not scoped_lint_ok
+        or not global_lint_ok
+    ):
         exit_code = 1
     elif actionable_count > 0:
         exit_code = 2
@@ -248,7 +249,7 @@ def source_plan_group(vault: Path, sources: list[str]) -> dict[str, Any]:
     # Choose shortest title as hint
     title_hint = min(titles, key=len)
     slug = slugify_title(title_hint)
-    today = date.today().isoformat()
+    today = datetime.now(timezone.utc).date().isoformat()
 
     note_specs = [
         {
@@ -306,7 +307,7 @@ def source_plan(vault: Path, source_arg: str) -> dict[str, Any]:
         metadata.get("Title") or metadata.get("title") or source_path.stem
     ).strip()
     slug = slugify_title(title)
-    today = date.today().isoformat()
+    today = datetime.now(timezone.utc).date().isoformat()
     note_specs = [
         {
             "kind": "topic",

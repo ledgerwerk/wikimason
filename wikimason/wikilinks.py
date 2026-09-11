@@ -11,8 +11,7 @@ WIKILINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
 
 def clean_link(value: str) -> str:
     target = normalize_wikilink_name(value)
-    if target.endswith(".md"):
-        target = target[:-3]
+    target = target.removesuffix(".md")
     return target.strip()
 
 

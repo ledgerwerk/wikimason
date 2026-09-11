@@ -246,7 +246,7 @@ def _split_target_and_label(value: str) -> tuple[str, str | None, str | None]:
 
 def _split_markdown_target(value: str) -> tuple[str, str | None]:
     target = value.strip()
-    if " " in target and (target.endswith('"') or target.endswith("')")):
+    if " " in target and target.endswith(('"', "')")):
         target = target.rsplit(" ", 1)[0]
     fragment = None
     if "#" in target:

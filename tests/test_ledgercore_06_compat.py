@@ -63,8 +63,7 @@ def test_wide_path_normalization_contract() -> None:
 def test_path_containment_contract() -> None:
     vault = Path("/tmp/vault")
     assert (
-        ensure_inside_vault(vault, vault / "pages/note.md")
-        == vault / "pages/note.md"
+        ensure_inside_vault(vault, vault / "pages/note.md") == vault / "pages/note.md"
     )
 
 

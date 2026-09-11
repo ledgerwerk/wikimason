@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -226,7 +226,7 @@ def _write_config_if_missing(path: Path, config: Any, schema: Any) -> None:
 
 
 def _create_demo(vault: Path, config: Any) -> None:
-    today = date.today().isoformat()
+    today = datetime.now(timezone.utc).date().isoformat()
     write_text_atomic(
         vault / "Raw/Sources/wikimason-demo-source.md",
         SOURCE_TEMPLATE.format(title="LLM Wiki Demo Source", date=today),

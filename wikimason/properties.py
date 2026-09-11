@@ -75,13 +75,13 @@ def list_property_names(
             data, _ = split_page_text(text, config=active_config)
         else:
             data, _ = split_frontmatter(text)
-        return sorted(str(key) for key in data.keys())
+        return sorted(str(key) for key in data)
     rows: dict[str, int] = {}
     for item in compiled_md_files(vault):
         data, _ = split_page_text(
             item.read_text(encoding="utf-8"), config=active_config
         )
-        for key in data.keys():
+        for key in data:
             rows[str(key)] = rows.get(str(key), 0) + 1
     return sorted(rows)
 

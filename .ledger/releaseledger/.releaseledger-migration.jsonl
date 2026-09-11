@@ -1,0 +1,7 @@
+{"schema": "releaseledger.migration-journal.v2", "phase": "staging", "migration_id": "d6166d86-20e9-4c63-9e8f-07dd04ec0b09", "plan_hash": "pending", "reason": "Migrate legacy releaseledger storage to canonical project layout", "legacy_data_root": "/home/nahrstaedt/src/ledger/wikimason/.releaseledger", "target_data_root": "/home/nahrstaedt/src/ledger/wikimason/.ledger/releaseledger/data", "source_fingerprint": "sha256:b57881ad0bc2bbea7d40fd8cf5aa43a75ced81633a7eb86fb79d4dcef52e4cfe"}
+{"phase": "activation-prepared", "migration_id": "d6166d86-20e9-4c63-9e8f-07dd04ec0b09", "data_action": "create", "config_action": "create"}
+{"phase": "canonical-activated", "migration_id": "d6166d86-20e9-4c63-9e8f-07dd04ec0b09"}
+{"phase": "indexes-rebuilt", "migration_id": "d6166d86-20e9-4c63-9e8f-07dd04ec0b09"}
+{"phase": "domain-verified", "migration_id": "d6166d86-20e9-4c63-9e8f-07dd04ec0b09"}
+{"phase": "receipt-written", "migration_id": "d6166d86-20e9-4c63-9e8f-07dd04ec0b09", "receipt_path": "/home/nahrstaedt/src/ledger/wikimason/.ledger/releaseledger/migrations/d6166d86-20e9-4c63-9e8f-07dd04ec0b09.toml"}
+{"phase": "complete", "migration_id": "d6166d86-20e9-4c63-9e8f-07dd04ec0b09"}

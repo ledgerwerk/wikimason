@@ -633,8 +633,7 @@ class _Candidate:
             self.reasons.append(reason)
 
     def update_score(self, score: float, reason: str) -> None:
-        if score > self.score:
-            self.score = score
+        self.score = max(self.score, score)
         self.add_reason(reason)
 
 
@@ -835,7 +834,7 @@ def _merge_fts_seeds(
             chosen_plan = query_plan
             if results:
                 break
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
     finally:
         idx.close()
@@ -890,7 +889,7 @@ def _expand_graph(
             # Outgoing links
             try:
                 out = outgoing_links(full_path)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 out = []
             for linked in out:
                 if linked not in acc and linked not in visited:
@@ -907,7 +906,7 @@ def _expand_graph(
             # Backlinks
             try:
                 backs = backlinks(vault, cand.path)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 backs = []
             for back in backs:
                 if back not in acc and back not in visited:
@@ -948,8 +947,7 @@ def _expand_graph(
                                 acc[normalized].add_reason(
                                     f"declared-source-of:{cand.path}"
                                 )
-                except Exception:
-                    pass
+                except Exception:  # noqa: BLE001, S110
                     pass
 
         visited.update(new_paths)
@@ -985,7 +983,7 @@ def _check_source_closure(
         try:
             text = file_path.read_text(encoding="utf-8")
             data, _ = split_page_text(text, config=config)
-        except Exception:
+        except Exception:  # noqa: BLE001, S112
             continue
         sources = data.get("sources", [])
         if not isinstance(sources, list):
