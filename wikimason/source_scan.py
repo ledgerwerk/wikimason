@@ -8,7 +8,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from ledgercore.hashing import front_matter_fingerprint
+from ledgercore import front_matter_fingerprint
 
 from .constants import SOURCE_SCHEMA_VERSION
 from .frontmatter import canonical_json, split_frontmatter, update_frontmatter

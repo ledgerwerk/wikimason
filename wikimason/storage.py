@@ -14,9 +14,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ledgercore.atomic import atomic_create_text, atomic_write_text
+from ledgercore import atomic_create_text, atomic_write_text
 
-__all__ = ["write_text_atomic", "create_text_atomic"]
+__all__ = ["create_text_atomic", "write_text_atomic"]
 
 
 def write_text_atomic(path: Path, text: str) -> None:

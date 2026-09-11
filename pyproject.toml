@@ -25,7 +25,7 @@ readme = "README.md"
 license = "MIT"
 keywords = ["markdown", "wiki", "llm", "cli", "knowledge-management", "obsidian", "logseq"]
 dependencies = [
-  "ledgercore>=0.2.0,<0.3.0",
+  "ledgercore>=0.6.1,<0.7.0",
   "typer",
   "click",
   "rapidfuzz",

@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from ledgercore.errors import FrontMatterError
-from ledgercore.frontmatter import split_front_matter_text
-from ledgercore.jsonio import canonical_json as _canonical_json
+from ledgercore import (
+    FrontMatterError,
+    split_front_matter_text,
+)
+from ledgercore import (
+    canonical_json as _canonical_json,
+)
 
 from .errors import UsageError
 

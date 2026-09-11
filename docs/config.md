@@ -9,6 +9,8 @@ precedence order:
 4. Default env `~/.config/wikimason/default.toml`
 5. Built-in defaults
 
+
+`wikimason.toml` remains the WikiMason configuration format. Ledgercore's `.ledger/ledger.toml` project-layout API is not used for WikiMason vault configuration in this release.
 If both a local config and `--env` are present, the local config wins (it is
 more specific to the project). A diagnostic is emitted when a local config
 causes `--env` to be ignored.

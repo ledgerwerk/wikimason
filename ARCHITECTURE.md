@@ -42,16 +42,17 @@ WikiMason operates under several architectural constraints that shape its design
 
 - **Single flat package**: All source code lives in `wikimason/` at the repository root; no `src/` layout.
 - **Python 3.10+**: Minimum Python version with `tomllib` fallback via `tomli` for older versions.
-- **Minimal dependencies**: Runtime dependencies limited to Typer, Click, PyYAML, rapidfuzz, fuzzysearch, and tomli.
+- **Minimal dependencies**: Runtime dependencies limited to ledgercore 0.6.x, Typer, Click, rapidfuzz, fuzzysearch, and the Python-3.10 tomli fallback. YAML parsing is provided transitively through ledgercore; WikiMason does not directly import PyYAML.
 - **Deterministic filesystem operations**: No network calls, no database, no daemon processes.
 - **No upstream obsidian-cli**: All wiki operations use only the WikiMason CLI.
 - **Single project skill**: One skill file at `skills/wikimason/SKILL.md` defines agent behavior.
 
+- **Ledgercore ownership boundary**: ledgercore owns reusable filesystem and data primitives. WikiMason owns vault layout, profile semantics, visible configuration, source lifecycle rules, and CLI behavior. Ledgercore schema-3 storage is not the persistence model for WikiMason vault content.
 - **Python 3.10+ with minimal dependencies**
   - Impact: high
   - Notes: ## Constraint
 
-WikiMason must support Python 3.10 and later with a minimal set of runtime dependencies (typer, click, PyYAML, rapidfuzz, fuzzysearch, tomli).
+WikiMason directly depends on ledgercore 0.6.x, Typer, Click, rapidfuzz, fuzzysearch, and the Python-3.10 tomli fallback. YAML parsing is provided through ledgercore; WikiMason does not directly import PyYAML.
 
 ## Rationale
 

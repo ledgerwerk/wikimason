@@ -1,0 +1,18 @@
+schema_version = 3
+
+[project]
+uuid = "ec38bcca-9b78-477c-9192-55314466fdf8"
+name = "wikimason"
+
+[ledgers.taskledger.mounts.data]
+storage = "external"
+root = "../ledger"
+
+[ledgers.taskledger.mounts.runtime]
+storage = "user-data"
+
+[ledgers.taskledger.mounts.logs]
+storage = "user-data"
+
+[ledgers.taskledger.mounts.indexes]
+storage = "cache"

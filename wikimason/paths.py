@@ -5,14 +5,16 @@ import unicodedata
 from collections.abc import Iterator
 from pathlib import Path
 
-from ledgercore.errors import PathValidationError
-from ledgercore.path_text import (
-    decode_unicode_escape_literals as decode_unicode_escape_literals,
+from ledgercore import (
+    PathValidationError,
+    ensure_inside_base,
 )
-from ledgercore.path_text import (
+from ledgercore import (
+    decode_unicode_escape_literals as decode_unicode_escape_literals,  # noqa: PLC0414
+)
+from ledgercore import (
     normalize_path_text as _normalize_path_text,
 )
-from ledgercore.paths import ensure_inside_base
 
 from .config import find_wiki_root, load_runtime_config
 from .errors import UsageError

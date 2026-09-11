@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
-from ledgercore.jsonl import load_jsonl_objects, write_jsonl_objects
+from ledgercore import load_jsonl_objects, write_jsonl_objects
 
 REVIEW_QUEUE_FILE = "Schema/review.jsonl"
 

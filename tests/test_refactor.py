@@ -19,7 +19,7 @@ from wikimason.scaffold import init_vault
 def test_runtime_dependencies_declared():
     data = tomllib.loads(Path("pyproject.toml").read_text())
     deps = set(data["project"]["dependencies"])
-    assert "ledgercore>=0.2.0,<0.3.0" in deps
+    assert "ledgercore>=0.6.1,<0.7.0" in deps
     assert "typer" in deps
     assert "click" in deps
     # PyYAML is provided transitively via ledgercore; WikiMason no longer

@@ -5,8 +5,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from pathlib import Path
 
-from ledgercore.errors import JsonStoreError
-from ledgercore.jsonl import load_jsonl_object_map, write_jsonl_objects
+from ledgercore import JsonStoreError, load_jsonl_object_map, write_jsonl_objects
 
 from .constants import SOURCE_MANIFEST
 

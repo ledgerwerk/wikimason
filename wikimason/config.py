@@ -10,7 +10,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - Python 3.10 fallback
     import tomli as tomllib
 
-from ledgercore.paths import find_config_upwards
+from ledgercore import find_config_upwards
 
 from .constants import (
     CORE_VAULT_DIRS,
@@ -332,7 +332,7 @@ def load_config_file(path: Path) -> WikiMasonConfig:
     profile_values: dict[str, Any] = base.profile_config.as_dict()
     profile_values.update(
         cast(dict[str, Any], _load_profile_overrides(raw, base.profile))
-    )  # noqa: E501
+    )
     logging_values = base.logging.as_dict()
     logging_overrides = _logging_table(raw.get("logging", {}), table_name="logging")
     rotation_overrides = _rotation_table(
@@ -355,7 +355,7 @@ def load_config_file(path: Path) -> WikiMasonConfig:
             **cast(
                 dict[str, Any],
                 _profile_table(profile_values, table_name="profile settings"),
-            )  # noqa: E501
+            )
         ),
         logging=LoggingConfig(**cast(dict[str, Any], _logging_values(logging_values))),
     )

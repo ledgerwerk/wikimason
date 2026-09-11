@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-from ledgercore.jsonio import dumps_json
+from ledgercore import dumps_json
 
 from .config import WikiMasonConfig, load_runtime_config
 from .link_format import format_link
