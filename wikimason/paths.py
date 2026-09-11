@@ -68,12 +68,14 @@ def resolve_vault(
 
 
 def ensure_inside_vault(vault: Path, path: Path) -> Path:
-    # Containment check delegated to ledgercore; PathValidationError is
-    # converted to UsageError at the WikiMason module boundary.
+    # Validate the resolved path, but keep the caller's lexical path. This
+    # avoids platform-specific aliases such as macOS's /private/tmp prefix.
+    candidate = path.expanduser().absolute()
     try:
-        return ensure_inside_base(vault, path, field_name="vault path")
+        ensure_inside_base(vault, candidate, field_name="vault path")
     except PathValidationError as exc:
         raise UsageError("path traversal or outside-vault write rejected") from exc
+    return candidate
 
 
 def rel_to_vault(vault: Path, path: Path) -> str:
